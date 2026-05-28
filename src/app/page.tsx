@@ -1,18 +1,10 @@
 import Image from "next/image";
 import { createCheckoutSession } from "./actions";
 import { getSession } from "@/lib/session";
+import { Nav } from "@/components/Nav";
+import { Bolt } from "@/components/Bolt";
 
 const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
-
-/* ---------- Brand bits ---------- */
-
-function Bolt({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 375 375" className={className} aria-hidden="true" fill="currentColor">
-      <path d="M 212.199219 168.605469 L 269.113281 163.523438 C 269.796875 163.464844 270.253906 164.054688 269.84375 164.480469 C 227.035156 208.949219 179.03125 255.128906 125.265625 302.070312 C 96.945312 326.792969 68.757812 350.226562 40.90625 372.402344 C 40.285156 372.894531 39.234375 372.339844 39.617188 371.71875 C 58.9375 340.503906 79.519531 308.625 101.457031 276.179688 C 118.152344 251.484375 134.945312 227.484375 151.757812 204.175781 C 152.0625 203.75 151.621094 203.242188 150.996094 203.289062 C 130.617188 204.820312 110.238281 206.351562 89.859375 207.878906 C 89.167969 207.933594 88.726562 207.320312 89.160156 206.90625 C 123.707031 173.6875 161.773438 139.226562 203.628906 104.078125 C 247.824219 66.964844 291.429688 33.128906 333.578125 2.390625 C 334.234375 1.910156 335.246094 2.542969 334.792969 3.144531 C 293.671875 57.996094 252.550781 112.851562 211.429688 167.707031 C 211.105469 168.136719 211.558594 168.664062 212.199219 168.605469 Z M 212.199219 168.605469 " />
-    </svg>
-  );
-}
 
 function Lock({ className }: { className?: string }) {
   return (
@@ -61,20 +53,7 @@ export default async function Home() {
   const session = await getSession();
   return (
     <div className="flex flex-1 flex-col bg-clear-white text-smooth-black">
-      {/* Nav */}
-      <header className="sticky top-0 z-30 border-b border-smooth-black/10 bg-clear-white/90 backdrop-blur">
-        <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-          <Image src="/whoosh-wordmark-asphalt.svg" alt="Whoosh" width={1440} height={368} className="h-6 w-auto" priority />
-          <div className="flex items-center gap-7 text-sm font-medium">
-            <a href="#channels" className="hidden hover:text-real-blue sm:inline">Channels</a>
-            <a href="#plans" className="hidden hover:text-real-blue sm:inline">Plans</a>
-            <a href="#faq" className="hidden hover:text-real-blue sm:inline">FAQ</a>
-            <a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-real-blue px-4 py-2 text-clear-white transition-colors hover:bg-smudged-blue">
-              <Bolt className="h-4 w-4" /> Join the Discord
-            </a>
-          </div>
-        </nav>
-      </header>
+      <Nav />
 
       {/* Hero */}
       <section className="mx-auto grid w-full max-w-6xl items-center gap-12 px-6 py-20 sm:py-28 lg:grid-cols-2">

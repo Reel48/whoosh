@@ -33,17 +33,12 @@ export async function GET(req: Request) {
     await setSession({
       id: user.id,
       username: user.global_name?.trim() || user.username,
+      avatar: user.avatar ?? null,
     });
   } catch (e) {
     console.error("Discord OAuth callback failed:", e);
     return NextResponse.redirect(new URL("/?error=oauth_failed", req.url));
   }
 
-  // If the user kicked off OAuth from a Subscribe click, resume that checkout.
-  if (consumed.intent) {
-    return NextResponse.redirect(
-      new URL(`/api/checkout?interval=${encodeURIComponent(consumed.intent)}`, req.url),
-    );
-  }
-  return NextResponse.redirect(new URL("/#plans", req.url));
+  return NextResponse.redirect(new URL(consumed.next || "/account", req.url));
 }

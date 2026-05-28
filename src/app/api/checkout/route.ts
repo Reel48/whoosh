@@ -17,8 +17,9 @@ export async function GET(req: Request) {
 
   const session = await getSession();
   if (!session) {
+    const next = `/api/checkout?interval=${encodeURIComponent(interval)}`;
     return NextResponse.redirect(
-      new URL(`/api/auth/discord?intent=${encodeURIComponent(interval)}`, req.url),
+      new URL(`/api/auth/discord?next=${encodeURIComponent(next)}`, req.url),
     );
   }
 

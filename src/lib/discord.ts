@@ -9,8 +9,29 @@ export function authorizeUrl(redirectUri: string, state: string): string {
   u.searchParams.set("response_type", "code");
   u.searchParams.set("scope", "identify");
   u.searchParams.set("state", state);
-  u.searchParams.set("prompt", "consent");
+  // Omit `prompt=consent` so returning users don't have to re-confirm every time.
   return u.toString();
+}
+
+/** Fetch a member's data in the Whoosh guild (or null if they aren't a member). */
+export async function fetchGuildMember(userId: string): Promise<{ roles: string[]; nick?: string | null } | null> {
+  const guild = process.env.DISCORD_GUILD_ID;
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+  if (!guild || !botToken) throw new Error("Discord guild/bot env vars not set.");
+  const r = await fetch(`${DISCORD_API}/guilds/${guild}/members/${userId}`, {
+    headers: { Authorization: `Bot ${botToken}` },
+  });
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error(`Discord /guilds/.../members failed: ${r.status} ${await r.text()}`);
+  return (await r.json()) as { roles: string[]; nick?: string | null };
+}
+
+/** True iff the user is a member of the Whoosh guild AND has the Premium role. */
+export async function hasPremiumRole(userId: string): Promise<boolean> {
+  const role = process.env.DISCORD_PREMIUM_ROLE_ID;
+  if (!role) throw new Error("DISCORD_PREMIUM_ROLE_ID is not set.");
+  const member = await fetchGuildMember(userId);
+  return !!member && member.roles.includes(role);
 }
 
 export async function exchangeCode(code: string, redirectUri: string) {
