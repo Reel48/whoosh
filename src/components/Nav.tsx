@@ -34,6 +34,12 @@ export async function Nav() {
           <a href="/#channels" className="hidden hover:underline sm:inline">
             Channels
           </a>
+          <a
+            href={session ? "/wallet" : "/#bucks"}
+            className="hidden hover:underline sm:inline"
+          >
+            Whoosh Bucks
+          </a>
           <a href="/#plans" className="hidden hover:underline sm:inline">
             Plans
           </a>
