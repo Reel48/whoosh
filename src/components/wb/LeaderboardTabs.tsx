@@ -46,7 +46,7 @@ export function LeaderboardTabs({
   const subtitle = TABS.find((t) => t.id === tab)!.subtitle;
 
   return (
-    <div className="rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
+    <div className="rounded-3xl border-2 border-ink bg-white-smoke p-4 sm:p-8">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="font-heading text-xl font-bold text-ink">Leaderboard</h2>
         <p className="text-xs font-bold uppercase tracking-wider text-ink/60">
@@ -181,26 +181,33 @@ function RankList<T extends Entry>({
         return (
           <li
             key={`${e.rank}-${e.discordUserId}`}
-            className={`grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 py-3 ${
-              isMe ? "bg-blue/30 -mx-3 px-3 rounded-xl" : ""
+            className={`grid grid-cols-[1.5rem_1fr_auto] items-center gap-2 py-3 sm:grid-cols-[2.5rem_1fr_auto] sm:gap-4 ${
+              isMe ? "bg-blue/30 -mx-2 px-2 rounded-xl sm:-mx-3 sm:px-3" : ""
             }`}
           >
-            <span className="font-heading text-xl font-black text-ink/70 tabular-nums">
+            <span className="font-heading text-base font-black text-ink/70 tabular-nums sm:text-xl">
               {e.rank}
             </span>
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 sm:gap-3">
+              <Avatar
+                id={e.discordUserId}
+                hash={null}
+                username={e.discordUsername}
+                size={28}
+                className="border-2 border-ink flex-none sm:hidden"
+              />
               <Avatar
                 id={e.discordUserId}
                 hash={null}
                 username={e.discordUsername}
                 size={32}
-                className="border-2 border-ink flex-none"
+                className="border-2 border-ink flex-none hidden sm:block"
               />
               <div className="min-w-0">
-                <div className="truncate font-heading font-black text-ink">
+                <div className="truncate font-heading text-sm font-black text-ink sm:text-base">
                   @{e.discordUsername}
                   {isMe && (
-                    <span className="ml-2 rounded-full border-2 border-ink bg-blue px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-ink">
+                    <span className="ml-1.5 rounded-full border-2 border-ink bg-blue px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink sm:ml-2 sm:px-2 sm:text-xs">
                       you
                     </span>
                   )}
@@ -210,7 +217,7 @@ function RankList<T extends Entry>({
                 )}
               </div>
             </div>
-            <span className="font-heading text-lg font-black tabular-nums">
+            <span className="font-heading text-sm font-black tabular-nums sm:text-lg">
               {renderRight(e)}
             </span>
           </li>
