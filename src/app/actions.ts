@@ -38,7 +38,8 @@ export async function createCheckoutSession(formData: FormData) {
   const proto =
     h.get("x-forwarded-proto") ??
     (host.startsWith("localhost") ? "http" : "https");
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? `${proto}://${host}`;
+  const rawOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? `${proto}://${host}`;
+  const origin = rawOrigin.replace(/\/+$/, ""); // strip trailing slashes
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
