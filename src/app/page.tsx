@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
+
 /* ---------- Brand bits ---------- */
 
 function Bolt({ className }: { className?: string }) {
@@ -64,7 +66,7 @@ export default function Home() {
             <a href="#channels" className="hidden hover:text-real-blue sm:inline">Channels</a>
             <a href="#plans" className="hidden hover:text-real-blue sm:inline">Plans</a>
             <a href="#faq" className="hidden hover:text-real-blue sm:inline">FAQ</a>
-            <a href="#" className="inline-flex items-center gap-2 rounded-full bg-real-blue px-4 py-2 text-clear-white transition-colors hover:bg-smudged-blue">
+            <a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-real-blue px-4 py-2 text-clear-white transition-colors hover:bg-smudged-blue">
               <Bolt className="h-4 w-4" /> Join the Discord
             </a>
           </div>
@@ -83,7 +85,7 @@ export default function Home() {
             watch, market moves, and the banter in between. All in one Discord.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <a href="#" className="inline-flex items-center justify-center gap-2 rounded-full bg-real-blue px-7 py-3.5 text-base font-medium text-clear-white transition-colors hover:bg-smudged-blue">
+            <a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-real-blue px-7 py-3.5 text-base font-medium text-clear-white transition-colors hover:bg-smudged-blue">
               <Bolt className="h-5 w-5" /> Join the Discord
             </a>
             <a href="#plans" className="inline-flex items-center justify-center rounded-full border border-smooth-black/20 px-7 py-3.5 text-base font-medium transition-colors hover:border-smooth-black/40">
@@ -267,7 +269,7 @@ export default function Home() {
             <p className="mx-auto mt-4 max-w-xl text-lg text-clear-white/60">
               One chat for everything you actually care about. Come hang.
             </p>
-            <a href="#" className="mt-9 inline-flex items-center justify-center gap-2 rounded-full bg-real-blue px-8 py-4 text-base font-medium text-clear-white transition-colors hover:bg-smudged-blue">
+            <a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer" className="mt-9 inline-flex items-center justify-center gap-2 rounded-full bg-real-blue px-8 py-4 text-base font-medium text-clear-white transition-colors hover:bg-smudged-blue">
               <Bolt className="h-5 w-5" /> Join the Discord
             </a>
           </div>
@@ -282,7 +284,7 @@ export default function Home() {
             <a href="#channels" className="hover:text-clear-white">Channels</a>
             <a href="#plans" className="hover:text-clear-white">Plans</a>
             <a href="#faq" className="hover:text-clear-white">FAQ</a>
-            <a href="#" className="hover:text-clear-white">Discord</a>
+            <a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer" className="hover:text-clear-white">Discord</a>
           </div>
           <p className="text-sm text-blue-grey/60">&copy; {new Date().getFullYear()} Whoosh</p>
         </div>
