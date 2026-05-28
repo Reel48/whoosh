@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { createCheckoutSession } from "./actions";
+import { getSession } from "@/lib/session";
 
 const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
 
@@ -56,7 +57,8 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   </span>
 );
 
-export default function Home() {
+export default async function Home() {
+  const session = await getSession();
   return (
     <div className="flex flex-1 flex-col bg-clear-white text-smooth-black">
       {/* Nav */}
@@ -196,6 +198,38 @@ export default function Home() {
 
             {/* Billing options */}
             <div className="space-y-4">
+              {/* Discord connection status — shown above the Subscribe options */}
+              {session ? (
+                <div className="flex items-center gap-3 rounded-2xl border border-fresh-green/40 bg-fresh-green/5 px-4 py-3 text-sm">
+                  <span className="inline-flex h-2 w-2 shrink-0 rounded-full bg-fresh-green" />
+                  <span className="flex-1">
+                    Connected as{" "}
+                    <strong className="font-heading font-semibold">@{session.username}</strong>
+                  </span>
+                  <form action="/api/auth/discord/logout" method="POST">
+                    <button
+                      type="submit"
+                      className="cursor-pointer text-smooth-black/50 underline-offset-2 hover:text-smooth-black hover:underline"
+                    >
+                      Disconnect
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                <a
+                  href="/api/auth/discord"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-smooth-black/20 bg-smooth-black/[0.03] px-4 py-3 text-sm transition-colors hover:border-smooth-black/40"
+                >
+                  <span>
+                    <strong className="font-heading font-semibold">Connect your Discord</strong>{" "}
+                    so we can grant your Premium role on payment.
+                  </span>
+                  <span className="shrink-0 rounded-full bg-smooth-black px-3 py-1 text-xs font-medium text-clear-white">
+                    Connect →
+                  </span>
+                </a>
+              )}
+
               {billing.map((b) => (
                 <div
                   key={b.name}
