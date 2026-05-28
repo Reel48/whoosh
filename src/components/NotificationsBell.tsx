@@ -112,7 +112,10 @@ export function NotificationsBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-40 mt-2 w-80 rounded-2xl border-2 border-ink bg-white-smoke shadow-xl">
+        // On mobile: pin to the viewport (fixed) and span left-2..right-2 so the
+        // dropdown never clips offscreen no matter where the bell sits in the nav.
+        // On sm+: anchor to the bell with `absolute right-0`.
+        <div className="fixed left-2 right-2 top-[60px] z-40 mt-0 max-h-[80vh] overflow-hidden rounded-2xl border-2 border-ink bg-white-smoke shadow-xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 sm:max-h-none">
           <div className="flex items-baseline justify-between border-b-2 border-ink px-4 py-3">
             <p className="font-heading font-bold text-ink">Notifications</p>
             {loading && <span className="text-xs text-ink/60">refreshing…</span>}
@@ -123,7 +126,7 @@ export function NotificationsBell() {
               dividends, transfers, and renewals.
             </p>
           ) : (
-            <ul className="max-h-96 divide-y-2 divide-ink/10 overflow-y-auto">
+            <ul className="max-h-[calc(80vh-56px)] divide-y-2 divide-ink/10 overflow-y-auto sm:max-h-96">
               {items.map((it) => {
                 const inner = (
                   <div className="flex items-start gap-3 px-4 py-3">
