@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { addPremiumRole, removePremiumRole } from "@/lib/discord";
+import { creditLedger } from "@/lib/wb/ledger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +35,29 @@ export async function POST(req: Request) {
           console.warn("checkout.session.completed without discord_user_id metadata", session.id);
           break;
         }
+
+        // Whoosh Bucks one-time purchase — credit ledger, do NOT grant Premium.
+        if (session.metadata?.kind === "wb_purchase") {
+          const wbCents = Number(session.metadata.wb_cents ?? session.amount_total ?? 0);
+          const username = session.metadata.discord_username ?? "";
+          if (wbCents > 0) {
+            await creditLedger({
+              discordUserId: userId,
+              discordUsername: username,
+              amountCents: wbCents,
+              kind: "purchase",
+              refKind: "stripe_event",
+              refId: event.id,
+              memo: `Bought ${wbCents / 100} WB`,
+              metadata: { session_id: session.id },
+            });
+          } else {
+            console.warn("wb_purchase checkout had no wb_cents", session.id);
+          }
+          break;
+        }
+
+        // Subscription checkout → grant Premium role (existing behavior).
         const res = await addPremiumRole(userId);
         if (!res.ok) {
           console.error(
@@ -45,6 +69,48 @@ export async function POST(req: Request) {
             return new NextResponse("Discord transient error", { status: 500 });
           }
         }
+        break;
+      }
+      case "invoice.paid": {
+        // Premium match: credit WB equal to the invoice amount for any
+        // subscription invoice that carries discord_user_id in its
+        // subscription metadata snapshot. Forward-only — past invoices
+        // are not replayed. (Stripe v22+ exposes subscription via
+        // `parent.subscription_details`.)
+        const invoice = event.data.object as Stripe.Invoice;
+        const subDetails =
+          invoice.parent?.type === "subscription_details"
+            ? invoice.parent.subscription_details
+            : null;
+        if (!subDetails) break;
+        const subMeta = subDetails.metadata ?? {};
+        const subscriptionId =
+          typeof subDetails.subscription === "string"
+            ? subDetails.subscription
+            : subDetails.subscription?.id;
+        const userId =
+          (invoice.metadata?.discord_user_id as string | undefined) ??
+          (subMeta.discord_user_id as string | undefined);
+        const username =
+          (invoice.metadata?.discord_username as string | undefined) ??
+          (subMeta.discord_username as string | undefined) ??
+          "";
+        if (!userId) {
+          console.warn("invoice.paid without discord_user_id metadata", invoice.id);
+          break;
+        }
+        const amount = invoice.amount_paid ?? 0;
+        if (amount <= 0) break;
+        await creditLedger({
+          discordUserId: userId,
+          discordUsername: username,
+          amountCents: amount,
+          kind: "premium_match",
+          refKind: "stripe_event",
+          refId: event.id,
+          memo: `Premium match for invoice ${invoice.id}`,
+          metadata: { invoice_id: invoice.id, subscription_id: subscriptionId },
+        });
         break;
       }
       case "customer.subscription.deleted": {
