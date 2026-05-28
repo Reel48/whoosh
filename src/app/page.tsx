@@ -41,7 +41,7 @@ const faqs = [
   { q: "What is Whoosh?", a: "A premium, invite-worthy group chat that lives in Discord — covering sports, entertainment, business, and whatever else the crew is into that day." },
   { q: "How do I get in?", a: "Pick a plan, sign in with Discord, and pay through Stripe. Your Premium role lands in the server automatically — usually within seconds." },
   { q: "Can I cancel anytime?", a: "Yes. Manage or cancel your subscription whenever you like — no awkward DMs required." },
-  { q: "Is it really just guys?", a: "It started as one group chat with the guys. Everyone who's down for good takes and better banter is welcome." },
+  { q: "Who is Whoosh for?", a: "Anyone who wants smart, fast takes on sports, entertainment, business, and culture. If you'd want to be in the group chat, you're in the right place." },
 ];
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
@@ -68,7 +68,7 @@ export default async function Home() {
             The only group chat you&rsquo;ll ever need.
           </h1>
           <p className="mt-6 max-w-md text-lg leading-relaxed text-smooth-black/60">
-            Whoosh is a premium group chat for the guys — sports takes, what to
+            Whoosh is a premium group chat — sports takes, what to
             watch, market moves, and the banter in between. All in one Discord.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
