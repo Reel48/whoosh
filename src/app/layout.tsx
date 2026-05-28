@@ -1,27 +1,24 @@
 import type { Metadata } from "next";
-import { EB_Garamond, Archivo } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-// Body / paragraph type per brand kit.
-const ebGaramond = EB_Garamond({
+// Body / UI type.
+const inter = Inter({
   variable: "--font-body",
   subsets: ["latin"],
 });
 
-// Heading type. The brand kit specifies "Metal" for headers, which is not a
-// free webfont — Archivo (heavy weights) is used as a close stand-in. To use
-// the real Metal typeface, drop the font files into src/app and swap this for
-// next/font/local, keeping the --font-heading variable name.
-const archivo = Archivo({
+// Display / heading type.
+const spaceGrotesk = Space_Grotesk({
   variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["600", "700", "800", "900"],
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
   title: "Whoosh — The only group chat you'll ever need",
   description:
-    "Whoosh runs premium Discord communities. Subscribe to unlock members-only channels and perks.",
+    "Whoosh is a premium group chat for sports, entertainment, business, and everything in between. Subscribe to unlock members-only Discord channels.",
   icons: {
     icon: "/whoosh-bolt.svg",
   },
@@ -35,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${ebGaramond.variable} ${archivo.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

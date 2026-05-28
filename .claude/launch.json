@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "palette-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4040", "--directory", "/tmp/whoosh-palette"],
+      "port": 4040
     }
   ]
 }

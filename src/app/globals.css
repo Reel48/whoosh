@@ -1,27 +1,51 @@
 @import "tailwindcss";
 
 :root {
-  /* Whoosh brand palette */
-  --nautilus: #1e3653;
-  --blue-surf: #2e5a86;
-  --kiddie-pool: #d0e2f2;
-  --yellow-sun: #ffde59;
+  /* Whoosh palette */
+  --sandstone: #faf8ed;
+  --matte-orange: #ffa16c;
+  --bright-red: #ff3d40;
+  --deep-red: #9c232b;
+  --blue-grey: #c6cfd4;
+  --rooftop-grey: #36494d;
+  --asphalt: #1c2729;
+  --smooth-black: #131414;
+  --pure-black: #000000;
+  --light: #f1f5f8;
+  --city-sky: #c6e8ed;
+  --real-blue: #055193;
+  --smudged-blue: #253e5c;
+  --clear-white: #ffffff;
+  --dusty-green: #a0cd9f;
+  --fresh-green: #12a96a;
+  --bench-green: #053f33;
 
-  --background: #ffffff;
-  --foreground: var(--nautilus);
+  --background: var(--sandstone);
+  --foreground: var(--asphalt);
 }
 
 @theme inline {
-  /* Brand colors as Tailwind utilities: bg-nautilus, text-blue-surf, etc. */
-  --color-nautilus: var(--nautilus);
-  --color-blue-surf: var(--blue-surf);
-  --color-kiddie-pool: var(--kiddie-pool);
-  --color-yellow-sun: var(--yellow-sun);
+  --color-sandstone: var(--sandstone);
+  --color-matte-orange: var(--matte-orange);
+  --color-bright-red: var(--bright-red);
+  --color-deep-red: var(--deep-red);
+  --color-blue-grey: var(--blue-grey);
+  --color-rooftop-grey: var(--rooftop-grey);
+  --color-asphalt: var(--asphalt);
+  --color-smooth-black: var(--smooth-black);
+  --color-pure-black: var(--pure-black);
+  --color-light: var(--light);
+  --color-city-sky: var(--city-sky);
+  --color-real-blue: var(--real-blue);
+  --color-smudged-blue: var(--smudged-blue);
+  --color-clear-white: var(--clear-white);
+  --color-dusty-green: var(--dusty-green);
+  --color-fresh-green: var(--fresh-green);
+  --color-bench-green: var(--bench-green);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* Fonts (set in layout.tsx via next/font) */
   --font-sans: var(--font-body);
   --font-heading: var(--font-heading);
   --font-body: var(--font-body);
@@ -30,7 +54,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), Georgia, serif;
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
 }
 
 h1,
@@ -40,5 +64,16 @@ h4,
 h5,
 h6,
 .font-heading {
-  font-family: var(--font-heading), Arial, Helvetica, sans-serif;
+  font-family: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Signature diagonal-hatch motif */
+.hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    currentColor 0,
+    currentColor 2px,
+    transparent 2px,
+    transparent 12px
+  );
 }
