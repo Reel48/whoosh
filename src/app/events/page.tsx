@@ -281,11 +281,6 @@ export default async function EventsPage({
                               <span className="text-xs font-bold uppercase tracking-wider text-ink/60">
                                 {mkt.market ? MARKET_LABELS[mkt.market] : "Bet"}
                               </span>
-                              {mkt.status === "locked" && (
-                                <span className="rounded-full border-2 border-ink bg-white-smoke px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                                  closed
-                                </span>
-                              )}
                             </div>
                             <ul className="mt-2 space-y-3">
                               {mkt.outcomes.map((o) => (

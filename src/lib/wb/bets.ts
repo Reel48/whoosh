@@ -178,7 +178,9 @@ export async function listOpenEvents(): Promise<BetEvent[]> {
   const { data, error } = await supabase()
     .from("bet_event")
     .select("*")
-    .in("status", ["open", "locked"])
+    // Only open events are bettable; locked games (kickoff passed) are hidden and
+    // resurface under "Recently settled" once graded.
+    .eq("status", "open")
     // Soonest games first; high limit so a heavy slate in one sport (e.g. a full
     // MLB day = ~50 rows across markets) can't crowd other sports out of the list.
     .order("commence_time", { ascending: true, nullsFirst: false })
