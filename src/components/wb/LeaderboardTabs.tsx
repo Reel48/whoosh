@@ -204,10 +204,15 @@ function RankList<T extends Entry>({
                 className="border-2 border-ink flex-none hidden sm:block"
               />
               <div className="min-w-0">
-                <div className="truncate font-heading text-sm font-black text-ink sm:text-base">
-                  @{e.discordUsername}
+                {/* Badge lives as a sibling of the truncated username — if it
+                 *  sat *inside* the .truncate span, its border/padding would
+                 *  be clipped by `overflow: hidden`. */}
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="truncate font-heading text-sm font-black text-ink sm:text-base">
+                    @{e.discordUsername}
+                  </span>
                   {isMe && (
-                    <span className="ml-1.5 rounded-full border-2 border-ink bg-blue px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink sm:ml-2 sm:px-2 sm:text-xs">
+                    <span className="shrink-0 whitespace-nowrap rounded-full border-2 border-ink bg-blue px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink sm:px-2 sm:text-xs">
                       you
                     </span>
                   )}
