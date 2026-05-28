@@ -137,24 +137,25 @@ export default async function Home() {
             ))}
           </div>
 
-          {/* Premium — full-bleed MANGO card with ink everything */}
-          <div className="mt-10 overflow-hidden rounded-3xl border-2 border-ink bg-mango p-8 text-ink sm:p-10">
+          {/* Premium — full-bleed INK card with safety-orange accents that
+              tie it to the Membership section's orange */}
+          <div className="mt-10 overflow-hidden rounded-3xl border-2 border-ink bg-ink p-8 text-white-smoke sm:p-10">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-xs font-bold uppercase tracking-[0.15em] text-mango">
+              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-safety-orange px-3 py-1 text-xs font-bold uppercase tracking-[0.15em] text-ink">
                 <Lock className="h-3.5 w-3.5" /> Members only
               </span>
               <h3 className="font-heading text-2xl font-bold">Premium channels</h3>
             </div>
-            <p className="mt-3 max-w-xl font-medium text-ink/80">
+            <p className="mt-3 max-w-xl font-medium text-white-smoke/70">
               Unlocked the moment you subscribe.
             </p>
             <div className="mt-6 flex flex-wrap gap-2.5">
               {premiumChannels.map((c) => (
                 <span
                   key={c}
-                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-ink bg-mango px-3 py-1.5 text-sm font-medium"
+                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-white-smoke px-3 py-1.5 text-sm font-medium"
                 >
-                  <span className="font-heading font-black text-ink">#</span>
+                  <span className="font-heading font-black text-safety-orange">#</span>
                   {c}
                 </span>
               ))}
@@ -163,8 +164,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Mission band — SAFETY ORANGE */}
-      <section className="border-b-2 border-ink bg-safety-orange">
+      {/* Mission band — PIGMENT GREEN */}
+      <section className="border-b-2 border-ink bg-pigment-green">
         <div className="mx-auto w-full max-w-5xl px-6 py-28 text-center">
           <Bolt className="mx-auto h-10 w-10 text-ink" />
           <p className="mt-8 font-heading text-3xl font-black leading-snug tracking-tight text-ink sm:text-4xl">
@@ -180,8 +181,9 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Plans — MANGO block. One section color + ink, white-smoke cards. */}
-      <section id="plans" className="border-b-2 border-ink bg-mango">
+      {/* Plans — SAFETY ORANGE block (orange = the new "premium" color).
+          One section color + ink, white-smoke cards. */}
+      <section id="plans" className="border-b-2 border-ink bg-safety-orange">
         <div className="mx-auto w-full max-w-6xl px-6 py-24">
           <div className="grid gap-12 lg:grid-cols-2">
             {/* What's included */}
@@ -232,7 +234,7 @@ export default async function Home() {
                     <strong className="font-heading font-bold">Connect your Discord</strong>{" "}
                     so we can grant your Premium role on payment.
                   </span>
-                  <span className="shrink-0 rounded-full border-2 border-ink bg-mango px-3 py-1 text-xs font-bold text-ink">
+                  <span className="shrink-0 rounded-full border-2 border-ink bg-safety-orange px-3 py-1 text-xs font-bold text-ink">
                     Connect →
                   </span>
                 </a>
@@ -272,7 +274,7 @@ export default async function Home() {
                       <div className="flex items-center gap-2.5">
                         <h3 className="font-heading text-lg font-bold">{b.name}</h3>
                         {b.badge && (
-                          <span className="rounded-full border-2 border-ink bg-mango px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-ink">
+                          <span className="rounded-full border-2 border-ink bg-safety-orange px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-ink">
                             {b.badge}
                           </span>
                         )}
@@ -292,7 +294,7 @@ export default async function Home() {
                       <button
                         type="submit"
                         className={`shrink-0 cursor-pointer rounded-full border-2 border-ink px-5 py-2.5 text-sm font-bold transition-opacity hover:opacity-90 ${
-                          isHi ? "bg-mango text-ink" : "bg-ink text-white-smoke"
+                          isHi ? "bg-safety-orange text-ink" : "bg-ink text-white-smoke"
                         }`}
                       >
                         Subscribe
@@ -309,8 +311,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* FAQ — PIGMENT GREEN block */}
-      <section id="faq" className="border-b-2 border-ink bg-pigment-green">
+      {/* FAQ — LIME block */}
+      <section id="faq" className="border-b-2 border-ink bg-lime">
         <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-24 lg:grid-cols-[1fr_2fr]">
           <div>
             <SectionLabel>FAQ</SectionLabel>
@@ -334,8 +336,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Closing CTA band — LIME */}
-      <section className="border-b-2 border-ink bg-lime">
+      {/* Closing CTA band — LAVENDER (purple) */}
+      <section className="border-b-2 border-ink bg-lavender">
         <div className="relative mx-auto w-full max-w-6xl overflow-hidden px-6 py-24 text-center">
           <div className="hatch pointer-events-none absolute inset-0 text-ink/15" />
           <div className="relative">
