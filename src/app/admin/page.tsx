@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getAdminStats } from "@/lib/stripe";
+import { getWbTotalSupply, getDau, getSupplySeries } from "@/lib/wb/admin";
+import { SupplyChart } from "@/components/admin/SupplyChart";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +30,13 @@ export default async function AdminDashboardPage() {
     error = e instanceof Error ? e.message : "Failed to load stats";
   }
 
+  const [supplyCents, dau, dau7, supplySeries] = await Promise.all([
+    getWbTotalSupply().catch(() => 0),
+    getDau(1).catch(() => 0),
+    getDau(7).catch(() => 0),
+    getSupplySeries(90).catch(() => []),
+  ]);
+
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 sm:py-16">
       <h1 className="font-heading text-3xl font-black tracking-tight sm:text-4xl">
@@ -35,6 +44,9 @@ export default async function AdminDashboardPage() {
       </h1>
       <p className="mt-2 text-sm text-ink/60">
         Live snapshot from Stripe.
+      </p>
+      <p className="mt-2 rounded-xl border-2 border-ink bg-mango px-3 py-2 text-xs font-bold text-ink sm:hidden">
+        Admin tools are built for desktop — some tables read better on a larger screen.
       </p>
 
       {error && (
@@ -67,6 +79,31 @@ export default async function AdminDashboardPage() {
               value={stats.totalCanceled.toLocaleString()}
             />
           </div>
+
+          {/* WB economy tiles */}
+          <h2 className="mt-12 font-heading text-xl font-bold">WB economy</h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Tile label="Total WB outstanding" value={formatMoney(supplyCents)} />
+            <Tile label="DAU (24h)" value={dau.toLocaleString()} />
+            <Tile label="WAU (7d)" value={dau7.toLocaleString()} />
+            <Tile
+              label="Ledger entries"
+              value={supplySeries.length > 0 ? "Live" : "—"}
+              sub="cron-driven"
+            />
+          </div>
+
+          {/* Supply chart */}
+          {supplySeries.length > 0 && (
+            <div className="mt-6 rounded-2xl border-2 border-ink bg-white-smoke p-5">
+              <p className="text-xs font-bold uppercase tracking-[0.15em] text-ink/60">
+                Total WB supply · last 90 days
+              </p>
+              <div className="mt-2 overflow-x-auto">
+                <SupplyChart data={supplySeries} />
+              </div>
+            </div>
+          )}
 
           {/* Plan breakdown */}
           <h2 className="mt-12 font-heading text-xl font-bold">By plan</h2>

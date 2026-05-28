@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { exchangeCode, fetchDiscordUser } from "@/lib/discord";
 import { consumeOAuthState, setSession } from "@/lib/session";
+import { ensureWallet } from "@/lib/wb/ledger";
+import { recordReferralUse } from "@/lib/wb/referrals";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,11 +33,29 @@ export async function GET(req: Request) {
   try {
     const tok = await exchangeCode(code, redirectUri);
     const user = await fetchDiscordUser(tok.access_token);
+    const username = user.global_name?.trim() || user.username;
     await setSession({
       id: user.id,
-      username: user.global_name?.trim() || user.username,
+      username,
       avatar: user.avatar ?? null,
     });
+
+    // Best-effort: if a referral cookie is set and this user doesn't already
+    // have a wallet (i.e. signing in for the first time), record the referral
+    // attribution. The reward fires later — on first Stripe sub.
+    try {
+      const jar = await cookies();
+      const ref = jar.get("whoosh_ref")?.value;
+      if (ref) {
+        await ensureWallet(user.id, username);
+        const result = await recordReferralUse(user.id, ref);
+        if (result.created) {
+          jar.delete("whoosh_ref");
+        }
+      }
+    } catch (e) {
+      console.warn("referral attribution failed (non-fatal):", e);
+    }
   } catch (e) {
     console.error("Discord OAuth callback failed:", e);
     return NextResponse.redirect(new URL("/?error=oauth_failed", req.url));

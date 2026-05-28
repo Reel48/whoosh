@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { ensureWallet } from "@/lib/wb/ledger";
 import { findRecipient, transfer } from "@/lib/wb/transfer";
+import { evaluateAchievements } from "@/lib/wb/achievements";
+import { pushNotification } from "@/lib/wb/notifications";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -62,6 +64,18 @@ export async function POST(req: Request) {
 
   const result = await transfer(session.id, recipient.discordUserId, amountCents, memo);
   if (!result.ok) return back(req, result.error);
+
+  // Fire achievement check + notify recipient. Both are best-effort.
+  await Promise.allSettled([
+    evaluateAchievements(session.id),
+    pushNotification({
+      userId: recipient.discordUserId,
+      kind: "transfer_in",
+      title: `@${session.username} sent you $${(amountCents / 100).toFixed(2)} WB`,
+      body: memo ?? undefined,
+      href: "/wallet",
+    }),
+  ]);
 
   return NextResponse.redirect(new URL(`/wallet?transfer=ok`, req.url), 303);
 }

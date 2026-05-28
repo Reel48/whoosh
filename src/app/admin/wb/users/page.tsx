@@ -20,6 +20,8 @@ const KIND_LABEL: Record<LedgerKind, string> = {
   invest_buy: "Buy",
   invest_sell: "Sell",
   invest_dividend: "Dividend",
+  daily_bonus: "Daily check-in",
+  referral_reward: "Referral reward",
   adjustment: "Adjustment",
 };
 
@@ -89,7 +91,7 @@ export default async function AdminUsersPage({
         </div>
         <button
           type="submit"
-          className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+          className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
         >
           Look up
         </button>

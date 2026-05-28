@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { ensureWallet } from "@/lib/wb/ledger";
 import { getQuote } from "@/lib/wb/quotes";
 import { placeOrder } from "@/lib/wb/invest";
+import { evaluateAchievements } from "@/lib/wb/achievements";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -58,6 +59,8 @@ export async function POST(req: Request) {
 
   const result = await placeOrder(session.id, symbol, side, orderShares, quote.priceCents);
   if (!result.ok) return back(req, result.error);
+
+  await evaluateAchievements(session.id).catch(() => {});
 
   return NextResponse.redirect(new URL("/invest?order=ok", req.url), 303);
 }

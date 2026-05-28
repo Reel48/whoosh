@@ -5,10 +5,14 @@ import { ensureWallet, getBalance } from "@/lib/wb/ledger";
 import { getPositions, getRecentOrders, type Position } from "@/lib/wb/invest";
 import { getStockSnapshot, RANGE_OPTIONS, type RangeKey } from "@/lib/wb/history";
 import { getCompanyProfile } from "@/lib/wb/profile";
+import { getQuote } from "@/lib/wb/quotes";
+import { getWatchlist, isWatching } from "@/lib/wb/watchlist";
 import { Nav } from "@/components/Nav";
 import { StockHeader } from "@/components/wb/StockHeader";
 import { StockPriceChart } from "@/components/wb/StockPriceChart";
 import { StockStats } from "@/components/wb/StockStats";
+import { SymbolSearch } from "@/components/wb/SymbolSearch";
+import { Disclaimer } from "@/components/Disclaimer";
 import { formatWb, formatUsd } from "@/lib/wb/format";
 import { CRYPTO_ASSETS } from "@/lib/wb/assets";
 
@@ -37,17 +41,29 @@ type PositionRow = Position & {
 };
 
 async function enrichPositions(positions: Position[]): Promise<PositionRow[]> {
-  // We already have a per-position snapshot for whichever symbol the user is
-  // looking at; for the others, fall back to cost basis. Live mark-to-market
-  // for the lookup symbol still pulls from the cached snapshot's last candle.
-  // (We don't fan out N quote requests for the positions list — that's
-  // /wallet's job, where the dashboard does it properly.)
-  return positions.map((p) => ({
-    ...p,
-    marketPriceCents: null,
-    marketValueCents: null,
-    unrealizedCents: null,
-  }));
+  // Fan out to the symbol_quote cache (60s TTL) so the user sees live
+  // mark-to-market on their own holdings. With the cache hot this is N
+  // single-row Postgres reads, not N upstream quote calls.
+  return Promise.all(
+    positions.map(async (p): Promise<PositionRow> => {
+      const q = await getQuote(p.symbol).catch(() => null);
+      if (!q) {
+        return {
+          ...p,
+          marketPriceCents: null,
+          marketValueCents: null,
+          unrealizedCents: null,
+        };
+      }
+      const mv = Math.round(p.shares * q.priceCents);
+      return {
+        ...p,
+        marketPriceCents: q.priceCents,
+        marketValueCents: mv,
+        unrealizedCents: mv - p.costBasisCents,
+      };
+    }),
+  );
 }
 
 function isRangeKey(s: string): s is RangeKey {
@@ -67,13 +83,24 @@ export default async function InvestPage({
   const lookupSymbol = (sp.symbol ?? "").toUpperCase().trim();
   const range: RangeKey = sp.range && isRangeKey(sp.range) ? sp.range : "1y";
 
-  const [balance, positionsRaw, orders, snapshot, profile] = await Promise.all([
-    getBalance(session.id),
-    getPositions(session.id),
-    getRecentOrders(session.id, 10),
-    lookupSymbol ? getStockSnapshot(lookupSymbol, range).catch(() => null) : Promise.resolve(null),
-    lookupSymbol ? getCompanyProfile(lookupSymbol).catch(() => null) : Promise.resolve(null),
-  ]);
+  const [balance, positionsRaw, orders, snapshot, profile, watchlistRaw, watching] =
+    await Promise.all([
+      getBalance(session.id),
+      getPositions(session.id),
+      getRecentOrders(session.id, 10),
+      lookupSymbol ? getStockSnapshot(lookupSymbol, range).catch(() => null) : Promise.resolve(null),
+      lookupSymbol ? getCompanyProfile(lookupSymbol).catch(() => null) : Promise.resolve(null),
+      getWatchlist(session.id).catch(() => []),
+      lookupSymbol ? isWatching(session.id, lookupSymbol).catch(() => false) : Promise.resolve(false),
+    ]);
+
+  // Pull quotes for watchlist entries so we can show live prices.
+  const watchlist = await Promise.all(
+    watchlistRaw.map(async (w) => {
+      const q = await getQuote(w.symbol).catch(() => null);
+      return { ...w, priceCents: q?.priceCents ?? null };
+    }),
+  );
   const positions = await enrichPositions(positionsRaw);
 
   const portfolioValue = positions.reduce(
@@ -151,23 +178,9 @@ export default async function InvestPage({
             Real US stocks (~15 min delayed) and live crypto quotes. Orders
             fill at the most recent quote — Whoosh Bucks only, no real money.
           </p>
-          <form action="/invest" method="GET" className="mt-4 flex flex-wrap gap-3">
-            <input
-              type="text"
-              name="symbol"
-              defaultValue={lookupSymbol}
-              placeholder="Symbol (e.g. AAPL, BTC)"
-              required
-              autoComplete="off"
-              className="flex-1 min-w-[180px] rounded-full border-2 border-ink bg-white-smoke px-4 py-3 font-heading font-bold uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-ink"
-            />
-            <button
-              type="submit"
-              className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
-            >
-              Look up
-            </button>
-          </form>
+          <div className="mt-4">
+            <SymbolSearch defaultValue={lookupSymbol} />
+          </div>
 
           {/* Crypto quick-picks */}
           <div className="mt-5">
@@ -181,7 +194,7 @@ export default async function InvestPage({
                   <li key={c.symbol}>
                     <Link
                       href={`/invest?symbol=${c.symbol}`}
-                      className={`inline-flex items-center gap-1.5 rounded-full border-2 border-ink px-3 py-1 text-xs font-bold transition-colors ${
+                      className={`chip-tap tap-press gap-1.5 rounded-full border-2 border-ink px-4 text-sm font-bold transition-colors ${
                         isActive
                           ? "bg-ink text-white-smoke"
                           : "bg-white-smoke text-ink hover:bg-ink hover:text-white-smoke"
@@ -231,7 +244,7 @@ export default async function InvestPage({
                       <Link
                         key={r.key}
                         href={`/invest?symbol=${encodeURIComponent(lookupSymbol)}&range=${r.key}`}
-                        className={`cursor-pointer rounded-full border-2 border-ink px-3 py-1 text-xs font-bold transition-colors ${
+                        className={`chip-tap tap-press cursor-pointer rounded-full border-2 border-ink px-4 text-sm font-bold transition-colors ${
                           isActive
                             ? "bg-ink text-white-smoke"
                             : "bg-white-smoke text-ink hover:bg-ink hover:text-white-smoke"
@@ -255,8 +268,21 @@ export default async function InvestPage({
 
             {/* Trade panel */}
             <div className="rounded-3xl border-2 border-ink bg-blue p-6 text-ink sm:p-8">
-              <div className="flex flex-wrap items-baseline justify-between gap-4">
-                <h3 className="font-heading text-xl font-bold">Trade {snapshot.symbol}</h3>
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-4">
+                <div className="flex items-center justify-between gap-3 sm:contents">
+                  <h3 className="font-heading text-xl font-bold">Trade {snapshot.symbol}</h3>
+                  <form action="/api/wb/watchlist" method="POST">
+                    <input type="hidden" name="symbol" value={snapshot.symbol} />
+                    <input type="hidden" name="action" value={watching ? "remove" : "add"} />
+                    <button
+                      type="submit"
+                      className="chip-tap tap-press cursor-pointer rounded-full border-2 border-ink bg-white-smoke px-4 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
+                      aria-label={watching ? "Remove from watchlist" : "Add to watchlist"}
+                    >
+                      {watching ? "★ Watching" : "☆ Watch"}
+                    </button>
+                  </form>
+                </div>
                 <div className="text-sm font-medium text-ink/70">
                   Filling at{" "}
                   <span className="font-heading font-black">
@@ -318,7 +344,7 @@ export default async function InvestPage({
                 />
                 <button
                   type="submit"
-                  className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+                  className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
                 >
                   Place
                 </button>
@@ -343,41 +369,160 @@ export default async function InvestPage({
           </section>
         )}
 
+        {/* Watchlist */}
+        {watchlist.length > 0 && (
+          <section className="mt-12">
+            <h2 className="font-heading text-xl font-bold text-ink">Watchlist</h2>
+            <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
+              {watchlist.map((w) => (
+                <li
+                  key={w.symbol}
+                  className="flex items-center justify-between gap-3 py-3 text-sm"
+                >
+                  <Link
+                    href={`/invest?symbol=${encodeURIComponent(w.symbol)}`}
+                    className="tap-press flex-1 min-w-0 font-heading text-lg font-black underline-offset-2 hover:underline sm:text-base"
+                  >
+                    {w.symbol}
+                    <span className="ml-2 font-bold text-ink/70 tabular-nums">
+                      {w.priceCents != null ? fmtUsd(w.priceCents) : "—"}
+                    </span>
+                  </Link>
+                  <form action="/api/wb/watchlist" method="POST">
+                    <input type="hidden" name="symbol" value={w.symbol} />
+                    <input type="hidden" name="action" value="remove" />
+                    <button
+                      type="submit"
+                      aria-label={`Remove ${w.symbol} from watchlist`}
+                      className="chip-tap tap-press cursor-pointer rounded-full border-2 border-ink bg-white-smoke px-3 text-xs font-bold text-ink"
+                    >
+                      Remove
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {/* Positions */}
         <h2 className="mt-12 font-heading text-xl font-bold text-ink">Positions</h2>
         {positions.length === 0 ? (
-          <p className="mt-4 text-sm text-ink/60">No positions yet.</p>
+          <div className="mt-4 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-center">
+            <p className="font-heading text-lg font-bold text-ink">No positions yet.</p>
+            <p className="mt-2 text-sm text-ink/60">
+              Look up a symbol above to get started — try one of these:
+            </p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {["AAPL", "TSLA", "NVDA", "MSFT", "BTC"].map((s) => (
+                <Link
+                  key={s}
+                  href={`/invest?symbol=${s}`}
+                  className="chip-tap tap-press rounded-full border-2 border-ink bg-white-smoke px-4 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
+                >
+                  {s}
+                </Link>
+              ))}
+            </div>
+          </div>
         ) : (
           <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
-            {positions.map((p) => (
-              <li
-                key={p.symbol}
-                className="grid grid-cols-[1fr_1fr_auto] items-center gap-4 py-3 text-sm"
-              >
-                <div>
+            {positions.map((p) => {
+              const plPositive = p.unrealizedCents != null && p.unrealizedCents > 0;
+              const plNegative = p.unrealizedCents != null && p.unrealizedCents < 0;
+              return (
+                <li
+                  key={p.symbol}
+                  className="flex flex-col gap-2 py-3 text-sm sm:grid sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-center sm:gap-4"
+                >
+                  <div className="flex items-baseline justify-between gap-3 sm:block">
+                    <Link
+                      href={`/invest?symbol=${encodeURIComponent(p.symbol)}`}
+                      className="tap-press font-heading text-lg font-black underline-offset-2 hover:underline sm:text-base"
+                    >
+                      {p.symbol}
+                    </Link>
+                    <div className="text-xs text-ink/60">{fmtShares(p.shares)} shares</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:contents">
+                    <div className="text-left sm:text-right">
+                      <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
+                        Market
+                      </div>
+                      <div className="font-heading font-bold tabular-nums">
+                        {p.marketValueCents != null ? fmtWb(p.marketValueCents) : "—"}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
+                        P/L
+                      </div>
+                      <div
+                        className={`font-heading font-black tabular-nums ${
+                          plPositive
+                            ? "text-pigment-green"
+                            : plNegative
+                              ? "text-imperial-red"
+                              : "text-ink/60"
+                        }`}
+                        aria-label={
+                          p.unrealizedCents != null
+                            ? `${plPositive ? "up" : plNegative ? "down" : "flat"} ${fmtWb(p.unrealizedCents, { signed: true })}`
+                            : "unavailable"
+                        }
+                      >
+                        {p.unrealizedCents != null
+                          ? `${plPositive ? "▲ " : plNegative ? "▼ " : ""}${fmtWb(p.unrealizedCents, { signed: true })}`
+                          : "—"}
+                      </div>
+                    </div>
+                  </div>
                   <Link
                     href={`/invest?symbol=${encodeURIComponent(p.symbol)}`}
-                    className="font-heading font-black underline-offset-2 hover:underline"
+                    className="chip-tap tap-press w-full justify-center rounded-full border-2 border-ink bg-white-smoke px-3 text-xs font-bold text-ink sm:w-auto"
                   >
-                    {p.symbol}
+                    Open
                   </Link>
-                  <div className="text-xs text-ink/60">{fmtShares(p.shares)} shares</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
-                    Cost basis
-                  </div>
-                  <div className="font-heading font-bold tabular-nums">{fmtWb(p.costBasisCents)}</div>
-                </div>
-                <Link
-                  href={`/invest?symbol=${encodeURIComponent(p.symbol)}`}
-                  className="rounded-full border-2 border-ink bg-white-smoke px-3 py-1 text-xs font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
-                >
-                  Open
-                </Link>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
+        )}
+
+        {/* Total portfolio P/L summary */}
+        {positions.length > 0 && (
+          <div className="mt-6 rounded-2xl border-2 border-ink bg-blue p-5 text-ink">
+            <p className="text-xs font-bold uppercase tracking-wider text-ink/70">
+              Total unrealized P/L
+            </p>
+            {(() => {
+              const totalPL = positions.reduce(
+                (acc, p) => acc + (p.unrealizedCents ?? 0),
+                0,
+              );
+              const totalCost = positions.reduce(
+                (acc, p) => acc + p.costBasisCents,
+                0,
+              );
+              const pct = totalCost > 0 ? (totalPL / totalCost) * 100 : 0;
+              const pos = totalPL > 0;
+              const neg = totalPL < 0;
+              return (
+                <p
+                  className={`mt-2 font-heading text-3xl font-black tabular-nums ${
+                    pos ? "text-pigment-green" : neg ? "text-imperial-red" : "text-ink"
+                  }`}
+                >
+                  {pos ? "▲ " : neg ? "▼ " : ""}
+                  {fmtWb(totalPL, { signed: true })}{" "}
+                  <span className="text-base font-medium text-ink/70">
+                    ({pos ? "+" : ""}
+                    {pct.toFixed(2)}%)
+                  </span>
+                </p>
+              );
+            })()}
+          </div>
         )}
 
         {/* Recent orders */}
@@ -411,6 +556,8 @@ export default async function InvestPage({
             ))}
           </ul>
         )}
+
+        <Disclaimer />
       </main>
     </>
   );

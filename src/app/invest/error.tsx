@@ -1,0 +1,36 @@
+"use client";
+
+import { MinimalHeader } from "@/components/MinimalHeader";
+
+export default function InvestError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <>
+      <MinimalHeader />
+      <main className="mx-auto w-full max-w-2xl px-6 py-24 text-center">
+        <h1 className="font-heading text-3xl font-black tracking-tight text-ink">
+          Trade desk is offline.
+        </h1>
+        <p className="mt-3 text-sm text-ink/70">
+          A market data provider may be down. Your positions and cash are safe —
+          just try again in a moment.
+        </p>
+        {error.digest && (
+          <p className="mt-2 text-xs text-ink/50">ref: {error.digest}</p>
+        )}
+        <button
+          type="button"
+          onClick={() => reset()}
+          className="mt-8 tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+        >
+          Try again
+        </button>
+      </main>
+    </>
+  );
+}

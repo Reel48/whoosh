@@ -85,7 +85,7 @@ export default async function AdminEventsPage() {
           </div>
           <button
             type="submit"
-            className="self-start cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+            className="self-start tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
           >
             Create event
           </button>
@@ -186,7 +186,7 @@ export default async function AdminEventsPage() {
                         </option>
                       ))}
                     </select>
-                    <button className="cursor-pointer rounded-full border-2 border-ink bg-ink px-3 py-1 text-xs font-bold text-white-smoke transition-opacity hover:opacity-90">
+                    <button className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-3 py-1 text-xs font-bold text-white-smoke transition-opacity hover:opacity-90">
                       Settle
                     </button>
                   </form>

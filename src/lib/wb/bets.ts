@@ -75,6 +75,19 @@ export async function listOpenEvents(): Promise<BetEvent[]> {
   return events.map((e) => shape(e, outcomes.get(Number(e.id)) ?? []));
 }
 
+export async function listRecentSettledEvents(limit = 5): Promise<BetEvent[]> {
+  const { data, error } = await supabase()
+    .from("bet_event")
+    .select("*")
+    .in("status", ["settled", "cancelled"])
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(`event query failed: ${error.message}`);
+  const events = (data ?? []) as Record<string, unknown>[];
+  const outcomes = await loadOutcomes(events.map((e) => Number(e.id)));
+  return events.map((e) => shape(e, outcomes.get(Number(e.id)) ?? []));
+}
+
 export async function listAllEvents(): Promise<BetEvent[]> {
   const { data, error } = await supabase()
     .from("bet_event")

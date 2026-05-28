@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { ensureWallet } from "@/lib/wb/ledger";
 import { placeWager } from "@/lib/wb/bets";
+import { evaluateAchievements } from "@/lib/wb/achievements";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,6 +38,8 @@ export async function POST(req: Request) {
 
   const result = await placeWager(session.id, eventId, outcomeId, stakeCents);
   if (!result.ok) return back(req, result.error);
+
+  await evaluateAchievements(session.id).catch(() => {});
 
   return NextResponse.redirect(new URL("/events?wager=ok", req.url), 303);
 }

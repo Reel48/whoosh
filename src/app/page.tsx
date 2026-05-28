@@ -2,10 +2,15 @@ import Image from "next/image";
 import { createCheckoutSession } from "./actions";
 import { getSession } from "@/lib/session";
 import { isGuildMember, getGuildOnlineCount } from "@/lib/discord";
-import { getLeaderboard } from "@/lib/wb/leaderboard";
+import {
+  getLeaderboard,
+  getTradersLeaderboard,
+  getBiggestWinsLeaderboard,
+  getStreaksLeaderboard,
+} from "@/lib/wb/leaderboard";
 import { Nav } from "@/components/Nav";
 import { Bolt } from "@/components/Bolt";
-import { Leaderboard } from "@/components/wb/Leaderboard";
+import { LeaderboardTabs } from "@/components/wb/LeaderboardTabs";
 
 const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
 
@@ -141,10 +146,13 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 
 export default async function Home() {
   const session = await getSession();
-  const [inServer, onlineCount, leaderboard] = await Promise.all([
+  const [inServer, onlineCount, holders, traders, wins, streaks] = await Promise.all([
     session ? isGuildMember(session.id).catch(() => false) : Promise.resolve(false),
     getGuildOnlineCount(),
     getLeaderboard(10).catch(() => []),
+    getTradersLeaderboard(10, 7).catch(() => []),
+    getBiggestWinsLeaderboard(10, 7).catch(() => []),
+    getStreaksLeaderboard(10).catch(() => []),
   ]);
   const discordLabel = inServer ? "Open Discord" : "Join the Discord";
 
@@ -157,7 +165,7 @@ export default async function Home() {
         <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-6 py-20 sm:py-28 lg:grid-cols-2">
           <div>
             <SectionLabel>Sports · Entertainment · Business</SectionLabel>
-            <h1 className="mt-5 font-heading text-5xl font-black leading-[1.0] tracking-tight sm:text-6xl lg:text-7xl">
+            <h1 className="mt-5 font-heading text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
               The only group chat you&rsquo;ll ever need.
             </h1>
             <p className="mt-6 max-w-md text-lg font-medium leading-relaxed text-ink/80">
@@ -452,10 +460,12 @@ export default async function Home() {
           </div>
 
           <div className="mt-10">
-            <Leaderboard
-              entries={leaderboard}
+            <LeaderboardTabs
+              holders={holders}
+              traders={traders}
+              wins={wins}
+              streaks={streaks}
               highlightUserId={session?.id ?? null}
-              subtitle="Live · top holders"
             />
           </div>
 
@@ -491,8 +501,11 @@ export default async function Home() {
             {faqs.map((f) => (
               <details key={f.q} className="group py-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between font-heading text-lg font-bold [&::-webkit-details-marker]:hidden">
-                  {f.q}
-                  <span className="ml-4 text-2xl font-black text-ink transition-transform group-open:rotate-45">
+                  <span>{f.q}</span>
+                  <span
+                    aria-hidden="true"
+                    className="ml-4 text-2xl font-black text-ink transition-transform group-open:rotate-45"
+                  >
                     +
                   </span>
                 </summary>

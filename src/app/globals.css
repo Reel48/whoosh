@@ -45,6 +45,18 @@ body {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Reserve space for the mobile bottom tab bar (h-16 = 64px) + the iPhone
+ * home-indicator safe area. Only on small screens — desktop has no bar.
+ *
+ * Components that need to draw flush to the bottom on mobile can override
+ * with `mb-[-calc(theme(spacing.16)+env(safe-area-inset-bottom))]` but
+ * that's rare. */
+@media (max-width: 639px) {
+  body[data-has-bottom-bar="true"] {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+}
+
 h1,
 h2,
 h3,
@@ -53,6 +65,39 @@ h5,
 h6,
 .font-heading {
   font-family: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Touch-friendly chip baseline. Any interactive chip / pill should add
+ * `.chip-tap` so it clears Apple's 44×44pt guidance and gets a visible
+ * touch-down state. Decorative status pills (non-interactive) can stay
+ * small without this. */
+.chip-tap {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.chip-tap:active {
+  opacity: 0.8;
+}
+
+/* Touch-down feedback for primary buttons. Hover doesn't fire on touch,
+ * so we add an `active:` press state via this utility. */
+.tap-press {
+  transition: transform 0.08s ease, opacity 0.12s ease;
+}
+.tap-press:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+/* Hide a UI element when an on-screen software keyboard is open (iOS
+ * Safari sets visualViewport.height below window.innerHeight). Applied
+ * via JS in BottomTabBar to hide it when typing.
+ *
+ * Tailwind v4 doesn't have a media query for this; we set this class
+ * programmatically from the component. */
+.kbd-hidden {
+  display: none !important;
 }
 
 /* Signature diagonal-hatch motif */

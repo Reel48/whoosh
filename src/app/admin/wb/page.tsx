@@ -120,7 +120,7 @@ export default async function AdminWbPage() {
           </div>
           <button
             type="submit"
-            className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+            className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
           >
             Set rate
           </button>
@@ -145,7 +145,7 @@ export default async function AdminWbPage() {
             />
             <button
               type="submit"
-              className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+              className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
             >
               Accrue
             </button>
@@ -168,7 +168,7 @@ export default async function AdminWbPage() {
             />
             <button
               type="submit"
-              className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+              className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
             >
               Post
             </button>
@@ -207,7 +207,7 @@ export default async function AdminWbPage() {
           />
           <button
             type="submit"
-            className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+            className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
           >
             Apply
           </button>
@@ -261,7 +261,7 @@ export default async function AdminWbPage() {
           </div>
           <button
             type="submit"
-            className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+            className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
           >
             Post
           </button>

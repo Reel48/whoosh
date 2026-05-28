@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 import { addPremiumRole, removePremiumRole } from "@/lib/discord";
 import { creditLedger } from "@/lib/wb/ledger";
 import { WB_PER_USD } from "@/lib/wb/purchase";
+import { pendingReferralFor, markReferralRewarded } from "@/lib/wb/referrals";
+import { pushNotification } from "@/lib/wb/notifications";
+
+// Both parties get this when a referred user converts to Premium.
+const REFERRAL_REWARD_WB_CENTS = 5000; // $50 WB
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,6 +74,49 @@ export async function POST(req: Request) {
           if (res.status >= 500) {
             return new NextResponse("Discord transient error", { status: 500 });
           }
+        }
+
+        // Referral reward — fires once per referred user, on first Premium sub.
+        try {
+          const pending = await pendingReferralFor(userId);
+          if (pending) {
+            const username = session.metadata?.discord_username ?? "";
+            await creditLedger({
+              discordUserId: userId,
+              discordUsername: username,
+              amountCents: REFERRAL_REWARD_WB_CENTS,
+              kind: "referral_reward",
+              refKind: "referral",
+              refId: `referred:${userId}`,
+              memo: `Welcome bonus from referral code ${pending.code}`,
+            });
+            await creditLedger({
+              discordUserId: pending.referrerId,
+              discordUsername: "",
+              amountCents: REFERRAL_REWARD_WB_CENTS,
+              kind: "referral_reward",
+              refKind: "referral",
+              refId: `referrer:${userId}`,
+              memo: `Referral bonus — @${username || userId} joined Premium`,
+            });
+            await markReferralRewarded(userId, REFERRAL_REWARD_WB_CENTS);
+            await pushNotification({
+              userId: pending.referrerId,
+              kind: "referral",
+              title: "Referral cashed in",
+              body: `@${username || "Someone"} joined Premium with your code — $${(REFERRAL_REWARD_WB_CENTS / 100).toFixed(2)} WB added.`,
+              href: "/wallet",
+            }).catch(() => {});
+            await pushNotification({
+              userId,
+              kind: "referral",
+              title: "Welcome bonus credited",
+              body: `Thanks for using a referral code — $${(REFERRAL_REWARD_WB_CENTS / 100).toFixed(2)} WB added to your wallet.`,
+              href: "/wallet",
+            }).catch(() => {});
+          }
+        } catch (e) {
+          console.warn("Referral reward failed (non-fatal):", e);
         }
         break;
       }

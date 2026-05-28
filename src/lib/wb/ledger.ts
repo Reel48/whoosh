@@ -11,6 +11,8 @@ export type LedgerKind =
   | "invest_buy"
   | "invest_sell"
   | "invest_dividend"
+  | "daily_bonus"
+  | "referral_reward"
   | "adjustment";
 
 export type CreditLedgerInput = {
@@ -88,6 +90,43 @@ export async function getRecentLedger(
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(`getRecentLedger failed: ${error.message}`);
+  return (data ?? []).map((r) => ({
+    id: Number(r.id),
+    amountCents: Number(r.amount_cents),
+    kind: r.kind as LedgerKind,
+    memo: r.memo,
+    createdAt: r.created_at,
+  }));
+}
+
+export type LedgerFilter = {
+  kinds?: LedgerKind[];
+  since?: string; // ISO date
+  until?: string; // ISO date
+  limit?: number;
+};
+
+export async function queryLedger(
+  discordUserId: string,
+  filter: LedgerFilter = {},
+): Promise<LedgerEntry[]> {
+  let q = supabase()
+    .from("wb_ledger")
+    .select("id, amount_cents, kind, memo, created_at")
+    .eq("discord_user_id", discordUserId)
+    .order("created_at", { ascending: false });
+  if (filter.kinds && filter.kinds.length > 0) {
+    q = q.in("kind", filter.kinds);
+  }
+  if (filter.since) {
+    q = q.gte("created_at", filter.since);
+  }
+  if (filter.until) {
+    q = q.lte("created_at", filter.until);
+  }
+  q = q.limit(Math.min(filter.limit ?? 500, 2000));
+  const { data, error } = await q;
+  if (error) throw new Error(`queryLedger failed: ${error.message}`);
   return (data ?? []).map((r) => ({
     id: Number(r.id),
     amountCents: Number(r.amount_cents),

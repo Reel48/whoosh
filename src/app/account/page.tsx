@@ -5,6 +5,11 @@ import { findSubscriptionForDiscordUser } from "@/lib/stripe";
 import { Nav } from "@/components/Nav";
 import { Avatar } from "@/components/Avatar";
 import { Bolt } from "@/components/Bolt";
+import { ensureWallet } from "@/lib/wb/ledger";
+import { getReferralStats } from "@/lib/wb/referrals";
+import { listEarned, ACHIEVEMENTS, getAchievementDef } from "@/lib/wb/achievements";
+import { ReferralCard } from "@/components/wb/ReferralCard";
+import { formatWb } from "@/lib/wb/format";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +50,8 @@ export default async function AccountPage() {
     redirect("/api/auth/discord?next=/account");
   }
 
-  const [initialRoleGranted, sub] = await Promise.all([
+  await ensureWallet(session.id, session.username);
+  const [initialRoleGranted, sub, referral, earned] = await Promise.all([
     hasPremiumRole(session.id).catch((e) => {
       console.error("Premium role lookup failed:", e);
       return false;
@@ -54,7 +60,13 @@ export default async function AccountPage() {
       console.error("Stripe subscription lookup failed:", e);
       return null;
     }),
+    getReferralStats(session.id).catch((e) => {
+      console.error("Referral stats lookup failed:", e);
+      return null;
+    }),
+    listEarned(session.id).catch(() => []),
   ]);
+  const earnedSet = new Set(earned.map((e) => e.code));
 
   const isActive = sub?.status === "active" || sub?.status === "trialing";
   const renewalDate = sub ? formatDate(sub.currentPeriodEnd) : null;
@@ -206,7 +218,7 @@ export default async function AccountPage() {
               <form action="/api/portal" method="POST">
                 <button
                   type="submit"
-                  className="cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+                  className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
                 >
                   Manage subscription
                 </button>
@@ -235,10 +247,58 @@ export default async function AccountPage() {
           portal. Roles in Discord are managed by Whoosh automatically based on
           your subscription status.
         </p>
+
+        {referral && <ReferralCard stats={referral} />}
+
+        {/* Achievements */}
+        <section className="mt-10 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-heading text-xl font-bold">Achievements</h2>
+            <p className="text-xs font-bold uppercase tracking-wider text-ink/60">
+              {earned.length} / {ACHIEVEMENTS.length} unlocked
+            </p>
+          </div>
+          <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+            {ACHIEVEMENTS.map((a) => {
+              const got = earnedSet.has(a.code);
+              const def = getAchievementDef(a.code)!;
+              return (
+                <li
+                  key={a.code}
+                  className={`flex items-start gap-3 rounded-2xl border-2 border-ink p-4 ${
+                    got ? "bg-mango" : "bg-white-smoke opacity-60"
+                  }`}
+                >
+                  <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-ink text-xl ${
+                      got ? "bg-ink text-white-smoke" : "bg-white-smoke"
+                    }`}
+                  >
+                    {def.icon}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-heading text-base font-bold text-ink">
+                      {def.label}
+                    </p>
+                    <p className="mt-0.5 text-xs text-ink/70">{def.description}</p>
+                  </div>
+                  {got && (
+                    <span className="rounded-full border-2 border-ink bg-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white-smoke">
+                      Unlocked
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       </main>
     </>
   );
 }
+
+// Suppress unused-import warning when not used inline
+void formatWb;
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

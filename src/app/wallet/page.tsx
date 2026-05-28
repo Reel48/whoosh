@@ -3,11 +3,19 @@ import { getSession } from "@/lib/session";
 import { ensureWallet, getRecentLedger, type LedgerKind } from "@/lib/wb/ledger";
 import { loadDashboard } from "@/lib/wb/dashboard";
 import { getCurrentRate } from "@/lib/wb/interest";
-import { getLeaderboard } from "@/lib/wb/leaderboard";
+import {
+  getLeaderboard,
+  getTradersLeaderboard,
+  getBiggestWinsLeaderboard,
+  getStreaksLeaderboard,
+} from "@/lib/wb/leaderboard";
 import { Nav } from "@/components/Nav";
 import { BalanceChart } from "@/components/wb/BalanceChart";
 import { AllocationBar } from "@/components/wb/AllocationBar";
-import { Leaderboard } from "@/components/wb/Leaderboard";
+import { LeaderboardTabs } from "@/components/wb/LeaderboardTabs";
+import { Disclaimer } from "@/components/Disclaimer";
+import { BuyWbForm } from "@/components/wb/BuyWbForm";
+import { hasClaimedToday, getUserStreak } from "@/lib/wb/bonus";
 import { formatWb } from "@/lib/wb/format";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +35,8 @@ const KIND_LABEL: Record<LedgerKind, string> = {
   invest_buy: "Buy",
   invest_sell: "Sell",
   invest_dividend: "Dividend",
+  daily_bonus: "Daily check-in",
+  referral_reward: "Referral reward",
   adjustment: "Adjustment",
 };
 
@@ -53,7 +63,14 @@ function formatShares(n: number): string {
 export default async function WalletPage({
   searchParams,
 }: {
-  searchParams: Promise<{ purchase?: string; transfer?: string; error?: string }>;
+  searchParams: Promise<{
+    purchase?: string;
+    transfer?: string;
+    bonus?: string;
+    streak?: string;
+    amount?: string;
+    error?: string;
+  }>;
 }) {
   const session = await getSession();
   if (!session) {
@@ -61,11 +78,26 @@ export default async function WalletPage({
   }
   await ensureWallet(session.id, session.username);
 
-  const [dashboard, ledger, rate, leaderboard] = await Promise.all([
+  const [
+    dashboard,
+    ledger,
+    rate,
+    holders,
+    traders,
+    wins,
+    streaks,
+    claimedToday,
+    streakDays,
+  ] = await Promise.all([
     loadDashboard(session.id),
     getRecentLedger(session.id, 25),
     getCurrentRate().catch(() => null),
     getLeaderboard(10).catch(() => []),
+    getTradersLeaderboard(10, 7).catch(() => []),
+    getBiggestWinsLeaderboard(10, 7).catch(() => []),
+    getStreaksLeaderboard(10).catch(() => []),
+    hasClaimedToday(session.id).catch(() => false),
+    getUserStreak(session.id).catch(() => 0),
   ]);
 
   const { allocation, returns, positions } = dashboard;
@@ -78,9 +110,16 @@ export default async function WalletPage({
         ? { tone: "warn", text: "Purchase cancelled." }
         : sp.transfer === "ok"
           ? { tone: "good", text: "Transfer sent." }
-          : sp.error
-            ? { tone: "warn", text: sp.error }
-            : null;
+          : sp.bonus === "ok"
+            ? {
+                tone: "good",
+                text: `Daily bonus claimed — ${formatWb(Number(sp.amount ?? 0))} added (${sp.streak}-day streak 🔥).`,
+              }
+            : sp.bonus === "already"
+              ? { tone: "warn", text: "You've already claimed today's bonus." }
+              : sp.error
+                ? { tone: "warn", text: sp.error }
+                : null;
 
   const apyHint = rate
     ? `Earning ${(rate.apyBps / 100).toFixed(2)}% APY · ${rate.source.startsWith("fred") ? "SPAXX-tied" : rate.source}`
@@ -129,6 +168,36 @@ export default async function WalletPage({
             {banner.text}
           </div>
         )}
+
+        {/* Daily check-in */}
+        <section className="mt-8 rounded-3xl border-2 border-ink bg-mango p-6 text-ink sm:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="font-heading text-xl font-bold">
+                Daily check-in
+                {streakDays > 0 && (
+                  <span className="ml-2 text-base font-medium text-ink/70">
+                    🔥 {streakDays}-day streak
+                  </span>
+                )}
+              </h2>
+              <p className="mt-1 text-sm font-medium text-ink/70">
+                {claimedToday
+                  ? "Already claimed today. Come back tomorrow to extend your streak."
+                  : "Drop in daily to claim your bonus. Streak grows the reward."}
+              </p>
+            </div>
+            <form action="/api/wb/bonus" method="POST">
+              <button
+                type="submit"
+                disabled={claimedToday}
+                className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {claimedToday ? "Claimed ✓" : "Claim today's bonus"}
+              </button>
+            </form>
+          </div>
+        </section>
 
         {/* Allocation */}
         <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
@@ -212,7 +281,13 @@ export default async function WalletPage({
 
         {/* Leaderboard */}
         <section className="mt-8">
-          <Leaderboard entries={leaderboard} highlightUserId={session.id} />
+          <LeaderboardTabs
+            holders={holders}
+            traders={traders}
+            wins={wins}
+            streaks={streaks}
+            highlightUserId={session.id}
+          />
         </section>
 
         {/* Balance chart */}
@@ -235,36 +310,45 @@ export default async function WalletPage({
               {positions.map((p) => (
                 <li
                   key={p.symbol}
-                  className="grid grid-cols-[1fr_1fr_1fr] items-center gap-4 py-3 text-sm"
+                  className="flex flex-col gap-2 py-3 text-sm sm:grid sm:grid-cols-[1fr_1fr_1fr] sm:items-center sm:gap-4"
                 >
-                  <div>
-                    <div className="font-heading font-black">{p.symbol}</div>
+                  <div className="flex items-baseline justify-between gap-3 sm:block">
+                    <div className="font-heading text-lg font-black sm:text-base">{p.symbol}</div>
                     <div className="text-xs text-ink/60">{formatShares(p.shares)} shares</div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
-                      Market
+                  <div className="grid grid-cols-2 gap-3 sm:contents">
+                    <div className="text-left sm:text-right">
+                      <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
+                        Market
+                      </div>
+                      <div className="font-heading font-bold tabular-nums">
+                        {p.marketValueCents !== null ? formatMoney(p.marketValueCents) : "—"}
+                      </div>
                     </div>
-                    <div className="font-heading font-bold tabular-nums">
-                      {p.marketValueCents !== null ? formatMoney(p.marketValueCents) : "—"}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
-                      P/L
-                    </div>
-                    <div
-                      className={`font-heading font-black tabular-nums ${
-                        p.unrealizedCents === null
-                          ? "text-ink/60"
-                          : p.unrealizedCents >= 0
-                            ? "text-pigment-green"
-                            : "text-imperial-red"
-                      }`}
-                    >
-                      {p.unrealizedCents !== null
-                        ? formatMoney(p.unrealizedCents, { signed: true })
-                        : "—"}
+                    <div className="text-right">
+                      <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
+                        P/L
+                      </div>
+                      <div
+                        className={`font-heading font-black tabular-nums ${
+                          p.unrealizedCents === null
+                            ? "text-ink/60"
+                            : p.unrealizedCents > 0
+                              ? "text-pigment-green"
+                              : p.unrealizedCents < 0
+                                ? "text-imperial-red"
+                                : "text-ink"
+                        }`}
+                        aria-label={
+                          p.unrealizedCents == null
+                            ? "P/L unavailable"
+                            : `${p.unrealizedCents > 0 ? "up" : p.unrealizedCents < 0 ? "down" : "flat"} ${formatMoney(p.unrealizedCents, { signed: true })}`
+                        }
+                      >
+                        {p.unrealizedCents == null
+                          ? "—"
+                          : `${p.unrealizedCents > 0 ? "▲ " : p.unrealizedCents < 0 ? "▼ " : ""}${formatMoney(p.unrealizedCents, { signed: true })}`}
+                      </div>
                     </div>
                   </div>
                 </li>
@@ -283,34 +367,7 @@ export default async function WalletPage({
             Every $1 paid via Stripe = $10 of Whoosh Bucks. Bucks appear here
             when the charge clears.
           </p>
-          <form
-            action="/api/wb/buy"
-            method="POST"
-            className="mt-5 flex flex-wrap items-stretch gap-3"
-          >
-            <div className="relative flex-1 min-w-[180px]">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-heading font-bold text-ink/60">
-                $
-              </span>
-              <input
-                type="number"
-                name="amount"
-                min="1"
-                step="1"
-                defaultValue="10"
-                required
-                inputMode="decimal"
-                aria-label="USD amount"
-                className="w-full rounded-full border-2 border-ink bg-white-smoke px-4 py-3 pl-8 font-heading text-lg font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
-              />
-            </div>
-            <button
-              type="submit"
-              className="cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
-            >
-              Buy WB
-            </button>
-          </form>
+          <BuyWbForm />
         </section>
 
         {/* Send WB */}
@@ -357,7 +414,7 @@ export default async function WalletPage({
             </div>
             <button
               type="submit"
-              className="cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+              className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
             >
               Send
             </button>
@@ -365,17 +422,33 @@ export default async function WalletPage({
               type="text"
               name="memo"
               placeholder="Memo (optional)"
+              aria-label="Memo (optional)"
               className="sm:col-span-3 rounded-full border-2 border-ink bg-white-smoke px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink"
             />
           </form>
         </section>
 
         {/* Activity ledger */}
-        <h2 className="mt-12 font-heading text-xl font-bold text-ink">Activity</h2>
+        <div className="mt-12 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-heading text-xl font-bold text-ink">Activity</h2>
+          {ledger.length > 0 && (
+            <a
+              href="/wallet/activity"
+              className="text-sm font-bold text-ink/70 underline-offset-2 hover:underline"
+            >
+              See all →
+            </a>
+          )}
+        </div>
         {ledger.length === 0 ? (
-          <p className="mt-4 text-sm text-ink/60">
-            No activity yet. Buy some Whoosh Bucks to get started.
-          </p>
+          <div className="mt-4 rounded-3xl border-2 border-ink bg-white-smoke p-8 text-center">
+            <p className="font-heading text-lg font-bold text-ink">
+              No activity yet.
+            </p>
+            <p className="mt-2 text-sm text-ink/60">
+              Buy some Whoosh Bucks above to get started. Every $1 = $10 WB.
+            </p>
+          </div>
         ) : (
           <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
             {ledger.map((entry) => {
@@ -385,9 +458,9 @@ export default async function WalletPage({
                   key={entry.id}
                   className="grid grid-cols-[1fr_auto] items-center gap-4 py-3 text-sm"
                 >
-                  <div>
+                  <div className="min-w-0">
                     <div className="font-bold">{KIND_LABEL[entry.kind] ?? entry.kind}</div>
-                    <div className="text-xs text-ink/60">
+                    <div className="truncate text-xs text-ink/60">
                       {entry.memo ?? formatDateTime(entry.createdAt)}
                     </div>
                   </div>
@@ -403,6 +476,8 @@ export default async function WalletPage({
             })}
           </ul>
         )}
+
+        <Disclaimer />
       </main>
     </>
   );
