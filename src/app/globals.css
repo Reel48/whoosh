@@ -1,47 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  /* Whoosh palette */
-  --sandstone: #faf8ed;
-  --matte-orange: #ffa16c;
-  --bright-red: #ff3d40;
-  --deep-red: #9c232b;
-  --blue-grey: #c6cfd4;
-  --rooftop-grey: #36494d;
-  --asphalt: #1c2729;
-  --smooth-black: #131414;
-  --pure-black: #000000;
-  --light: #f1f5f8;
-  --city-sky: #c6e8ed;
-  --real-blue: #055193;
-  --smudged-blue: #253e5c;
-  --clear-white: #ffffff;
-  --dusty-green: #a0cd9f;
-  --fresh-green: #12a96a;
-  --bench-green: #053f33;
+  /* Whoosh palette — vibrant color-block system, black holds it together */
+  --ink: #000000;
+  --white-smoke: #f3f3f0;
+  --cream: #d5d4ce;
+  --lime: #cef932;
+  --blue: #0381ed;
+  --safety-orange: #fc7b00;
+  --mango: #fbd12c;
+  --plum: #ff9ff3;
+  --imperial-red: #ff0c31;
+  --pigment-green: #009640;
+  --lavender: #ae78d2;
 
-  --background: var(--clear-white);
-  --foreground: var(--smooth-black);
+  --background: var(--white-smoke);
+  --foreground: var(--ink);
 }
 
 @theme inline {
-  --color-sandstone: var(--sandstone);
-  --color-matte-orange: var(--matte-orange);
-  --color-bright-red: var(--bright-red);
-  --color-deep-red: var(--deep-red);
-  --color-blue-grey: var(--blue-grey);
-  --color-rooftop-grey: var(--rooftop-grey);
-  --color-asphalt: var(--asphalt);
-  --color-smooth-black: var(--smooth-black);
-  --color-pure-black: var(--pure-black);
-  --color-light: var(--light);
-  --color-city-sky: var(--city-sky);
-  --color-real-blue: var(--real-blue);
-  --color-smudged-blue: var(--smudged-blue);
-  --color-clear-white: var(--clear-white);
-  --color-dusty-green: var(--dusty-green);
-  --color-fresh-green: var(--fresh-green);
-  --color-bench-green: var(--bench-green);
+  --color-ink: var(--ink);
+  --color-white-smoke: var(--white-smoke);
+  --color-cream: var(--cream);
+  --color-lime: var(--lime);
+  --color-blue: var(--blue);
+  --color-safety-orange: var(--safety-orange);
+  --color-mango: var(--mango);
+  --color-plum: var(--plum);
+  --color-imperial-red: var(--imperial-red);
+  --color-pigment-green: var(--pigment-green);
+  --color-lavender: var(--lavender);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-// Body / UI type.
+// Single typeface — Inter, full weight range. Body and headings both use Inter;
+// headings just lean on the heavier weights (800/900) for modernist label feel.
 const inter = Inter({
   variable: "--font-body",
   subsets: ["latin"],
-});
-
-// Display / heading type.
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-heading",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -32,7 +27,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${inter.variable} h-full antialiased`}
+      style={{ ["--font-heading" as string]: "var(--font-body)" }}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
