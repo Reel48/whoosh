@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/session";
 import { hasAdminRole } from "@/lib/discord";
 import { createEvent, setEventStatus, settleEvent, cancelEvent } from "@/lib/wb/bets";
+import { runOddsSync } from "@/lib/wb/oddsSync";
+import { runOddsSettle } from "@/lib/wb/oddsSettle";
 
 async function requireAdmin(): Promise<string> {
   const session = await getSession();
@@ -72,6 +74,20 @@ export async function cancelEventAction(formData: FormData): Promise<void> {
   const eventId = Number(formData.get("event_id"));
   if (!eventId) throw new Error("Missing event_id.");
   await cancelEvent(eventId);
+  revalidatePath("/admin/wb/events");
+  revalidatePath("/events");
+}
+
+export async function syncOddsAction(): Promise<void> {
+  await requireAdmin();
+  await runOddsSync();
+  revalidatePath("/admin/wb/events");
+  revalidatePath("/events");
+}
+
+export async function settleOddsAction(): Promise<void> {
+  await requireAdmin();
+  await runOddsSettle();
   revalidatePath("/admin/wb/events");
   revalidatePath("/events");
 }

@@ -1,7 +1,14 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { ensureWallet, getBalance } from "@/lib/wb/ledger";
-import { listOpenEvents, listRecentSettledEvents } from "@/lib/wb/bets";
+import {
+  listOpenEvents,
+  listRecentSettledEvents,
+  type BetEvent,
+  type BetOutcome,
+  type BetMarket,
+} from "@/lib/wb/bets";
+import { MARKET_LABELS } from "@/lib/wb/odds";
 import { Nav } from "@/components/Nav";
 import { Disclaimer } from "@/components/Disclaimer";
 
@@ -9,11 +16,114 @@ export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Events — Whoosh" };
 
+const SPORT_TITLES: Record<string, string> = {
+  americanfootball_nfl: "NFL",
+  americanfootball_ncaaf: "College Football",
+  basketball_nba: "NBA",
+  baseball_mlb: "MLB",
+  soccer_epl: "Premier League",
+  soccer_uefa_champs_league: "Champions League",
+};
+
+const MARKET_ORDER: BetMarket[] = ["h2h", "spreads", "totals"];
+
+function sportTitle(sportKey: string | null): string {
+  if (!sportKey) return "Sports";
+  return SPORT_TITLES[sportKey] ?? sportKey;
+}
+
 function formatWb(cents: number): string {
   return `$${(cents / 100).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+type Game = {
+  key: string;
+  sportKey: string | null;
+  matchup: string;
+  commenceTime: string | null;
+  markets: BetEvent[]; // one event per market
+};
+
+/** Group synced events by game (externalEventId), markets ordered ML/Spread/Total. */
+function groupSyncedByGame(events: BetEvent[]): Game[] {
+  const byGame = new Map<string, Game>();
+  for (const e of events) {
+    const key = e.externalEventId ?? String(e.id);
+    const g = byGame.get(key) ?? {
+      key,
+      sportKey: e.sportKey,
+      matchup: e.title,
+      commenceTime: e.commenceTime,
+      markets: [],
+    };
+    g.markets.push(e);
+    byGame.set(key, g);
+  }
+  for (const g of byGame.values()) {
+    g.markets.sort(
+      (a, b) =>
+        MARKET_ORDER.indexOf(a.market ?? "h2h") - MARKET_ORDER.indexOf(b.market ?? "h2h"),
+    );
+  }
+  return [...byGame.values()].sort((a, b) => {
+    const ta = a.commenceTime ? new Date(a.commenceTime).getTime() : Infinity;
+    const tb = b.commenceTime ? new Date(b.commenceTime).getTime() : Infinity;
+    return ta - tb;
+  });
+}
+
+function OutcomeForm({ event, outcome }: { event: BetEvent; outcome: BetOutcome }) {
+  return (
+    <form
+      action="/api/wb/wager"
+      method="POST"
+      className="flex flex-col gap-3 rounded-2xl border-2 border-ink bg-white-smoke p-3 sm:grid sm:grid-cols-[1fr_auto_120px_auto] sm:items-stretch sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
+    >
+      <input type="hidden" name="event_id" value={event.id} />
+      <input type="hidden" name="outcome_id" value={outcome.id} />
+      <div className="flex items-baseline justify-between gap-3 sm:block">
+        <div className="font-bold">{outcome.label}</div>
+        <div className="font-heading text-sm font-bold tabular-nums text-ink/60 sm:hidden">
+          ×{outcome.oddsDecimal.toFixed(2)}
+        </div>
+        <div className="hidden text-xs text-ink/60 sm:block">
+          Pays {outcome.oddsDecimal.toFixed(2)}× stake
+        </div>
+      </div>
+      <div className="hidden self-center font-heading text-sm font-bold tabular-nums text-ink/60 sm:block">
+        ×{outcome.oddsDecimal.toFixed(2)}
+      </div>
+      <div className="flex items-stretch gap-2 sm:contents">
+        <div className="relative flex-1">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-heading font-bold text-ink/60">
+            $
+          </span>
+          <input
+            type="number"
+            name="stake"
+            min="0.01"
+            step="0.01"
+            placeholder="0.00"
+            required={event.status === "open"}
+            disabled={event.status !== "open"}
+            inputMode="decimal"
+            aria-label="Stake"
+            className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 pl-7 font-heading font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink disabled:opacity-50"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={event.status !== "open"}
+          className="tap-press chip-tap shrink-0 cursor-pointer rounded-full border-2 border-ink bg-ink px-5 text-sm font-bold text-white-smoke disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Bet
+        </button>
+      </div>
+    </form>
+  );
 }
 
 export default async function EventsPage({
@@ -37,6 +147,21 @@ export default async function EventsPage({
       : sp.error
         ? { tone: "warn", text: sp.error }
         : null;
+
+  const synced = events.filter((e) => e.source === "odds_api");
+  const manual = events.filter((e) => e.source !== "odds_api");
+  const games = groupSyncedByGame(synced);
+
+  // Section games by sport, preserving the time-sorted order within each sport.
+  const sports: { sportKey: string | null; games: Game[] }[] = [];
+  for (const g of games) {
+    let section = sports.find((s) => s.sportKey === g.sportKey);
+    if (!section) {
+      section = { sportKey: g.sportKey, games: [] };
+      sports.push(section);
+    }
+    section.games.push(g);
+  }
 
   return (
     <>
@@ -74,88 +199,111 @@ export default async function EventsPage({
             </p>
           </div>
         ) : (
-          <ul className="mt-8 space-y-6">
-            {events.map((e) => (
-              <li
-                key={e.id}
-                className="rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8"
-              >
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="font-heading text-2xl font-black tracking-tight">{e.title}</h2>
-                  <span
-                    className={`rounded-full border-2 border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
-                      e.status === "open"
-                        ? "bg-pigment-green text-white-smoke"
-                        : "bg-white-smoke text-ink"
-                    }`}
-                  >
-                    {e.status}
-                  </span>
-                </div>
-                {e.description && (
-                  <p className="mt-2 text-sm font-medium text-ink/80">{e.description}</p>
-                )}
-                {e.closesAt && (
-                  <p className="mt-2 text-xs font-bold uppercase tracking-wider text-ink/60">
-                    Closes {new Date(e.closesAt).toLocaleString("en-US")}
-                  </p>
-                )}
+          <div className="mt-8 space-y-12">
+            {sports.map((section) => (
+              <section key={section.sportKey ?? "sports"}>
+                <h2 className="font-heading text-xl font-black tracking-tight text-ink">
+                  {sportTitle(section.sportKey)}
+                </h2>
+                <ul className="mt-4 space-y-6">
+                  {section.games.map((game) => (
+                    <li
+                      key={game.key}
+                      className="rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8"
+                    >
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <h3 className="font-heading text-xl font-black tracking-tight">
+                          {game.matchup}
+                        </h3>
+                        {game.commenceTime && (
+                          <span className="text-xs font-bold uppercase tracking-wider text-ink/60">
+                            {new Date(game.commenceTime).toLocaleString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              hour: "numeric",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        )}
+                      </div>
 
-                <ul className="mt-5 space-y-3">
-                  {e.outcomes.map((o) => (
-                    <li key={o.id}>
-                      <form
-                        action="/api/wb/wager"
-                        method="POST"
-                        className="flex flex-col gap-3 rounded-2xl border-2 border-ink bg-white-smoke p-3 sm:grid sm:grid-cols-[1fr_auto_120px_auto] sm:items-stretch sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
-                      >
-                        <input type="hidden" name="event_id" value={e.id} />
-                        <input type="hidden" name="outcome_id" value={o.id} />
-                        <div className="flex items-baseline justify-between gap-3 sm:block">
-                          <div className="font-bold">{o.label}</div>
-                          <div className="font-heading text-sm font-bold tabular-nums text-ink/60 sm:hidden">
-                            ×{o.oddsDecimal.toFixed(2)}
+                      <div className="mt-5 space-y-6">
+                        {game.markets.map((mkt) => (
+                          <div key={mkt.id}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold uppercase tracking-wider text-ink/60">
+                                {mkt.market ? MARKET_LABELS[mkt.market] : "Bet"}
+                              </span>
+                              {mkt.status === "locked" && (
+                                <span className="rounded-full border-2 border-ink bg-white-smoke px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                  closed
+                                </span>
+                              )}
+                            </div>
+                            <ul className="mt-2 space-y-3">
+                              {mkt.outcomes.map((o) => (
+                                <li key={o.id}>
+                                  <OutcomeForm event={mkt} outcome={o} />
+                                </li>
+                              ))}
+                            </ul>
                           </div>
-                          <div className="hidden text-xs text-ink/60 sm:block">
-                            Pays {o.oddsDecimal.toFixed(2)}× stake
-                          </div>
-                        </div>
-                        <div className="hidden self-center font-heading text-sm font-bold tabular-nums text-ink/60 sm:block">
-                          ×{o.oddsDecimal.toFixed(2)}
-                        </div>
-                        <div className="flex items-stretch gap-2 sm:contents">
-                          <div className="relative flex-1">
-                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-heading font-bold text-ink/60">
-                              $
-                            </span>
-                            <input
-                              type="number"
-                              name="stake"
-                              min="0.01"
-                              step="0.01"
-                              placeholder="0.00"
-                              required={e.status === "open"}
-                              disabled={e.status !== "open"}
-                              inputMode="decimal"
-                              aria-label="Stake"
-                              className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 pl-7 font-heading font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink disabled:opacity-50"
-                            />
-                          </div>
-                          <button
-                            type="submit"
-                            disabled={e.status !== "open"}
-                            className="tap-press chip-tap shrink-0 cursor-pointer rounded-full border-2 border-ink bg-ink px-5 text-sm font-bold text-white-smoke disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            Bet
-                          </button>
-                        </div>
-                      </form>
+                        ))}
+                      </div>
                     </li>
                   ))}
                 </ul>
-              </li>
+              </section>
             ))}
-          </ul>
+
+            {manual.length > 0 && (
+              <section>
+                {sports.length > 0 && (
+                  <h2 className="font-heading text-xl font-black tracking-tight text-ink">
+                    More events
+                  </h2>
+                )}
+                <ul className="mt-4 space-y-6">
+                  {manual.map((e) => (
+                    <li
+                      key={e.id}
+                      className="rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8"
+                    >
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <h3 className="font-heading text-2xl font-black tracking-tight">
+                          {e.title}
+                        </h3>
+                        <span
+                          className={`rounded-full border-2 border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
+                            e.status === "open"
+                              ? "bg-pigment-green text-white-smoke"
+                              : "bg-white-smoke text-ink"
+                          }`}
+                        >
+                          {e.status}
+                        </span>
+                      </div>
+                      {e.description && (
+                        <p className="mt-2 text-sm font-medium text-ink/80">{e.description}</p>
+                      )}
+                      {e.closesAt && (
+                        <p className="mt-2 text-xs font-bold uppercase tracking-wider text-ink/60">
+                          Closes {new Date(e.closesAt).toLocaleString("en-US")}
+                        </p>
+                      )}
+                      <ul className="mt-5 space-y-3">
+                        {e.outcomes.map((o) => (
+                          <li key={o.id}>
+                            <OutcomeForm event={e} outcome={o} />
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
         )}
 
         {recent.length > 0 && (
@@ -167,13 +315,17 @@ export default async function EventsPage({
                   e.settledOutcomeId != null
                     ? e.outcomes.find((o) => o.id === e.settledOutcomeId)
                     : null;
+                const marketSuffix = e.market ? ` · ${MARKET_LABELS[e.market]}` : "";
                 return (
                   <li
                     key={e.id}
                     className="grid grid-cols-[1fr_auto] items-center gap-4 py-3 text-sm"
                   >
                     <div>
-                      <div className="font-heading font-bold text-ink">{e.title}</div>
+                      <div className="font-heading font-bold text-ink">
+                        {e.title}
+                        {marketSuffix}
+                      </div>
                       <div className="text-xs text-ink/60">
                         {e.status === "cancelled"
                           ? "Cancelled · stakes refunded"

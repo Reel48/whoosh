@@ -1,11 +1,15 @@
 import { supabase } from "@/lib/supabase";
 
 export type EventStatus = "open" | "locked" | "settled" | "cancelled";
+export type EventSource = "manual" | "odds_api";
+export type BetMarket = "h2h" | "spreads" | "totals";
 
 export type BetOutcome = {
   id: number;
   label: string;
   oddsDecimal: number;
+  point: number | null;
+  outcomeKey: string | null;
 };
 
 export type BetEvent = {
@@ -13,10 +17,17 @@ export type BetEvent = {
   title: string;
   description: string | null;
   status: EventStatus;
-  createdBy: string;
+  createdBy: string | null;
   closesAt: string | null;
   settledOutcomeId: number | null;
   createdAt: string;
+  source: EventSource;
+  externalEventId: string | null;
+  sportKey: string | null;
+  market: BetMarket | null;
+  homeTeam: string | null;
+  awayTeam: string | null;
+  commenceTime: string | null;
   outcomes: BetOutcome[];
 };
 
@@ -28,7 +39,7 @@ async function loadOutcomes(eventIds: number[]): Promise<Map<number, BetOutcome[
   if (eventIds.length === 0) return new Map();
   const { data, error } = await supabase()
     .from("bet_outcome")
-    .select("id, event_id, label, odds_decimal")
+    .select("id, event_id, label, odds_decimal, point, outcome_key")
     .in("event_id", eventIds)
     .order("id", { ascending: true });
   if (error) throw new Error(`outcome query failed: ${error.message}`);
@@ -39,6 +50,8 @@ async function loadOutcomes(eventIds: number[]): Promise<Map<number, BetOutcome[
       id: Number(r.id),
       label: r.label,
       oddsDecimal: Number(r.odds_decimal),
+      point: r.point != null ? Number(r.point) : null,
+      outcomeKey: (r.outcome_key as string | null) ?? null,
     });
     grouped.set(Number(r.event_id), list);
   }
@@ -54,10 +67,17 @@ function shape(
     title: String(r.title),
     description: (r.description as string | null) ?? null,
     status: r.status as EventStatus,
-    createdBy: String(r.created_by),
+    createdBy: (r.created_by as string | null) ?? null,
     closesAt: (r.closes_at as string | null) ?? null,
     settledOutcomeId: r.settled_outcome_id ? Number(r.settled_outcome_id) : null,
     createdAt: String(r.created_at),
+    source: ((r.source as string | null) ?? "manual") as EventSource,
+    externalEventId: (r.external_event_id as string | null) ?? null,
+    sportKey: (r.sport_key as string | null) ?? null,
+    market: (r.market as BetMarket | null) ?? null,
+    homeTeam: (r.home_team as string | null) ?? null,
+    awayTeam: (r.away_team as string | null) ?? null,
+    commenceTime: (r.commence_time as string | null) ?? null,
     outcomes,
   };
 }
@@ -193,5 +213,24 @@ export async function settleEvent(eventId: number, winningOutcomeId: number): Pr
 export async function cancelEvent(eventId: number): Promise<number> {
   const { data, error } = await supabase().rpc("fn_cancel_event", { p_event_id: eventId });
   if (error) throw new Error(`cancelEvent failed: ${error.message}`);
+  return Number(data ?? 0);
+}
+
+/**
+ * Settle a sports event from its final score. Settles per-wager (h2h winner,
+ * spread cover, total over/under) honoring each wager's frozen line, refunding
+ * pushes. Returns the number of wagers settled.
+ */
+export async function settleEventByScore(
+  eventId: number,
+  homeScore: number,
+  awayScore: number,
+): Promise<number> {
+  const { data, error } = await supabase().rpc("fn_settle_event_by_score", {
+    p_event_id: eventId,
+    p_home_score: homeScore,
+    p_away_score: awayScore,
+  });
+  if (error) throw new Error(`settleEventByScore failed: ${error.message}`);
   return Number(data ?? 0);
 }

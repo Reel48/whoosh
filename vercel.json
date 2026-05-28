@@ -12,6 +12,14 @@
     {
       "path": "/api/cron/monthly-post-interest",
       "schedule": "30 0 1 * *"
+    },
+    {
+      "path": "/api/cron/odds-sync",
+      "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/cron/odds-settle",
+      "schedule": "0 12 * * *"
     }
   ]
 }
