@@ -3,9 +3,11 @@ import { getSession } from "@/lib/session";
 import { ensureWallet, getRecentLedger, type LedgerKind } from "@/lib/wb/ledger";
 import { loadDashboard } from "@/lib/wb/dashboard";
 import { getCurrentRate } from "@/lib/wb/interest";
+import { getLeaderboard } from "@/lib/wb/leaderboard";
 import { Nav } from "@/components/Nav";
 import { BalanceChart } from "@/components/wb/BalanceChart";
 import { AllocationBar } from "@/components/wb/AllocationBar";
+import { Leaderboard } from "@/components/wb/Leaderboard";
 
 export const dynamic = "force-dynamic";
 
@@ -64,10 +66,11 @@ export default async function WalletPage({
   }
   await ensureWallet(session.id, session.username);
 
-  const [dashboard, ledger, rate] = await Promise.all([
+  const [dashboard, ledger, rate, leaderboard] = await Promise.all([
     loadDashboard(session.id),
     getRecentLedger(session.id, 25),
     getCurrentRate().catch(() => null),
+    getLeaderboard(10).catch(() => []),
   ]);
 
   const { allocation, returns, positions } = dashboard;
@@ -205,6 +208,11 @@ export default async function WalletPage({
               tone="neutral"
             />
           </dl>
+        </section>
+
+        {/* Leaderboard */}
+        <section className="mt-8">
+          <Leaderboard entries={leaderboard} highlightUserId={session.id} />
         </section>
 
         {/* Balance chart */}

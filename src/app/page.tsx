@@ -2,8 +2,10 @@ import Image from "next/image";
 import { createCheckoutSession } from "./actions";
 import { getSession } from "@/lib/session";
 import { isGuildMember, getGuildOnlineCount } from "@/lib/discord";
+import { getLeaderboard } from "@/lib/wb/leaderboard";
 import { Nav } from "@/components/Nav";
 import { Bolt } from "@/components/Bolt";
+import { Leaderboard } from "@/components/wb/Leaderboard";
 
 const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
 
@@ -139,9 +141,10 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 
 export default async function Home() {
   const session = await getSession();
-  const [inServer, onlineCount] = await Promise.all([
+  const [inServer, onlineCount, leaderboard] = await Promise.all([
     session ? isGuildMember(session.id).catch(() => false) : Promise.resolve(false),
     getGuildOnlineCount(),
+    getLeaderboard(10).catch(() => []),
   ]);
   const discordLabel = inServer ? "Open Discord" : "Join the Discord";
 
@@ -446,6 +449,14 @@ export default async function Home() {
                 </a>
               );
             })}
+          </div>
+
+          <div className="mt-10">
+            <Leaderboard
+              entries={leaderboard}
+              highlightUserId={session?.id ?? null}
+              subtitle="Live · top holders"
+            />
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-ink p-7 text-white-smoke sm:p-8">
