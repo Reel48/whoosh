@@ -280,7 +280,8 @@ export default async function WalletPage({
         <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
           <h2 className="font-heading text-xl font-bold text-ink">Buy Whoosh Bucks</h2>
           <p className="mt-2 text-sm font-medium text-ink/70">
-            $1 USD = 10 WB. Pay through Stripe; bucks appear here when the charge clears.
+            Every $1 paid via Stripe = $10 of Whoosh Bucks. Bucks appear here
+            when the charge clears.
           </p>
           <form
             action="/api/wb/buy"

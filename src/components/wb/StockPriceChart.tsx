@@ -1,5 +1,4 @@
 import type { Candle } from "@/lib/wb/history";
-import { WB_PER_USD } from "@/lib/wb/purchase";
 
 type Props = {
   candles: Candle[];
@@ -165,8 +164,8 @@ export function StockPriceChart({ candles, refLineCents, refLineLabel }: Props) 
             fontWeight="600"
             className="fill-ink/60"
           >
-            ${((t.cents * WB_PER_USD) / 100).toLocaleString("en-US", {
-              minimumFractionDigits: t.cents * WB_PER_USD < 100_00 ? 2 : 0,
+            ${(t.cents / 100).toLocaleString("en-US", {
+              minimumFractionDigits: t.cents < 100_00 ? 2 : 0,
               maximumFractionDigits: 2,
             })}
           </text>

@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase";
-import { WB_PER_USD } from "@/lib/wb/purchase";
 
 export type DividendRecord = {
   id: number;
@@ -15,8 +14,8 @@ export type DividendRecord = {
  * Post a dividend for everyone holding the symbol on ex-date.
  *
  * `usdPerShare` is the cash dividend in real US dollars per share (e.g. 0.27
- * for Apple's recent quarterly). We convert to WB cents at the 1 USD = 10 WB
- * rate before calling the SQL function.
+ * for Apple's recent quarterly). Since 1 WB = $1 in our system, the WB
+ * credit per share equals the USD amount per share.
  *
  * Idempotent on (symbol, ex_date) via the wb_dividend unique constraint and
  * per-user via fn_post_dividend's (ref_kind, ref_id) check — re-running the
@@ -37,8 +36,8 @@ export async function postDividend(input: {
   if (!Number.isFinite(input.usdPerShare) || input.usdPerShare <= 0) {
     throw new Error("usdPerShare must be a positive number");
   }
-  // $0.27/share × 10 WB/USD × 100 cents/WB = 270 WB cents/share
-  const wbCentsPerShare = Math.round(input.usdPerShare * WB_PER_USD * 100);
+  // $0.27/share × 100 cents = 27 WB cents/share (since 1 WB = $1).
+  const wbCentsPerShare = Math.round(input.usdPerShare * 100);
   if (wbCentsPerShare <= 0) throw new Error("dividend rounds to zero");
 
   const sb = supabase();

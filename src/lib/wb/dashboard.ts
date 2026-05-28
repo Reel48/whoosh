@@ -2,7 +2,6 @@ import { supabase } from "@/lib/supabase";
 import { getBalance } from "@/lib/wb/ledger";
 import { getPositions, type Position } from "@/lib/wb/invest";
 import { getQuote } from "@/lib/wb/quotes";
-import { WB_PER_USD } from "@/lib/wb/purchase";
 
 export type LifetimeStats = {
   totalPurchased: number;        // real $ paid via Stripe, expressed in WB cents
@@ -129,14 +128,14 @@ async function enrichPositions(positions: Position[]): Promise<EnrichedPosition[
           unrealizedCents: null,
         };
       }
-      // q.priceCents is real-USD cents per share; mark-to-market in WB cents
-      // requires the 10:1 scale so it lines up with the rebased cost basis.
-      const mvWb = Math.round(p.shares * q.priceCents * WB_PER_USD);
+      // 1 WB = $1, so q.priceCents (USD) is the same scale as
+      // cost_basis_cents (WB). No conversion needed for mark-to-market.
+      const mv = Math.round(p.shares * q.priceCents);
       return {
         ...p,
         marketPriceCents: q.priceCents,
-        marketValueCents: mvWb,
-        unrealizedCents: mvWb - p.costBasisCents,
+        marketValueCents: mv,
+        unrealizedCents: mv - p.costBasisCents,
       };
     }),
   );

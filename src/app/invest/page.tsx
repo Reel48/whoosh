@@ -9,19 +9,16 @@ import { Nav } from "@/components/Nav";
 import { StockHeader } from "@/components/wb/StockHeader";
 import { StockPriceChart } from "@/components/wb/StockPriceChart";
 import { StockStats } from "@/components/wb/StockStats";
-import { formatWb, formatUsdAsWb } from "@/lib/wb/format";
-import { WB_PER_USD } from "@/lib/wb/purchase";
+import { formatWb, formatUsd } from "@/lib/wb/format";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Invest — Whoosh" };
 
-// WB amounts (cash, positions, equity, P/L) display with $.
-// Real-USD market data (stock prices, day changes) is scaled by
-// WB_PER_USD before rendering so the displayed "$X" amount matches the
-// WB cost the user actually transacts in — keeping the chart, trade
-// panel, and balance all in one coherent unit.
+// 1 WB = $1 in our system, so WB and real-USD market values render
+// identically as "$X". Separate names keep the currency intent legible
+// in code: WB for balances/positions/P/L, USD for stock prices.
 const fmtWb = formatWb;
-const fmtUsdAsWb = formatUsdAsWb;
+const fmtUsd = formatUsd;
 
 function fmtShares(n: number): string {
   return n.toLocaleString("en-US", { maximumFractionDigits: 6 });
@@ -96,14 +93,12 @@ export default async function InvestPage({
   const existingPosition = lookupSymbol
     ? positions.find((p) => p.symbol === lookupSymbol)
     : undefined;
-  // Reference line on the price chart shows the user's cost basis. The
-  // chart's y-axis is in real-USD cents (market prices), but cost_basis_cents
-  // is in WB cents — divide out the WB_PER_USD scale to land on the axis.
+  // Reference line on the price chart shows the user's cost basis per
+  // share. cost_basis_cents is stored in WB cents = USD cents (1:1), so
+  // it's already on the same scale as the chart's USD price axis.
   const refLineCents =
     existingPosition && existingPosition.shares > 0
-      ? Math.round(
-          existingPosition.costBasisCents / existingPosition.shares / WB_PER_USD,
-        )
+      ? Math.round(existingPosition.costBasisCents / existingPosition.shares)
       : null;
 
   const livePriceCents =
@@ -192,7 +187,7 @@ export default async function InvestPage({
                         }`}
                       >
                         {rangeChangeCents >= 0 ? "+" : ""}
-                        {fmtUsdAsWb(rangeChangeCents, { signed: true })} ({fmtPct(rangeChangePct)})
+                        {fmtUsd(rangeChangeCents, { signed: true })} ({fmtPct(rangeChangePct)})
                       </span>{" "}
                       <span className="text-ink/60">
                         over the last {RANGE_OPTIONS.find((r) => r.key === range)?.label}
@@ -225,7 +220,7 @@ export default async function InvestPage({
                 <StockPriceChart
                   candles={snapshot.candles}
                   refLineCents={refLineCents}
-                  refLineLabel={refLineCents ? `Your cost ${fmtUsdAsWb(refLineCents)}` : undefined}
+                  refLineLabel={refLineCents ? `Your cost ${fmtUsd(refLineCents)}` : undefined}
                 />
               </div>
             </div>
@@ -237,7 +232,7 @@ export default async function InvestPage({
                 <div className="text-sm font-medium text-ink/70">
                   Filling at{" "}
                   <span className="font-heading font-black">
-                    {livePriceCents != null ? fmtUsdAsWb(livePriceCents) : "—"}
+                    {livePriceCents != null ? fmtUsd(livePriceCents) : "—"}
                   </span>
                   <span className="text-ink/60">/share</span>
                 </div>
@@ -373,7 +368,7 @@ export default async function InvestPage({
                     {o.side === "buy" ? "Bought" : "Sold"} {fmtShares(o.shares)} {o.symbol}
                   </div>
                   <div className="text-xs text-ink/60">
-                    @ {fmtUsdAsWb(o.priceCents)}/share · {new Date(o.createdAt).toLocaleString("en-US")}
+                    @ {fmtUsd(o.priceCents)}/share · {new Date(o.createdAt).toLocaleString("en-US")}
                   </div>
                 </div>
                 <div

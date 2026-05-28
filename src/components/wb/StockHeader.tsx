@@ -1,20 +1,15 @@
 import Image from "next/image";
 import type { CompanyProfile } from "@/lib/wb/profile";
 import type { StockSnapshot } from "@/lib/wb/history";
-import { WB_PER_USD } from "@/lib/wb/purchase";
 
 type Props = {
   profile: CompanyProfile | null;
   snapshot: StockSnapshot;
 };
 
-/** Render a real-USD price as WB dollars. Stock data comes in as
- *  real-market USD cents; we scale to WB units so the displayed amount
- *  matches the WB cost the user actually pays. */
 function fmtMoney(cents: number | null): string {
   if (cents == null) return "—";
-  const wbCents = cents * WB_PER_USD;
-  return `$${(wbCents / 100).toLocaleString("en-US", {
+  return `$${(cents / 100).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;

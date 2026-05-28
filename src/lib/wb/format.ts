@@ -27,23 +27,10 @@ export function formatWb(
 }
 
 /**
- * Format an amount that originates from real-USD market data (Twelve Data
- * candle close, Finnhub quote, Stripe invoice) for display in WB-dollars.
- * Multiplies by the WB-per-USD rate first so the displayed "$" amount
- * matches the WB cost the user actually transacts in.
+ * Format a real-USD amount (stock prices, Stripe charges) for display.
+ * 1 WB = $1, so WB and USD render the same way — but keeping a named
+ * helper makes the code's currency intent legible at the call site.
  */
-import { WB_PER_USD } from "@/lib/wb/purchase";
-
-export function formatUsdAsWb(
-  usdCents: number,
-  opts: { signed?: boolean; decimals?: 0 | 2 } = {},
-): string {
-  return formatWb(usdCents * WB_PER_USD, opts);
-}
-
-/** Format real-USD market amounts in their native currency. Used when we
- *  want to show "what AAPL really trades at on the open market" alongside
- *  the WB price, not as a primary balance display. */
 export function formatUsd(cents: number, opts: { signed?: boolean } = {}): string {
   const sign = cents < 0 ? "-" : opts.signed && cents > 0 ? "+" : "";
   const abs = Math.abs(cents) / 100;
