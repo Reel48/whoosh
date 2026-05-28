@@ -112,13 +112,7 @@ export default async function WalletPage({
               <span className="text-ink/60">total return</span>
             </span>
             <span className="text-ink/80">
-              <span
-                className={`font-heading font-black ${
-                  returns.totalReturnFraction >= 0
-                    ? "text-pigment-green"
-                    : "text-imperial-red"
-                }`}
-              >
+              <span className="font-heading font-black text-ink">
                 {formatPct(returns.totalReturnFraction)}
               </span>{" "}
               <span className="text-ink/60">vs. money in</span>
