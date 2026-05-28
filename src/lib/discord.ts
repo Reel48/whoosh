@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 const DISCORD_API = "https://discord.com/api/v10";
 
 export function authorizeUrl(redirectUri: string, state: string): string {
@@ -13,8 +15,14 @@ export function authorizeUrl(redirectUri: string, state: string): string {
   return u.toString();
 }
 
-/** Fetch a member's data in the Whoosh guild (or null if they aren't a member). */
-export async function fetchGuildMember(userId: string): Promise<{ roles: string[]; nick?: string | null } | null> {
+/**
+ * Fetch a member's data in the Whoosh guild (or null if they aren't a member).
+ * Wrapped in React's request-scoped `cache()` so multiple call sites within a
+ * single server render share one Discord API call.
+ */
+export const fetchGuildMember = cache(async function (
+  userId: string,
+): Promise<{ roles: string[]; nick?: string | null } | null> {
   const guild = process.env.DISCORD_GUILD_ID;
   const botToken = process.env.DISCORD_BOT_TOKEN;
   if (!guild || !botToken) throw new Error("Discord guild/bot env vars not set.");
@@ -24,6 +32,11 @@ export async function fetchGuildMember(userId: string): Promise<{ roles: string[
   if (r.status === 404) return null;
   if (!r.ok) throw new Error(`Discord /guilds/.../members failed: ${r.status} ${await r.text()}`);
   return (await r.json()) as { roles: string[]; nick?: string | null };
+});
+
+/** True iff the user is currently a member of the Whoosh guild. */
+export async function isGuildMember(userId: string): Promise<boolean> {
+  return (await fetchGuildMember(userId)) !== null;
 }
 
 /** True iff the user is a member of the Whoosh guild AND has the Premium role. */

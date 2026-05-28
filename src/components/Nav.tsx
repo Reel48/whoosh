@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { getSession } from "@/lib/session";
+import { isGuildMember } from "@/lib/discord";
 import { Bolt } from "./Bolt";
 import { Avatar } from "./Avatar";
 
@@ -7,6 +8,10 @@ const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
 
 export async function Nav() {
   const session = await getSession();
+  const inServer = session
+    ? await isGuildMember(session.id).catch(() => false)
+    : false;
+  const discordLabel = inServer ? "Open Discord" : "Join the Discord";
 
   return (
     <header className="sticky top-0 z-30 border-b border-smooth-black/10 bg-clear-white/90 backdrop-blur">
@@ -56,7 +61,7 @@ export async function Nav() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full bg-real-blue px-4 py-2 text-clear-white transition-colors hover:bg-smudged-blue"
           >
-            <Bolt className="h-4 w-4" /> Join the Discord
+            <Bolt className="h-4 w-4" /> {discordLabel}
           </a>
         </div>
       </nav>

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { createCheckoutSession } from "./actions";
 import { getSession } from "@/lib/session";
+import { isGuildMember } from "@/lib/discord";
 import { Nav } from "@/components/Nav";
 import { Bolt } from "@/components/Bolt";
 
@@ -51,6 +52,10 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 
 export default async function Home() {
   const session = await getSession();
+  const inServer = session
+    ? await isGuildMember(session.id).catch(() => false)
+    : false;
+  const discordLabel = inServer ? "Open Discord" : "Join the Discord";
   return (
     <div className="flex flex-1 flex-col bg-clear-white text-smooth-black">
       <Nav />
@@ -68,7 +73,7 @@ export default async function Home() {
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-real-blue px-7 py-3.5 text-base font-medium text-clear-white transition-colors hover:bg-smudged-blue">
-              <Bolt className="h-5 w-5" /> Join the Discord
+              <Bolt className="h-5 w-5" /> {discordLabel}
             </a>
             <a href="#plans" className="inline-flex items-center justify-center rounded-full border border-smooth-black/20 px-7 py-3.5 text-base font-medium transition-colors hover:border-smooth-black/40">
               See the plans
@@ -208,18 +213,27 @@ export default async function Home() {
                   </span>
                 </a>
               )}
-              <p className="text-xs text-smooth-black/50">
-                Make sure you&rsquo;ve already{" "}
-                <a
-                  href={DISCORD_INVITE}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-real-blue underline-offset-2 hover:underline"
-                >
-                  joined the Whoosh server
-                </a>{" "}
-                — the Premium role is granted to your account inside the server.
-              </p>
+              {inServer ? (
+                <p className="text-xs text-smooth-black/50">
+                  <span className="text-fresh-green">✓</span> You&rsquo;re in
+                  the Whoosh server — your Premium role will land as soon as
+                  payment clears.
+                </p>
+              ) : (
+                <p className="text-xs text-smooth-black/50">
+                  Make sure you&rsquo;ve already{" "}
+                  <a
+                    href={DISCORD_INVITE}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-real-blue underline-offset-2 hover:underline"
+                  >
+                    joined the Whoosh server
+                  </a>{" "}
+                  — the Premium role is granted to your account inside the
+                  server.
+                </p>
+              )}
 
               {billing.map((b) => (
                 <div
@@ -299,7 +313,7 @@ export default async function Home() {
               One chat for everything you actually care about. Come hang.
             </p>
             <a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer" className="mt-9 inline-flex items-center justify-center gap-2 rounded-full bg-real-blue px-8 py-4 text-base font-medium text-clear-white transition-colors hover:bg-smudged-blue">
-              <Bolt className="h-5 w-5" /> Join the Discord
+              <Bolt className="h-5 w-5" /> {discordLabel}
             </a>
           </div>
         </div>
