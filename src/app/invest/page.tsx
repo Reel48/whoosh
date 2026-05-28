@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { ensureWallet, getBalance } from "@/lib/wb/ledger";
 import { getPositions, getRecentOrders, type Position } from "@/lib/wb/invest";
-import { getQuote } from "@/lib/wb/quotes";
+import { getStockSnapshot, RANGE_OPTIONS, type RangeKey } from "@/lib/wb/history";
+import { getCompanyProfile } from "@/lib/wb/profile";
 import { Nav } from "@/components/Nav";
+import { StockHeader } from "@/components/wb/StockHeader";
+import { StockPriceChart } from "@/components/wb/StockPriceChart";
+import { StockStats } from "@/components/wb/StockStats";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Invest — Whoosh" };
@@ -19,6 +24,11 @@ function fmtShares(n: number): string {
   return n.toLocaleString("en-US", { maximumFractionDigits: 6 });
 }
 
+function fmtPct(n: number): string {
+  const sign = n >= 0 ? "+" : "";
+  return `${sign}${n.toFixed(2)}%`;
+}
+
 type PositionRow = Position & {
   marketPriceCents: number | null;
   marketValueCents: number | null;
@@ -26,28 +36,27 @@ type PositionRow = Position & {
 };
 
 async function enrichPositions(positions: Position[]): Promise<PositionRow[]> {
-  const enriched = await Promise.all(
-    positions.map(async (p): Promise<PositionRow> => {
-      const q = await getQuote(p.symbol).catch(() => null);
-      if (!q) {
-        return { ...p, marketPriceCents: null, marketValueCents: null, unrealizedCents: null };
-      }
-      const mv = Math.round(p.shares * q.priceCents);
-      return {
-        ...p,
-        marketPriceCents: q.priceCents,
-        marketValueCents: mv,
-        unrealizedCents: mv - p.costBasisCents,
-      };
-    }),
-  );
-  return enriched;
+  // We already have a per-position snapshot for whichever symbol the user is
+  // looking at; for the others, fall back to cost basis. Live mark-to-market
+  // for the lookup symbol still pulls from the cached snapshot's last candle.
+  // (We don't fan out N quote requests for the positions list — that's
+  // /wallet's job, where the dashboard does it properly.)
+  return positions.map((p) => ({
+    ...p,
+    marketPriceCents: null,
+    marketValueCents: null,
+    unrealizedCents: null,
+  }));
+}
+
+function isRangeKey(s: string): s is RangeKey {
+  return RANGE_OPTIONS.some((r) => r.key === s);
 }
 
 export default async function InvestPage({
   searchParams,
 }: {
-  searchParams: Promise<{ order?: string; error?: string; symbol?: string }>;
+  searchParams: Promise<{ order?: string; error?: string; symbol?: string; range?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/api/auth/discord?next=/invest");
@@ -55,12 +64,14 @@ export default async function InvestPage({
 
   const sp = await searchParams;
   const lookupSymbol = (sp.symbol ?? "").toUpperCase().trim();
+  const range: RangeKey = sp.range && isRangeKey(sp.range) ? sp.range : "1y";
 
-  const [balance, positionsRaw, orders, lookupQuote] = await Promise.all([
+  const [balance, positionsRaw, orders, snapshot, profile] = await Promise.all([
     getBalance(session.id),
     getPositions(session.id),
     getRecentOrders(session.id, 10),
-    lookupSymbol ? getQuote(lookupSymbol).catch(() => null) : Promise.resolve(null),
+    lookupSymbol ? getStockSnapshot(lookupSymbol, range).catch(() => null) : Promise.resolve(null),
+    lookupSymbol ? getCompanyProfile(lookupSymbol).catch(() => null) : Promise.resolve(null),
   ]);
   const positions = await enrichPositions(positionsRaw);
 
@@ -77,10 +88,35 @@ export default async function InvestPage({
         ? { tone: "warn", text: sp.error }
         : null;
 
+  // For the trade panel + reference line: existing cost-basis-per-share, if
+  // the user already holds this symbol.
+  const existingPosition = lookupSymbol
+    ? positions.find((p) => p.symbol === lookupSymbol)
+    : undefined;
+  const refLineCents =
+    existingPosition && existingPosition.shares > 0
+      ? Math.round(existingPosition.costBasisCents / existingPosition.shares)
+      : null;
+
+  const livePriceCents =
+    snapshot?.regularMarketPriceCents ??
+    snapshot?.candles[snapshot.candles.length - 1]?.closeCents ??
+    null;
+
+  // Range performance (start vs end of the chart range).
+  let rangeChangeCents: number | null = null;
+  let rangeChangePct: number | null = null;
+  if (snapshot && snapshot.candles.length >= 2) {
+    const first = snapshot.candles[0].closeCents;
+    const last = snapshot.candles[snapshot.candles.length - 1].closeCents;
+    rangeChangeCents = last - first;
+    rangeChangePct = (rangeChangeCents / first) * 100;
+  }
+
   return (
     <>
       <Nav />
-      <main className="mx-auto w-full max-w-4xl px-6 py-16 sm:py-24">
+      <main className="mx-auto w-full max-w-5xl px-6 py-16 sm:py-24">
         <span className="text-xs font-heading font-bold uppercase tracking-[0.22em] text-ink">
           Simulated investing
         </span>
@@ -104,16 +140,13 @@ export default async function InvestPage({
           </div>
         )}
 
-        {/* Lookup + order */}
+        {/* Symbol lookup */}
         <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
-          <h2 className="font-heading text-xl font-bold">Trade</h2>
-          <p className="mt-2 text-sm font-medium text-ink/70">
-            Prices are real US market quotes (delayed ~15 min via Yahoo).
-            Orders fill at the most recent quote. Whoosh Bucks only — no real
-            money involved.
+          <h2 className="font-heading text-xl font-bold">Look up a stock</h2>
+          <p className="mt-1 text-sm font-medium text-ink/70">
+            Real US-market quotes (delayed ~15 min). Orders fill at the most
+            recent quote — Whoosh Bucks only, no real money.
           </p>
-
-          {/* Symbol lookup */}
           <form action="/invest" method="GET" className="mt-4 flex flex-wrap gap-3">
             <input
               type="text"
@@ -126,73 +159,157 @@ export default async function InvestPage({
             />
             <button
               type="submit"
-              className="cursor-pointer rounded-full border-2 border-ink bg-white-smoke px-5 py-3 text-sm font-bold transition-colors hover:bg-ink hover:text-white-smoke"
+              className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
             >
               Look up
             </button>
           </form>
-
-          {lookupSymbol && (
-            <div className="mt-5 rounded-2xl border-2 border-ink bg-blue p-5">
-              {lookupQuote ? (
-                <>
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <div className="font-heading text-2xl font-black">{lookupQuote.symbol}</div>
-                    <div className="font-heading text-2xl font-black tabular-nums">
-                      {fmtMoney(lookupQuote.priceCents)}
-                    </div>
-                  </div>
-                  <p className="mt-1 text-xs font-bold uppercase tracking-wider text-ink/60">
-                    quoted {new Date(lookupQuote.fetchedAt).toLocaleTimeString("en-US")}
-                  </p>
-                  <form action="/api/wb/invest/order" method="POST" className="mt-4 grid gap-3 sm:grid-cols-[1fr_120px_120px_auto]">
-                    <input type="hidden" name="symbol" value={lookupQuote.symbol} />
-                    <select
-                      name="side"
-                      className="rounded-full border-2 border-ink bg-white-smoke px-4 py-2 font-heading font-bold uppercase focus:outline-none focus:ring-2 focus:ring-ink"
-                      defaultValue="buy"
-                    >
-                      <option value="buy">Buy</option>
-                      <option value="sell">Sell</option>
-                    </select>
-                    <div className="relative">
-                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-heading font-bold text-ink/60">$</span>
-                      <input
-                        type="number"
-                        name="amount"
-                        min="0.01"
-                        step="0.01"
-                        placeholder="USD"
-                        inputMode="decimal"
-                        className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 pl-7 text-right font-heading font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
-                      />
-                    </div>
-                    <input
-                      type="number"
-                      name="shares"
-                      step="0.000001"
-                      min="0"
-                      placeholder="or shares"
-                      inputMode="decimal"
-                      className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 text-right font-heading font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
-                    />
-                    <button
-                      type="submit"
-                      className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
-                    >
-                      Place
-                    </button>
-                  </form>
-                  <p className="mt-2 text-xs text-ink/60">
-                    Enter a dollar amount <em>or</em> a share count — share count wins if both are given.
-                  </p>
-                </>
-              ) : (
-                <p className="font-medium text-ink/80">No quote found for {lookupSymbol}.</p>
-              )}
-            </div>
-          )}
         </section>
+
+        {/* Stock detail view */}
+        {lookupSymbol && snapshot && (
+          <section className="mt-8 space-y-6">
+            <StockHeader profile={profile} snapshot={snapshot} />
+
+            {/* Chart card */}
+            <div className="rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
+              <div className="flex flex-wrap items-baseline justify-between gap-4">
+                <div>
+                  <h3 className="font-heading text-xl font-bold text-ink">Price history</h3>
+                  {rangeChangeCents != null && rangeChangePct != null && (
+                    <p className="mt-1 text-sm font-medium">
+                      <span
+                        className={`font-heading font-black ${
+                          rangeChangeCents >= 0 ? "text-pigment-green" : "text-imperial-red"
+                        }`}
+                      >
+                        {rangeChangeCents >= 0 ? "+" : ""}
+                        {fmtMoney(rangeChangeCents)} ({fmtPct(rangeChangePct)})
+                      </span>{" "}
+                      <span className="text-ink/60">
+                        over the last {RANGE_OPTIONS.find((r) => r.key === range)?.label}
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {RANGE_OPTIONS.map((r) => {
+                    const isActive = r.key === range;
+                    return (
+                      <Link
+                        key={r.key}
+                        href={`/invest?symbol=${encodeURIComponent(lookupSymbol)}&range=${r.key}`}
+                        className={`cursor-pointer rounded-full border-2 border-ink px-3 py-1 text-xs font-bold transition-colors ${
+                          isActive
+                            ? "bg-ink text-white-smoke"
+                            : "bg-white-smoke text-ink hover:bg-ink hover:text-white-smoke"
+                        }`}
+                      >
+                        {r.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <StockPriceChart
+                  candles={snapshot.candles}
+                  refLineCents={refLineCents}
+                  refLineLabel={refLineCents ? `Your cost ${fmtMoney(refLineCents)}` : undefined}
+                />
+              </div>
+            </div>
+
+            {/* Trade panel */}
+            <div className="rounded-3xl border-2 border-ink bg-blue p-6 text-ink sm:p-8">
+              <div className="flex flex-wrap items-baseline justify-between gap-4">
+                <h3 className="font-heading text-xl font-bold">Trade {snapshot.symbol}</h3>
+                <div className="text-sm font-medium text-ink/70">
+                  Filling at{" "}
+                  <span className="font-heading font-black">
+                    {livePriceCents != null ? fmtMoney(livePriceCents) : "—"}
+                  </span>
+                </div>
+              </div>
+              {existingPosition && (
+                <p className="mt-2 text-sm font-medium text-ink/80">
+                  You own{" "}
+                  <span className="font-heading font-bold">
+                    {fmtShares(existingPosition.shares)} {snapshot.symbol}
+                  </span>{" "}
+                  at an avg cost of{" "}
+                  <span className="font-heading font-bold">
+                    {fmtMoney(Math.round(existingPosition.costBasisCents / existingPosition.shares))}
+                    /share
+                  </span>
+                  .
+                </p>
+              )}
+              <form
+                action="/api/wb/invest/order"
+                method="POST"
+                className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto]"
+              >
+                <input type="hidden" name="symbol" value={snapshot.symbol} />
+                <select
+                  name="side"
+                  className="rounded-full border-2 border-ink bg-white-smoke px-4 py-2 font-heading font-bold uppercase focus:outline-none focus:ring-2 focus:ring-ink"
+                  defaultValue="buy"
+                >
+                  <option value="buy">Buy</option>
+                  <option value="sell">Sell</option>
+                </select>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-heading font-bold text-ink/60">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    name="amount"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="USD"
+                    inputMode="decimal"
+                    className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 pl-7 text-right font-heading font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
+                  />
+                </div>
+                <input
+                  type="number"
+                  name="shares"
+                  step="0.000001"
+                  min="0"
+                  placeholder="or shares"
+                  inputMode="decimal"
+                  className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 text-right font-heading font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
+                />
+                <button
+                  type="submit"
+                  className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+                >
+                  Place
+                </button>
+              </form>
+              <p className="mt-2 text-xs text-ink/70">
+                Enter a dollar amount <em>or</em> a share count — share count wins if both are given.
+              </p>
+            </div>
+
+            <StockStats snapshot={snapshot} profile={profile} />
+          </section>
+        )}
+
+        {lookupSymbol && !snapshot && (
+          <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-8 text-center">
+            <p className="font-heading text-lg font-bold text-ink">
+              No data available for {lookupSymbol}.
+            </p>
+            <p className="mt-2 text-sm font-medium text-ink/70">
+              Try a different US-listed ticker symbol.
+            </p>
+          </section>
+        )}
 
         {/* Positions */}
         <h2 className="mt-12 font-heading text-xl font-bold text-ink">Positions</h2>
@@ -203,38 +320,29 @@ export default async function InvestPage({
             {positions.map((p) => (
               <li
                 key={p.symbol}
-                className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 py-3 text-sm"
+                className="grid grid-cols-[1fr_1fr_auto] items-center gap-4 py-3 text-sm"
               >
                 <div>
-                  <div className="font-heading font-black">{p.symbol}</div>
+                  <Link
+                    href={`/invest?symbol=${encodeURIComponent(p.symbol)}`}
+                    className="font-heading font-black underline-offset-2 hover:underline"
+                  >
+                    {p.symbol}
+                  </Link>
                   <div className="text-xs text-ink/60">{fmtShares(p.shares)} shares</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs font-bold uppercase tracking-wider text-ink/60">Cost basis</div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
+                    Cost basis
+                  </div>
                   <div className="font-heading font-bold tabular-nums">{fmtMoney(p.costBasisCents)}</div>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs font-bold uppercase tracking-wider text-ink/60">Market</div>
-                  <div className="font-heading font-bold tabular-nums">
-                    {p.marketValueCents !== null ? fmtMoney(p.marketValueCents) : "—"}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs font-bold uppercase tracking-wider text-ink/60">P/L</div>
-                  <div
-                    className={`font-heading font-black tabular-nums ${
-                      p.unrealizedCents === null
-                        ? "text-ink/60"
-                        : p.unrealizedCents >= 0
-                          ? "text-pigment-green"
-                          : "text-imperial-red"
-                    }`}
-                  >
-                    {p.unrealizedCents !== null
-                      ? `${p.unrealizedCents >= 0 ? "+" : ""}${fmtMoney(p.unrealizedCents)}`
-                      : "—"}
-                  </div>
-                </div>
+                <Link
+                  href={`/invest?symbol=${encodeURIComponent(p.symbol)}`}
+                  className="rounded-full border-2 border-ink bg-white-smoke px-3 py-1 text-xs font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
+                >
+                  Open
+                </Link>
               </li>
             ))}
           </ul>
