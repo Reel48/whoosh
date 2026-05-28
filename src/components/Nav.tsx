@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { getSession } from "@/lib/session";
-import { isGuildMember } from "@/lib/discord";
+import { isGuildMember, hasAdminRole } from "@/lib/discord";
 import { Bolt } from "./Bolt";
 import { Avatar } from "./Avatar";
 
@@ -8,9 +8,12 @@ const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
 
 export async function Nav() {
   const session = await getSession();
-  const inServer = session
-    ? await isGuildMember(session.id).catch(() => false)
-    : false;
+  const [inServer, isAdmin] = session
+    ? await Promise.all([
+        isGuildMember(session.id).catch(() => false),
+        hasAdminRole(session.id).catch(() => false),
+      ])
+    : [false, false];
   const discordLabel = inServer ? "Open Discord" : "Join the Discord";
 
   return (
@@ -37,6 +40,14 @@ export async function Nav() {
           <a href="/#faq" className="hidden hover:underline sm:inline">
             FAQ
           </a>
+          {isAdmin && (
+            <a
+              href="/admin"
+              className="hidden rounded-full border-2 border-ink bg-ink px-3 py-1 text-xs font-bold uppercase tracking-wider text-white-smoke hover:opacity-90 sm:inline"
+            >
+              Admin
+            </a>
+          )}
 
           {session ? (
             <a

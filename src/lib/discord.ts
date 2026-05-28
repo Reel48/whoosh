@@ -112,6 +112,14 @@ export async function hasPremiumRole(userId: string): Promise<boolean> {
   return !!member && member.roles.includes(role);
 }
 
+/** True iff the user is a member of the Whoosh guild AND has the admin role. */
+export async function hasAdminRole(userId: string): Promise<boolean> {
+  const role = process.env.DISCORD_ADMIN_ROLE_ID;
+  if (!role) return false; // No env configured → no admins.
+  const member = await fetchGuildMember(userId);
+  return !!member && member.roles.includes(role);
+}
+
 export async function exchangeCode(code: string, redirectUri: string) {
   const id = process.env.DISCORD_CLIENT_ID!;
   const secret = process.env.DISCORD_CLIENT_SECRET!;

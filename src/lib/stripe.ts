@@ -101,3 +101,101 @@ export async function createPortalUrl(customerId: string, returnUrl: string): Pr
   });
   return session.url;
 }
+
+export type SubscriptionListItem = SubscriptionSummary & {
+  discordUserId: string | null;
+  discordUsername: string | null;
+  customerEmail: string | null;
+  createdAt: number; // unix seconds
+};
+
+/**
+ * List subscriptions for the admin portal. Returns up to `limit` subscriptions
+ * (default 100, max Stripe allows is 100). Pagination not yet implemented —
+ * fine for the first ~100 subscribers.
+ */
+export async function listSubscriptions(
+  opts: { statuses?: ReadonlyArray<Stripe.Subscription.Status>; limit?: number } = {},
+): Promise<SubscriptionListItem[]> {
+  const params: Stripe.SubscriptionListParams = {
+    status: "all",
+    limit: opts.limit ?? 100,
+    expand: ["data.customer"],
+  };
+  const res = await stripe().subscriptions.list(params);
+
+  const subs = opts.statuses
+    ? res.data.filter((s) => opts.statuses!.includes(s.status))
+    : res.data;
+
+  return subs.map(toListItem);
+}
+
+function toListItem(sub: Stripe.Subscription): SubscriptionListItem {
+  const item = sub.items.data[0];
+  const price = item?.price;
+  const customer = sub.customer;
+  const customerEmail =
+    typeof customer === "string" || customer.deleted
+      ? null
+      : (customer.email ?? null);
+
+  return {
+    id: sub.id,
+    customerId: typeof customer === "string" ? customer : customer.id,
+    status: sub.status,
+    planLabel: price ? intervalLabelForPriceId(price.id) : "Premium",
+    amount: price?.unit_amount ?? 0,
+    currency: price?.currency ?? "usd",
+    currentPeriodEnd:
+      (item as Stripe.SubscriptionItem & { current_period_end?: number })?.current_period_end ??
+      (sub as Stripe.Subscription & { current_period_end?: number }).current_period_end ??
+      0,
+    cancelAtPeriodEnd: sub.cancel_at_period_end,
+    discordUserId: sub.metadata?.discord_user_id ?? null,
+    discordUsername: sub.metadata?.discord_username ?? null,
+    customerEmail,
+    createdAt: sub.created,
+  };
+}
+
+/** Roll-up stats for the admin dashboard. */
+export type AdminStats = {
+  totalActive: number;
+  totalCanceled: number;
+  totalPastDue: number;
+  byPlan: { monthly: number; sixMonths: number; annual: number };
+  /** Estimated normalized monthly revenue across active+trialing subs, in USD cents. */
+  estimatedMrrCents: number;
+  recentSubs: SubscriptionListItem[];
+};
+
+export async function getAdminStats(): Promise<AdminStats> {
+  const all = await listSubscriptions({ limit: 100 });
+  const active = all.filter((s) => s.status === "active" || s.status === "trialing");
+
+  // Normalized monthly value per plan
+  const monthlyValue = (label: string): number => {
+    if (label === "Monthly") return 400; // $4
+    if (label === "6 Months") return Math.round(2000 / 6); // $20 / 6mo
+    if (label === "Annual") return Math.round(3600 / 12); // $36 / 12mo
+    return 0;
+  };
+
+  const estimatedMrrCents = active.reduce((sum, s) => sum + monthlyValue(s.planLabel), 0);
+
+  return {
+    totalActive: active.length,
+    totalCanceled: all.filter((s) => s.status === "canceled").length,
+    totalPastDue: all.filter((s) => s.status === "past_due" || s.status === "unpaid").length,
+    byPlan: {
+      monthly: active.filter((s) => s.planLabel === "Monthly").length,
+      sixMonths: active.filter((s) => s.planLabel === "6 Months").length,
+      annual: active.filter((s) => s.planLabel === "Annual").length,
+    },
+    estimatedMrrCents,
+    recentSubs: [...all]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 5),
+  };
+}
