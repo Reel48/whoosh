@@ -14,6 +14,7 @@ const SIGNED_IN_LINKS = [
   { href: "/wallet", label: "Wallet", match: (p: string) => p === "/wallet" || p.startsWith("/wallet/") },
   { href: "/invest", label: "Invest", match: (p: string) => p === "/invest" },
   { href: "/events", label: "Events", match: (p: string) => p === "/events" },
+  { href: "/events/mine", label: "My bets", match: (p: string) => p === "/events/mine" },
 ];
 
 export function NavLinks({ signedIn }: { signedIn: boolean }) {

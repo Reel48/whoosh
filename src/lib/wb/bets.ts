@@ -35,6 +35,98 @@ export type WagerResult =
   | { ok: true; wagerId: number }
   | { ok: false; error: string };
 
+export type WagerStatus = "open" | "won" | "lost" | "refunded";
+
+export type UserWager = {
+  id: number;
+  eventId: number;
+  status: WagerStatus;
+  stakeCents: number;
+  oddsFrozen: number;
+  pointFrozen: number | null;
+  createdAt: string;
+  /** Actual credited amount: full return for won, stake back for refunded, else 0. */
+  payoutCents: number;
+  /** What a win returns (stake × frozen odds) — shown for open wagers too. */
+  potentialCents: number;
+  outcomeLabel: string;
+  event: {
+    title: string;
+    market: BetMarket | null;
+    sportKey: string | null;
+    status: EventStatus;
+    commenceTime: string | null;
+  };
+};
+
+/**
+ * A user's wagers (newest first) with the event + picked outcome joined in and
+ * payout figures computed from the frozen odds. Powers the "My bets" view.
+ */
+export async function listUserWagers(
+  userId: string,
+  limit = 500,
+): Promise<UserWager[]> {
+  const { data, error } = await supabase()
+    .from("bet_wager")
+    .select(
+      "id, event_id, outcome_id, stake_cents, odds_decimal_frozen, point_frozen, status, created_at",
+    )
+    .eq("discord_user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(`wager query failed: ${error.message}`);
+  const rows = data ?? [];
+  if (rows.length === 0) return [];
+
+  const eventIds = [...new Set(rows.map((r) => Number(r.event_id)))];
+  const outcomeIds = [...new Set(rows.map((r) => Number(r.outcome_id)))];
+  const [evRes, outRes] = await Promise.all([
+    supabase()
+      .from("bet_event")
+      .select("id, title, market, sport_key, status, commence_time")
+      .in("id", eventIds),
+    supabase().from("bet_outcome").select("id, label").in("id", outcomeIds),
+  ]);
+  if (evRes.error) throw new Error(`wager events failed: ${evRes.error.message}`);
+  if (outRes.error) throw new Error(`wager outcomes failed: ${outRes.error.message}`);
+  const evById = new Map(
+    (evRes.data ?? []).map((e) => [Number(e.id), e as Record<string, unknown>]),
+  );
+  const labelById = new Map(
+    (outRes.data ?? []).map((o) => [Number(o.id), String(o.label)]),
+  );
+
+  return rows.map((r) => {
+    const stakeCents = Number(r.stake_cents);
+    const oddsFrozen = Number(r.odds_decimal_frozen);
+    const potentialCents = Math.floor(stakeCents * oddsFrozen);
+    const status = String(r.status) as WagerStatus;
+    const payoutCents =
+      status === "won" ? potentialCents : status === "refunded" ? stakeCents : 0;
+    const ev = evById.get(Number(r.event_id));
+    return {
+      id: Number(r.id),
+      eventId: Number(r.event_id),
+      status,
+      stakeCents,
+      oddsFrozen,
+      pointFrozen: r.point_frozen != null ? Number(r.point_frozen) : null,
+      createdAt: String(r.created_at),
+      payoutCents,
+      potentialCents,
+      outcomeLabel: labelById.get(Number(r.outcome_id)) ?? "—",
+      event: {
+        title: ev ? String(ev.title) : "Event",
+        market: (ev?.market as BetMarket | null) ?? null,
+        sportKey: (ev?.sport_key as string | null) ?? null,
+        status: (ev?.status as EventStatus) ?? "settled",
+        commenceTime: (ev?.commence_time as string | null) ?? null,
+      },
+    };
+  });
+}
+
 async function loadOutcomes(eventIds: number[]): Promise<Map<number, BetOutcome[]>> {
   if (eventIds.length === 0) return new Map();
   const { data, error } = await supabase()

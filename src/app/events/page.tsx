@@ -192,9 +192,17 @@ export default async function EventsPage({
           <span className="text-xs font-heading font-bold uppercase tracking-[0.22em] text-ink">
             Whoosh events
           </span>
-          <span className="text-sm font-medium text-ink/70">
-            Balance: <span className="font-heading font-black">{formatWb(balance)}</span>
-          </span>
+          <div className="flex items-baseline gap-4">
+            <Link
+              href="/events/mine"
+              className="text-sm font-bold text-ink underline-offset-4 hover:underline"
+            >
+              My bets
+            </Link>
+            <span className="text-sm font-medium text-ink/70">
+              Balance: <span className="font-heading font-black">{formatWb(balance)}</span>
+            </span>
+          </div>
         </div>
 
         {banner && (
