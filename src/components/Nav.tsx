@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { isGuildMember, hasAdminRole } from "@/lib/discord";
+import { isPremium } from "@/lib/membership";
 import { Bolt } from "./Bolt";
 import { Avatar } from "./Avatar";
 import { NavLinks } from "./NavLinks";
@@ -14,19 +15,23 @@ const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
 
 export async function Nav() {
   const session = await getSession();
-  const [inServer, isAdmin] = session
+  const [inServer, isAdmin, premium] = session
     ? await Promise.all([
         isGuildMember(session.id).catch(() => false),
         hasAdminRole(session.id).catch(() => false),
+        isPremium(session.id).catch(() => false),
       ])
-    : [false, false];
+    : [false, false, false];
   const discordLabel = inServer ? "Open Discord" : "Join the Discord";
+  // Premium members get a logo-link straight to their dashboard; everyone else
+  // (anon + signed-in non-premium) lands on the marketing home.
+  const logoHref = premium ? "/home" : "/";
 
   return (
     <>
     <header className="sticky top-0 z-30 border-b-2 border-ink bg-white-smoke/95 backdrop-blur">
       <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="block" aria-label="Whoosh — home">
+        <Link href={logoHref} className="block" aria-label="Whoosh — home">
           <Image
             src="/whoosh-wordmark-ink.svg"
             alt="Whoosh"

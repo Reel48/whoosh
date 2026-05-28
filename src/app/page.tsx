@@ -1,7 +1,9 @@
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { createCheckoutSession } from "./actions";
 import { getSession } from "@/lib/session";
 import { isGuildMember, getGuildOnlineCount } from "@/lib/discord";
+import { isPremium } from "@/lib/membership";
 import {
   getLeaderboard,
   getTradersLeaderboard,
@@ -146,6 +148,11 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 
 export default async function Home() {
   const session = await getSession();
+  // Premium members get bounced to their app dashboard. Anon + signed-in-but-
+  // not-premium continue to see the marketing site so they can convert.
+  if (session && (await isPremium(session.id))) {
+    redirect("/home");
+  }
   const [inServer, onlineCount, holders, traders, wins, streaks] = await Promise.all([
     session ? isGuildMember(session.id).catch(() => false) : Promise.resolve(false),
     getGuildOnlineCount(),
