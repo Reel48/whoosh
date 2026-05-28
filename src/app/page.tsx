@@ -229,6 +229,18 @@ export default async function Home() {
                   </span>
                 </a>
               )}
+              <p className="text-xs text-smooth-black/50">
+                Make sure you&rsquo;ve already{" "}
+                <a
+                  href={DISCORD_INVITE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-real-blue underline-offset-2 hover:underline"
+                >
+                  joined the Whoosh server
+                </a>{" "}
+                — the Premium role is granted to your account inside the server.
+              </p>
 
               {billing.map((b) => (
                 <div
