@@ -85,9 +85,9 @@ const bucksCards = [
     body: "Bet on Whoosh-curated events at fixed odds. Stake locked at placement, paid out on settlement.",
     href: "/events",
     cta: "See open events",
-    cardClass: "bg-imperial-red text-white-smoke",
-    iconClass: "text-white-smoke",
-    ctaClass: "bg-white-smoke text-ink",
+    cardClass: "bg-imperial-red text-ink",
+    iconClass: "text-ink",
+    ctaClass: "bg-ink text-white-smoke",
     Icon: DiceIcon,
   },
   {
