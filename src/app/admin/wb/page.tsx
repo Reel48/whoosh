@@ -1,19 +1,22 @@
 import { getCurrentRate, getTotalOutstanding } from "@/lib/wb/interest";
+import { listRecentDividends } from "@/lib/wb/dividend";
 import { supabase } from "@/lib/supabase";
 import {
   overrideRateAction,
   runAccrualAction,
   runPostAction,
   adjustmentAction,
+  postDividendAction,
 } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-function formatMoney(cents: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(cents / 100);
+function formatMoney(cents: number): string {
+  const sign = cents < 0 ? "-" : "";
+  return `${sign}${(Math.abs(cents) / 100).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} WB`;
 }
 
 function formatDateTime(iso: string): string {
@@ -53,11 +56,12 @@ async function loadOpenAccruals() {
 }
 
 export default async function AdminWbPage() {
-  const [rate, outstandingCents, recent, accruals] = await Promise.all([
+  const [rate, outstandingCents, recent, accruals, dividends] = await Promise.all([
     getCurrentRate(),
     getTotalOutstanding(),
     loadRecentLedger(),
     loadOpenAccruals(),
+    listRecentDividends(10).catch(() => []),
   ]);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -214,6 +218,80 @@ export default async function AdminWbPage() {
             className="sm:col-span-4 rounded-full border-2 border-ink bg-white-smoke px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink"
           />
         </form>
+      </section>
+
+      {/* Dividends */}
+      <section className="mt-8 rounded-2xl border-2 border-ink bg-white-smoke p-6">
+        <h2 className="font-heading text-xl font-bold">Post a dividend</h2>
+        <p className="mt-1 text-sm text-ink/60">
+          Credits every holder of the symbol with{" "}
+          <code className="rounded bg-ink/10 px-1">shares × dividend</code> at
+          the 1 USD = 10 WB rate. Idempotent per (symbol, ex-date).
+        </p>
+        <form action={postDividendAction} className="mt-4 grid gap-3 sm:grid-cols-[160px_180px_180px_auto]">
+          <input
+            type="text"
+            name="symbol"
+            placeholder="Symbol"
+            required
+            autoComplete="off"
+            className="rounded-full border-2 border-ink bg-white-smoke px-4 py-2 font-heading font-bold uppercase focus:outline-none focus:ring-2 focus:ring-ink"
+          />
+          <input
+            type="date"
+            name="ex_date"
+            required
+            className="rounded-full border-2 border-ink bg-white-smoke px-4 py-2 font-heading font-bold focus:outline-none focus:ring-2 focus:ring-ink"
+          />
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-heading font-bold text-ink/60">
+              $
+            </span>
+            <input
+              type="number"
+              name="usd_per_share"
+              step="0.0001"
+              min="0.0001"
+              placeholder="0.27"
+              required
+              inputMode="decimal"
+              aria-label="USD dividend per share"
+              className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 pl-7 text-right font-heading font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
+            />
+          </div>
+          <button
+            type="submit"
+            className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+          >
+            Post
+          </button>
+        </form>
+
+        {dividends.length > 0 && (
+          <ul className="mt-6 divide-y-2 divide-ink border-y-2 border-ink">
+            {dividends.map((d) => (
+              <li key={d.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-4 py-3 text-sm">
+                <div>
+                  <span className="font-heading font-black">{d.symbol}</span>{" "}
+                  <span className="text-ink/60">· ex {d.exDate}</span>
+                </div>
+                <div className="text-right">
+                  <div className="font-heading font-bold tabular-nums">
+                    {(d.wbCentsPerShare / 100).toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 4,
+                    })}{" "}
+                    WB/share
+                  </div>
+                  <div className="text-xs text-ink/60">{d.source}</div>
+                </div>
+                <div className="text-xs text-ink/60">
+                  {d.usersCredited} credited
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {/* Recent ledger */}

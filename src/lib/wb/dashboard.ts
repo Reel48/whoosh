@@ -2,18 +2,20 @@ import { supabase } from "@/lib/supabase";
 import { getBalance } from "@/lib/wb/ledger";
 import { getPositions, type Position } from "@/lib/wb/invest";
 import { getQuote } from "@/lib/wb/quotes";
+import { WB_PER_USD } from "@/lib/wb/purchase";
 
 export type LifetimeStats = {
-  totalPurchased: number;       // real $ paid via Stripe
-  totalPremiumMatch: number;    // free WB from Premium subs
-  totalInterest: number;        // SPAXX-tied yield accrued + posted
-  totalTransferIn: number;      // received from other users
-  totalTransferOut: number;     // sent (negative on the ledger)
-  totalBetStake: number;        // bet_stake debits (negative)
-  totalBetPayout: number;       // bet_payout credits
-  totalInvestBuy: number;       // invest_buy debits (negative)
-  totalInvestSell: number;      // invest_sell credits
-  totalAdjustment: number;      // manual admin adjustments
+  totalPurchased: number;        // real $ paid via Stripe, expressed in WB cents
+  totalPremiumMatch: number;     // free WB from Premium subs
+  totalInterest: number;         // SPAXX-tied yield accrued + posted
+  totalTransferIn: number;       // received from other users
+  totalTransferOut: number;      // sent (negative on the ledger)
+  totalBetStake: number;         // bet_stake debits (negative)
+  totalBetPayout: number;        // bet_payout credits
+  totalInvestBuy: number;        // invest_buy debits (negative)
+  totalInvestSell: number;       // invest_sell credits
+  totalInvestDividend: number;   // dividend credits
+  totalAdjustment: number;       // manual admin adjustments
   ledgerRowCount: number;
 };
 
@@ -32,7 +34,7 @@ export type Allocation = {
 };
 
 export type ReturnsBreakdown = {
-  /** Real USD the user has actually spent via Stripe. */
+  /** WB credited from real-USD Stripe purchases (already scaled at 10:1 in the ledger). */
   realDollarsInCents: number;
   /** Free WB granted via Premium match. */
   premiumMatchCents: number;
@@ -40,13 +42,15 @@ export type ReturnsBreakdown = {
   interestEarnedCents: number;
   /** Net P/L on settled wagers (payouts − stakes). Negative if losing overall. */
   wagerPlCents: number;
-  /** Realized + unrealized investing P/L. */
+  /** Realized + unrealized investing P/L, including dividends received. */
   investingPlCents: number;
+  /** Total dividends received from stock positions. */
+  dividendsCents: number;
   /** Net of all transfers (received − sent). */
   netTransfersCents: number;
   /** Admin adjustments. */
   adjustmentsCents: number;
-  /** Total return vs. real $ in: (equity + dollar value of WB sent out via fees, etc.) − purchases. */
+  /** Total return vs. money in (purchases). */
   totalReturnCents: number;
   /** Total return as a fraction of money in (purchases + premium match). 0 if denom is 0. */
   totalReturnFraction: number;
@@ -76,21 +80,23 @@ async function getLifetimeStats(userId: string): Promise<LifetimeStats> {
       totalTransferIn: 0, totalTransferOut: 0,
       totalBetStake: 0, totalBetPayout: 0,
       totalInvestBuy: 0, totalInvestSell: 0,
+      totalInvestDividend: 0,
       totalAdjustment: 0, ledgerRowCount: 0,
     };
   }
   return {
-    totalPurchased:     Number(r.total_purchased     ?? 0),
-    totalPremiumMatch:  Number(r.total_premium_match ?? 0),
-    totalInterest:      Number(r.total_interest      ?? 0),
-    totalTransferIn:    Number(r.total_transfer_in   ?? 0),
-    totalTransferOut:   Number(r.total_transfer_out  ?? 0),
-    totalBetStake:      Number(r.total_bet_stake     ?? 0),
-    totalBetPayout:     Number(r.total_bet_payout    ?? 0),
-    totalInvestBuy:     Number(r.total_invest_buy    ?? 0),
-    totalInvestSell:    Number(r.total_invest_sell   ?? 0),
-    totalAdjustment:    Number(r.total_adjustment    ?? 0),
-    ledgerRowCount:     Number(r.ledger_row_count    ?? 0),
+    totalPurchased:      Number(r.total_purchased        ?? 0),
+    totalPremiumMatch:   Number(r.total_premium_match    ?? 0),
+    totalInterest:       Number(r.total_interest         ?? 0),
+    totalTransferIn:     Number(r.total_transfer_in      ?? 0),
+    totalTransferOut:    Number(r.total_transfer_out     ?? 0),
+    totalBetStake:       Number(r.total_bet_stake        ?? 0),
+    totalBetPayout:      Number(r.total_bet_payout       ?? 0),
+    totalInvestBuy:      Number(r.total_invest_buy       ?? 0),
+    totalInvestSell:     Number(r.total_invest_sell      ?? 0),
+    totalInvestDividend: Number(r.total_invest_dividend  ?? 0),
+    totalAdjustment:     Number(r.total_adjustment       ?? 0),
+    ledgerRowCount:      Number(r.ledger_row_count       ?? 0),
   };
 }
 
@@ -123,12 +129,14 @@ async function enrichPositions(positions: Position[]): Promise<EnrichedPosition[
           unrealizedCents: null,
         };
       }
-      const mv = Math.round(p.shares * q.priceCents);
+      // q.priceCents is real-USD cents per share; mark-to-market in WB cents
+      // requires the 10:1 scale so it lines up with the rebased cost basis.
+      const mvWb = Math.round(p.shares * q.priceCents * WB_PER_USD);
       return {
         ...p,
         marketPriceCents: q.priceCents,
-        marketValueCents: mv,
-        unrealizedCents: mv - p.costBasisCents,
+        marketValueCents: mvWb,
+        unrealizedCents: mvWb - p.costBasisCents,
       };
     }),
   );
@@ -174,15 +182,14 @@ export async function loadDashboard(userId: string): Promise<DashboardData> {
   const totalEquityCents = cashCents + investedValueCents + openWagersCents;
 
   const wagerPlCents = lifetime.totalBetStake + lifetime.totalBetPayout; // stake is negative
-  const investingPlCents = investingPl(
-    lifetime.totalInvestBuy,
-    lifetime.totalInvestSell,
-    investedValueCents,
-  );
+  // Investing P/L includes dividends received over the position's life — they
+  // came out of stocks the user owned and are conceptually part of the trade
+  // return, not separate income.
+  const investingPlCents =
+    investingPl(lifetime.totalInvestBuy, lifetime.totalInvestSell, investedValueCents) +
+    lifetime.totalInvestDividend;
   const netTransfersCents = lifetime.totalTransferIn + lifetime.totalTransferOut; // out is negative
 
-  // "Return" is what the user has *gained* — equity above what they put in.
-  // Premium match and adjustments count as gain (they didn't pay for them).
   const totalReturnCents = totalEquityCents - lifetime.totalPurchased;
   const denom = lifetime.totalPurchased + lifetime.totalPremiumMatch;
   const totalReturnFraction = denom > 0 ? totalReturnCents / denom : 0;
@@ -202,6 +209,7 @@ export async function loadDashboard(userId: string): Promise<DashboardData> {
       interestEarnedCents: lifetime.totalInterest,
       wagerPlCents,
       investingPlCents,
+      dividendsCents:      lifetime.totalInvestDividend,
       netTransfersCents,
       adjustmentsCents:    lifetime.totalAdjustment,
       totalReturnCents,

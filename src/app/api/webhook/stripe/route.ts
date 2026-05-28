@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { addPremiumRole, removePremiumRole } from "@/lib/discord";
 import { creditLedger } from "@/lib/wb/ledger";
+import { WB_PER_USD } from "@/lib/wb/purchase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
               kind: "purchase",
               refKind: "stripe_event",
               refId: event.id,
-              memo: `Bought ${wbCents / 100} WB`,
+              memo: `Bought ${Math.round(wbCents / 100).toLocaleString("en-US")} WB`,
               metadata: { session_id: session.id },
             });
           } else {
@@ -99,17 +100,19 @@ export async function POST(req: Request) {
           console.warn("invoice.paid without discord_user_id metadata", invoice.id);
           break;
         }
-        const amount = invoice.amount_paid ?? 0;
-        if (amount <= 0) break;
+        const usdCents = invoice.amount_paid ?? 0;
+        if (usdCents <= 0) break;
+        // 1 USD = WB_PER_USD WB → scale invoice USD cents up to WB cents.
+        const wbCents = usdCents * WB_PER_USD;
         await creditLedger({
           discordUserId: userId,
           discordUsername: username,
-          amountCents: amount,
+          amountCents: wbCents,
           kind: "premium_match",
           refKind: "stripe_event",
           refId: event.id,
           memo: `Premium match for invoice ${invoice.id}`,
-          metadata: { invoice_id: invoice.id, subscription_id: subscriptionId },
+          metadata: { invoice_id: invoice.id, subscription_id: subscriptionId, usd_cents: usdCents },
         });
         break;
       }

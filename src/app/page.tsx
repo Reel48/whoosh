@@ -412,8 +412,8 @@ export default async function Home() {
               The chat&rsquo;s own currency. Earn it, invest it, bet it, send it.
             </h2>
             <p className="text-lg font-medium text-ink/70 lg:text-right">
-              Buy Whoosh Bucks 1:1 with USD. Premium members get a matching
-              credit on every renewal.
+              $1 USD = 10 WB. Premium members get a matching credit on
+              every renewal.
             </p>
           </div>
 

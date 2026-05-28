@@ -9,16 +9,16 @@ import { Nav } from "@/components/Nav";
 import { StockHeader } from "@/components/wb/StockHeader";
 import { StockPriceChart } from "@/components/wb/StockPriceChart";
 import { StockStats } from "@/components/wb/StockStats";
+import { formatWb, formatUsd } from "@/lib/wb/format";
+import { WB_PER_USD } from "@/lib/wb/purchase";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Invest — Whoosh" };
 
-function fmtMoney(cents: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(cents / 100);
-}
+// WB amounts (cash, positions, equity, P/L) get the WB suffix; real-USD
+// market data (stock prices, day changes) keeps the dollar sign.
+const fmtWb = formatWb;
+const fmtUsd = formatUsd;
 
 function fmtShares(n: number): string {
   return n.toLocaleString("en-US", { maximumFractionDigits: 6 });
@@ -93,9 +93,14 @@ export default async function InvestPage({
   const existingPosition = lookupSymbol
     ? positions.find((p) => p.symbol === lookupSymbol)
     : undefined;
+  // Reference line on the price chart shows the user's cost basis. The
+  // chart's y-axis is in real-USD cents (market prices), but cost_basis_cents
+  // is in WB cents — divide out the WB_PER_USD scale to land on the axis.
   const refLineCents =
     existingPosition && existingPosition.shares > 0
-      ? Math.round(existingPosition.costBasisCents / existingPosition.shares)
+      ? Math.round(
+          existingPosition.costBasisCents / existingPosition.shares / WB_PER_USD,
+        )
       : null;
 
   const livePriceCents =
@@ -123,9 +128,9 @@ export default async function InvestPage({
 
         {/* Header tiles */}
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <Tile label="Total equity" value={fmtMoney(totalEquity)} />
-          <Tile label="Cash (WB)" value={fmtMoney(balance)} />
-          <Tile label="Positions value" value={fmtMoney(portfolioValue)} />
+          <Tile label="Total equity" value={fmtWb(totalEquity)} />
+          <Tile label="Cash (WB)" value={fmtWb(balance)} />
+          <Tile label="Positions value" value={fmtWb(portfolioValue)} />
         </div>
 
         {banner && (
@@ -184,7 +189,7 @@ export default async function InvestPage({
                         }`}
                       >
                         {rangeChangeCents >= 0 ? "+" : ""}
-                        {fmtMoney(rangeChangeCents)} ({fmtPct(rangeChangePct)})
+                        {fmtUsd(rangeChangeCents, { signed: true })} ({fmtPct(rangeChangePct)})
                       </span>{" "}
                       <span className="text-ink/60">
                         over the last {RANGE_OPTIONS.find((r) => r.key === range)?.label}
@@ -217,7 +222,7 @@ export default async function InvestPage({
                 <StockPriceChart
                   candles={snapshot.candles}
                   refLineCents={refLineCents}
-                  refLineLabel={refLineCents ? `Your cost ${fmtMoney(refLineCents)}` : undefined}
+                  refLineLabel={refLineCents ? `Your cost ${fmtUsd(refLineCents)}` : undefined}
                 />
               </div>
             </div>
@@ -229,7 +234,13 @@ export default async function InvestPage({
                 <div className="text-sm font-medium text-ink/70">
                   Filling at{" "}
                   <span className="font-heading font-black">
-                    {livePriceCents != null ? fmtMoney(livePriceCents) : "—"}
+                    {livePriceCents != null ? fmtUsd(livePriceCents) : "—"}
+                  </span>{" "}
+                  <span className="text-ink/60">
+                    ({livePriceCents != null
+                      ? fmtWb(livePriceCents * WB_PER_USD, { decimals: 0 })
+                      : "—"}
+                    /share)
                   </span>
                 </div>
               </div>
@@ -241,7 +252,7 @@ export default async function InvestPage({
                   </span>{" "}
                   at an avg cost of{" "}
                   <span className="font-heading font-bold">
-                    {fmtMoney(Math.round(existingPosition.costBasisCents / existingPosition.shares))}
+                    {fmtWb(Math.round(existingPosition.costBasisCents / existingPosition.shares))}
                     /share
                   </span>
                   .
@@ -335,7 +346,7 @@ export default async function InvestPage({
                   <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
                     Cost basis
                   </div>
-                  <div className="font-heading font-bold tabular-nums">{fmtMoney(p.costBasisCents)}</div>
+                  <div className="font-heading font-bold tabular-nums">{fmtWb(p.costBasisCents)}</div>
                 </div>
                 <Link
                   href={`/invest?symbol=${encodeURIComponent(p.symbol)}`}
@@ -364,7 +375,7 @@ export default async function InvestPage({
                     {o.side === "buy" ? "Bought" : "Sold"} {fmtShares(o.shares)} {o.symbol}
                   </div>
                   <div className="text-xs text-ink/60">
-                    @ {fmtMoney(o.priceCents)} · {new Date(o.createdAt).toLocaleString("en-US")}
+                    @ {fmtUsd(o.priceCents)}/share · {new Date(o.createdAt).toLocaleString("en-US")}
                   </div>
                 </div>
                 <div
@@ -373,7 +384,7 @@ export default async function InvestPage({
                   }`}
                 >
                   {o.side === "buy" ? "-" : "+"}
-                  {fmtMoney(o.totalCents)}
+                  {fmtWb(o.totalCents)}
                 </div>
               </li>
             ))}

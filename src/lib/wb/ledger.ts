@@ -10,6 +10,7 @@ export type LedgerKind =
   | "bet_payout"
   | "invest_buy"
   | "invest_sell"
+  | "invest_dividend"
   | "adjustment";
 
 export type CreditLedgerInput = {

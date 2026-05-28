@@ -5,12 +5,14 @@ import { getSession } from "@/lib/session";
 import { hasAdminRole } from "@/lib/discord";
 import { setRate, accrueInterest, postInterest } from "@/lib/wb/interest";
 import { creditLedger } from "@/lib/wb/ledger";
+import { postDividend } from "@/lib/wb/dividend";
 
-async function requireAdmin(): Promise<void> {
+async function requireAdmin(): Promise<string> {
   const session = await getSession();
   if (!session) throw new Error("Not signed in.");
   const isAdmin = await hasAdminRole(session.id);
   if (!isAdmin) throw new Error("Not an admin.");
+  return session.id;
 }
 
 export async function overrideRateAction(formData: FormData): Promise<void> {
@@ -41,6 +43,28 @@ export async function runPostAction(formData: FormData): Promise<void> {
     throw new Error("Through date must be YYYY-MM-DD.");
   }
   await postInterest(through);
+  revalidatePath("/admin/wb");
+}
+
+export async function postDividendAction(formData: FormData): Promise<void> {
+  const adminId = await requireAdmin();
+  const symbol = String(formData.get("symbol") ?? "").trim().toUpperCase();
+  const exDate = String(formData.get("ex_date") ?? "").trim();
+  const usdPerShare = Number(formData.get("usd_per_share") ?? 0);
+  if (!symbol) throw new Error("Symbol is required.");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(exDate)) {
+    throw new Error("Ex-date must be YYYY-MM-DD.");
+  }
+  if (!Number.isFinite(usdPerShare) || usdPerShare <= 0) {
+    throw new Error("Dividend must be a positive USD amount per share.");
+  }
+  await postDividend({
+    symbol,
+    exDate,
+    usdPerShare,
+    source: "admin_manual",
+    postedBy: adminId,
+  });
   revalidatePath("/admin/wb");
 }
 

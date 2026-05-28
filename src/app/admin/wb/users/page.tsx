@@ -2,6 +2,7 @@ import Link from "next/link";
 import { findRecipient } from "@/lib/wb/transfer";
 import { getBalance, getRecentLedger, type LedgerKind } from "@/lib/wb/ledger";
 import { loadDashboard } from "@/lib/wb/dashboard";
+import { formatWb } from "@/lib/wb/format";
 import { supabase } from "@/lib/supabase";
 import { Avatar } from "@/components/Avatar";
 import { adjustWbAction } from "./actions";
@@ -18,17 +19,11 @@ const KIND_LABEL: Record<LedgerKind, string> = {
   bet_payout: "Bet payout",
   invest_buy: "Buy",
   invest_sell: "Sell",
+  invest_dividend: "Dividend",
   adjustment: "Adjustment",
 };
 
-function fmtMoney(cents: number, opts: { signed?: boolean } = {}): string {
-  const sign = cents < 0 ? "-" : opts.signed && cents > 0 ? "+" : "";
-  const abs = Math.abs(cents);
-  return `${sign}$${(abs / 100).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
+const fmtMoney = formatWb;
 
 function fmtDateTime(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {

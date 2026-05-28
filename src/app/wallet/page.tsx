@@ -8,6 +8,7 @@ import { Nav } from "@/components/Nav";
 import { BalanceChart } from "@/components/wb/BalanceChart";
 import { AllocationBar } from "@/components/wb/AllocationBar";
 import { Leaderboard } from "@/components/wb/Leaderboard";
+import { formatWb } from "@/lib/wb/format";
 
 export const dynamic = "force-dynamic";
 
@@ -25,17 +26,11 @@ const KIND_LABEL: Record<LedgerKind, string> = {
   bet_payout: "Bet payout",
   invest_buy: "Buy",
   invest_sell: "Sell",
+  invest_dividend: "Dividend",
   adjustment: "Adjustment",
 };
 
-function formatMoney(cents: number, opts: { signed?: boolean } = {}): string {
-  const sign = cents < 0 ? "-" : opts.signed && cents > 0 ? "+" : "";
-  const abs = Math.abs(cents);
-  return `${sign}$${(abs / 100).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
+const formatMoney = formatWb;
 
 function formatPct(fraction: number): string {
   const sign = fraction >= 0 ? "+" : "";
@@ -203,6 +198,11 @@ export default async function WalletPage({
               tone={returns.investingPlCents > 0 ? "good" : returns.investingPlCents < 0 ? "warn" : "neutral"}
             />
             <Stat
+              label="Dividends received"
+              value={formatMoney(returns.dividendsCents, { signed: true })}
+              tone={returns.dividendsCents > 0 ? "good" : "neutral"}
+            />
+            <Stat
               label="Net transfers"
               value={formatMoney(returns.netTransfersCents, { signed: true })}
               tone="neutral"
@@ -280,7 +280,7 @@ export default async function WalletPage({
         <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
           <h2 className="font-heading text-xl font-bold text-ink">Buy Whoosh Bucks</h2>
           <p className="mt-2 text-sm font-medium text-ink/70">
-            1:1 with USD. Pay through Stripe; bucks appear here when the charge clears.
+            $1 USD = 10 WB. Pay through Stripe; bucks appear here when the charge clears.
           </p>
           <form
             action="/api/wb/buy"

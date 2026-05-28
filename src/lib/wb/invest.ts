@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { WB_PER_USD } from "@/lib/wb/purchase";
 
 export type Position = {
   symbol: string;
@@ -85,9 +86,10 @@ export async function placeOrder(
       return { ok: false, error: "You don't own enough shares to sell that." };
     return { ok: false, error: `Order failed: ${msg}` };
   }
+  // priceCents is real-USD cents/share. Under the 1:10 rate, WB cost is 10x.
   const totalCents =
     side === "buy"
-      ? Math.ceil(shares * priceCents)
-      : Math.floor(shares * priceCents);
+      ? Math.ceil(shares * priceCents * WB_PER_USD)
+      : Math.floor(shares * priceCents * WB_PER_USD);
   return { ok: true, orderId: Number(data), totalCents };
 }

@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import { headers } from "next/headers";
 
 export type WbPurchaseInput = {
-  /** USD cents the user wants to spend (== WB cents granted, 1:1). */
+  /** USD cents the user wants to spend. Each $1 paid yields 10 WB. */
   amountCents: number;
   discordUserId: string;
   discordUsername: string;
@@ -10,6 +10,10 @@ export type WbPurchaseInput = {
 
 const MIN_PURCHASE_CENTS = 100; // $1.00
 const MAX_PURCHASE_CENTS = 100_000_00; // $100,000 hard cap (sanity, not policy)
+
+/** Whoosh Bucks per US dollar. Defined here so the webhook + purchase flow
+ *  agree without drift; updates to the rate change a single constant. */
+export const WB_PER_USD = 10;
 
 /**
  * Build a one-time Stripe Checkout Session for buying Whoosh Bucks 1:1 with USD.
@@ -42,11 +46,15 @@ export async function createWbPurchaseCheckoutUrl({
   const rawOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? `${proto}://${host}`;
   const origin = rawOrigin.replace(/\/+$/, "");
 
+  // 1 USD = WB_PER_USD WB. USD cents in → WB cents out at 10x.
+  const wbCents = amountCents * WB_PER_USD;
+  const wbWhole = Math.round(wbCents / 100);
+
   const metadata = {
     kind: "wb_purchase" as const,
     discord_user_id: discordUserId,
     discord_username: discordUsername,
-    wb_cents: String(amountCents),
+    wb_cents: String(wbCents),
   };
 
   const session = await stripe.checkout.sessions.create({
@@ -59,7 +67,7 @@ export async function createWbPurchaseCheckoutUrl({
           unit_amount: amountCents,
           product_data: {
             name: "Whoosh Bucks",
-            description: `${amountCents / 100} WB credited to @${discordUsername}`,
+            description: `${wbWhole.toLocaleString("en-US")} WB credited to @${discordUsername}`,
           },
         },
       },
