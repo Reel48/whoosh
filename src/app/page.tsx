@@ -268,75 +268,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Whoosh Bucks — WHITE SMOKE canvas, four colored cards. Sits between
-          the green mission band and the orange Plans block to keep the
-          alternating-color rhythm of the page. */}
-      <section id="bucks" className="border-b-2 border-ink bg-white-smoke">
-        <div className="mx-auto w-full max-w-6xl px-6 py-24">
-          <SectionLabel>Whoosh Bucks</SectionLabel>
-          <div className="mt-4 grid gap-6 lg:grid-cols-[2fr_1fr] lg:items-end">
-            <h2 className="max-w-2xl font-heading text-4xl font-black tracking-tight sm:text-5xl">
-              The chat&rsquo;s own currency. Earn it, invest it, bet it, send it.
-            </h2>
-            <p className="text-lg font-medium text-ink/70 lg:text-right">
-              Buy Whoosh Bucks 1:1 with USD. Premium members get a matching
-              credit on every renewal.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-5 sm:grid-cols-2">
-            {bucksCards.map((c) => {
-              const Icon = c.Icon;
-              return (
-                <a
-                  key={c.title}
-                  href={c.href}
-                  className={`group flex flex-col gap-5 rounded-3xl border-2 border-ink p-7 transition-opacity hover:opacity-95 ${c.cardClass}`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <Icon className={`h-10 w-10 ${c.iconClass}`} />
-                    <span className="rounded-full border-2 border-ink bg-white-smoke px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-ink">
-                      {c.badge}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="font-heading text-3xl font-black tracking-tight">
-                      {c.title}
-                    </h3>
-                    <p className="mt-2 max-w-sm text-base font-medium opacity-90">
-                      {c.body}
-                    </p>
-                  </div>
-                  <span
-                    className={`mt-auto inline-flex w-fit items-center gap-2 rounded-full border-2 border-ink px-4 py-2 text-sm font-bold ${c.ctaClass}`}
-                  >
-                    {c.cta}
-                    <span aria-hidden="true">→</span>
-                  </span>
-                </a>
-              );
-            })}
-          </div>
-
-          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-ink p-7 text-white-smoke sm:p-8">
-            <div>
-              <p className="font-heading text-xl font-bold sm:text-2xl">
-                Your portfolio, all in one place.
-              </p>
-              <p className="mt-1 text-sm font-medium text-white-smoke/70">
-                Balance, allocation, lifetime returns, 90-day chart — every dollar accounted for.
-              </p>
-            </div>
-            <a
-              href="/wallet"
-              className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-safety-orange px-6 py-3 text-sm font-bold text-ink transition-opacity hover:opacity-90"
-            >
-              <Bolt className="h-4 w-4" /> Open your wallet
-            </a>
-          </div>
-        </div>
-      </section>
-
       {/* Plans — SAFETY ORANGE block (orange = the new "premium" color).
           One section color + ink, white-smoke cards. */}
       <section id="plans" className="border-b-2 border-ink bg-safety-orange">
@@ -463,6 +394,75 @@ export default async function Home() {
                 Secure payments via Stripe. Cancel anytime.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Whoosh Bucks — WHITE SMOKE canvas, four colored cards. Sits between
+          the orange Plans block and the lime FAQ to keep the alternating
+          colored / neutral rhythm of the page. */}
+      <section id="bucks" className="border-b-2 border-ink bg-white-smoke">
+        <div className="mx-auto w-full max-w-6xl px-6 py-24">
+          <SectionLabel>Whoosh Bucks</SectionLabel>
+          <div className="mt-4 grid gap-6 lg:grid-cols-[2fr_1fr] lg:items-end">
+            <h2 className="max-w-2xl font-heading text-4xl font-black tracking-tight sm:text-5xl">
+              The chat&rsquo;s own currency. Earn it, invest it, bet it, send it.
+            </h2>
+            <p className="text-lg font-medium text-ink/70 lg:text-right">
+              Buy Whoosh Bucks 1:1 with USD. Premium members get a matching
+              credit on every renewal.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-5 sm:grid-cols-2">
+            {bucksCards.map((c) => {
+              const Icon = c.Icon;
+              return (
+                <a
+                  key={c.title}
+                  href={c.href}
+                  className={`group flex flex-col gap-5 rounded-3xl border-2 border-ink p-7 transition-opacity hover:opacity-95 ${c.cardClass}`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <Icon className={`h-10 w-10 ${c.iconClass}`} />
+                    <span className="rounded-full border-2 border-ink bg-white-smoke px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-ink">
+                      {c.badge}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-heading text-3xl font-black tracking-tight">
+                      {c.title}
+                    </h3>
+                    <p className="mt-2 max-w-sm text-base font-medium opacity-90">
+                      {c.body}
+                    </p>
+                  </div>
+                  <span
+                    className={`mt-auto inline-flex w-fit items-center gap-2 rounded-full border-2 border-ink px-4 py-2 text-sm font-bold ${c.ctaClass}`}
+                  >
+                    {c.cta}
+                    <span aria-hidden="true">→</span>
+                  </span>
+                </a>
+              );
+            })}
+          </div>
+
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-ink p-7 text-white-smoke sm:p-8">
+            <div>
+              <p className="font-heading text-xl font-bold sm:text-2xl">
+                Your portfolio, all in one place.
+              </p>
+              <p className="mt-1 text-sm font-medium text-white-smoke/70">
+                Balance, allocation, lifetime returns, 90-day chart — every dollar accounted for.
+              </p>
+            </div>
+            <a
+              href="/wallet"
+              className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-safety-orange px-6 py-3 text-sm font-bold text-ink transition-opacity hover:opacity-90"
+            >
+              <Bolt className="h-4 w-4" /> Open your wallet
+            </a>
           </div>
         </div>
       </section>
