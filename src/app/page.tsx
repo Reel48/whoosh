@@ -10,24 +10,22 @@ function Bolt({ className }: { className?: string }) {
   );
 }
 
-/* ---------- Topic icons (simple line icons) ---------- */
-const iconBase = "h-6 w-6";
-const Stroke = ({ d }: { d: string }) => (
-  <svg viewBox="0 0 24 24" className={iconBase} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {d.split("|").map((p, i) => (
-      <path key={i} d={p} />
-    ))}
-  </svg>
-);
+function Lock({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4" y="10" width="16" height="11" rx="2" />
+      <path d="M8 10V7a4 4 0 018 0v3" />
+    </svg>
+  );
+}
 
-const topics = [
-  { name: "Sports", blurb: "Game threads, hot takes, and the bets to back them up.", chip: "bg-real-blue/10 text-real-blue", d: "M12 3a9 9 0 100 18 9 9 0 000-18|M3 12h18|M12 3c3 3 3 15 0 18|M12 3c-3 3-3 15 0 18" },
-  { name: "Entertainment", blurb: "Shows, movies, music — what to watch and what to skip.", chip: "bg-bright-red/10 text-bright-red", d: "M5 5h14v14H5z|M10 9l5 3-5 3V9z" },
-  { name: "Business", blurb: "Markets, deals, and side hustles worth your time.", chip: "bg-fresh-green/10 text-fresh-green", d: "M4 19V9|M10 19V5|M16 19v-7|M21 19H3" },
-  { name: "Tech", blurb: "Gadgets, launches, and the stuff that actually matters.", chip: "bg-matte-orange/20 text-matte-orange", d: "M9 3h6v3H9z|M5 6h14v12H5z|M9 21h6" },
-  { name: "Culture", blurb: "The group chat that gets the joke before everyone else.", chip: "bg-smudged-blue/10 text-smudged-blue", d: "M4 5h16v11H8l-4 4V5z" },
-  { name: "& more", blurb: "If the guys are talking about it, it's a channel.", chip: "bg-smooth-black/10 text-smooth-black", d: "M5 12h14|M12 5v14" },
+const channelGroups = [
+  { name: "Sports", accent: "text-real-blue", dot: "bg-real-blue", channels: ["NFL Football", "College Football", "Baseball", "Soccer", "Basketball", "Golf", "Fights"] },
+  { name: "Media", accent: "text-bright-red", dot: "bg-bright-red", channels: ["Pic of the Day", "Movies & TV", "Music", "Gaming", "Videos"] },
+  { name: "Miscellaneous", accent: "text-fresh-green", dot: "bg-fresh-green", channels: ["Health & Fitness", "Food & Drinks", "Counting Game", "Money Rankings", "Water the Tree"] },
 ];
+
+const premiumChannels = ["Premium Wheel Spin", "Sports News", "Sports Betting", "Business", "Politics"];
 
 const tiers = [
   { name: "Splash", price: "$5", blurb: "Dip your toes in.", perks: ["Premium channels", "Member events", "Whoosh role"], highlight: false },
@@ -56,7 +54,7 @@ export default function Home() {
         <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
           <Image src="/whoosh-wordmark-asphalt.svg" alt="Whoosh" width={1440} height={368} className="h-6 w-auto" priority />
           <div className="flex items-center gap-7 text-sm font-medium">
-            <a href="#topics" className="hidden hover:text-real-blue sm:inline">Topics</a>
+            <a href="#channels" className="hidden hover:text-real-blue sm:inline">Channels</a>
             <a href="#plans" className="hidden hover:text-real-blue sm:inline">Plans</a>
             <a href="#faq" className="hidden hover:text-real-blue sm:inline">FAQ</a>
             <a href="#" className="inline-flex items-center gap-2 rounded-full bg-real-blue px-4 py-2 text-clear-white transition-colors hover:bg-smudged-blue">
@@ -96,23 +94,57 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Topics */}
-      <section id="topics" className="border-t border-smooth-black/10">
+      {/* Channels */}
+      <section id="channels" className="border-t border-smooth-black/10">
         <div className="mx-auto w-full max-w-6xl px-6 py-24">
-          <SectionLabel>What we talk about</SectionLabel>
+          <SectionLabel>The lineup</SectionLabel>
           <h2 className="mt-4 max-w-2xl font-heading text-4xl font-bold tracking-tight sm:text-5xl">
             Every channel worth opening.
           </h2>
-          <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-smooth-black/10 bg-smooth-black/10 sm:grid-cols-2 lg:grid-cols-3">
-            {topics.map((t) => (
-              <div key={t.name} className="bg-clear-white p-8">
-                <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${t.chip}`}>
-                  <Stroke d={t.d} />
+          <p className="mt-4 max-w-xl text-lg text-smooth-black/60">
+            Dozens of channels across sports, media, and everything else — plus
+            members-only Premium channels.
+          </p>
+
+          <div className="mt-14 divide-y divide-smooth-black/10 border-y border-smooth-black/10">
+            {channelGroups.map((g) => (
+              <div key={g.name} className="grid gap-5 py-8 lg:grid-cols-[1fr_3fr]">
+                <div className="flex items-center gap-3">
+                  <span className={`h-2.5 w-2.5 rounded-full ${g.dot}`} />
+                  <h3 className="font-heading text-xl font-semibold">{g.name}</h3>
+                  <span className="text-sm text-smooth-black/40">{g.channels.length}</span>
                 </div>
-                <h3 className="mt-5 font-heading text-xl font-semibold">{t.name}</h3>
-                <p className="mt-2 text-smooth-black/60">{t.blurb}</p>
+                <div className="flex flex-wrap gap-2.5">
+                  {g.channels.map((c) => (
+                    <span key={c} className="inline-flex items-center gap-1.5 rounded-lg border border-smooth-black/15 px-3 py-1.5 text-sm">
+                      <span className={`font-heading ${g.accent}`}>#</span>
+                      {c}
+                    </span>
+                  ))}
+                </div>
               </div>
             ))}
+          </div>
+
+          {/* Premium — members only */}
+          <div className="mt-10 overflow-hidden rounded-3xl bg-smooth-black p-8 text-clear-white sm:p-10">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-matte-orange/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-matte-orange">
+                <Lock className="h-3.5 w-3.5" /> Members only
+              </span>
+              <h3 className="font-heading text-2xl font-semibold">Premium channels</h3>
+            </div>
+            <p className="mt-3 max-w-xl text-clear-white/60">
+              Unlocked the moment you subscribe.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2.5">
+              {premiumChannels.map((c) => (
+                <span key={c} className="inline-flex items-center gap-1.5 rounded-lg border border-clear-white/15 bg-clear-white/5 px-3 py-1.5 text-sm">
+                  <span className="font-heading text-matte-orange">#</span>
+                  {c}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -224,7 +256,7 @@ export default function Home() {
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 py-12 sm:flex-row sm:justify-between">
           <Image src="/whoosh-wordmark-white.svg" alt="Whoosh" width={1440} height={368} className="h-6 w-auto" />
           <div className="flex items-center gap-6 text-sm">
-            <a href="#topics" className="hover:text-clear-white">Topics</a>
+            <a href="#channels" className="hover:text-clear-white">Channels</a>
             <a href="#plans" className="hover:text-clear-white">Plans</a>
             <a href="#faq" className="hover:text-clear-white">FAQ</a>
             <a href="#" className="hover:text-clear-white">Discord</a>
