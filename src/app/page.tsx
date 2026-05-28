@@ -137,25 +137,25 @@ export default async function Home() {
             ))}
           </div>
 
-          {/* Premium — full-bleed INK card with safety-orange accents that
-              tie it to the Membership section's orange */}
-          <div className="mt-10 overflow-hidden rounded-3xl border-2 border-ink bg-ink p-8 text-white-smoke sm:p-10">
+          {/* Premium — full-bleed SAFETY ORANGE card. Same orange + ink
+              language as the Membership section, so the two read as a pair. */}
+          <div className="mt-10 overflow-hidden rounded-3xl border-2 border-ink bg-safety-orange p-8 text-ink sm:p-10">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-safety-orange px-3 py-1 text-xs font-bold uppercase tracking-[0.15em] text-ink">
+              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-ink px-3 py-1 text-xs font-bold uppercase tracking-[0.15em] text-safety-orange">
                 <Lock className="h-3.5 w-3.5" /> Members only
               </span>
               <h3 className="font-heading text-2xl font-bold">Premium channels</h3>
             </div>
-            <p className="mt-3 max-w-xl font-medium text-white-smoke/70">
+            <p className="mt-3 max-w-xl font-medium text-ink/80">
               Unlocked the moment you subscribe.
             </p>
             <div className="mt-6 flex flex-wrap gap-2.5">
               {premiumChannels.map((c) => (
                 <span
                   key={c}
-                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-white-smoke px-3 py-1.5 text-sm font-medium"
+                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-ink bg-safety-orange px-3 py-1.5 text-sm font-medium"
                 >
-                  <span className="font-heading font-black text-safety-orange">#</span>
+                  <span className="font-heading font-black text-ink">#</span>
                   {c}
                 </span>
               ))}
