@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { getCryptoAsset } from "@/lib/wb/assets";
 
 const FINNHUB_QUOTE_URL = "https://finnhub.io/api/v1/quote";
 const QUOTE_TTL_SECONDS = 60;
@@ -72,7 +73,11 @@ async function fetchFreshQuote(symbol: string): Promise<Quote | null> {
     console.warn("FINNHUB_API_KEY not set — quote fetch disabled.");
     return null;
   }
-  const url = `${FINNHUB_QUOTE_URL}?symbol=${encodeURIComponent(symbol)}&token=${apiKey}`;
+  // Finnhub uses BINANCE:<SYMBOL>USDT for spot crypto quotes; US equities
+  // are the bare ticker. Whitelist check routes to the right format.
+  const crypto = getCryptoAsset(symbol);
+  const finnhubSymbol = crypto ? crypto.finnhubSymbol : symbol;
+  const url = `${FINNHUB_QUOTE_URL}?symbol=${encodeURIComponent(finnhubSymbol)}&token=${apiKey}`;
   let res: Response;
   try {
     res = await fetch(url, { cache: "no-store" });

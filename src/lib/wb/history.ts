@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { getCryptoAsset } from "@/lib/wb/assets";
 
 const TWELVEDATA_BASE = "https://api.twelvedata.com";
 
@@ -63,7 +64,11 @@ async function fetchSnapshotFresh(symbol: string, range: RangeKey): Promise<Stoc
     return null;
   }
   const outputSize = outputSizeFor(range);
-  const url = `${TWELVEDATA_BASE}/time_series?symbol=${encodeURIComponent(symbol)}&interval=1day&outputsize=${outputSize}&apikey=${apiKey}`;
+  // Crypto symbols on Twelve Data use the "BTC/USD" pair convention; stocks
+  // are the bare ticker.
+  const crypto = getCryptoAsset(symbol);
+  const tdSymbol = crypto ? crypto.twelvedataSymbol : symbol;
+  const url = `${TWELVEDATA_BASE}/time_series?symbol=${encodeURIComponent(tdSymbol)}&interval=1day&outputsize=${outputSize}&apikey=${apiKey}`;
 
   let res: Response;
   try {
@@ -130,7 +135,9 @@ async function fetchSnapshotFresh(symbol: string, range: RangeKey): Promise<Stoc
     : null;
 
   return {
-    symbol: json.meta?.symbol ?? symbol,
+    // Preserve the bare ticker the caller passed in (Twelve Data echoes
+    // back "BTC/USD" for crypto; downstream code keys off "BTC").
+    symbol,
     longName: null,                  // Twelve Data time_series doesn't include it; comes from CompanyProfile instead.
     exchange: json.meta?.exchange ?? null,
     currency: json.meta?.currency ?? "USD",

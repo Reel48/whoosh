@@ -10,6 +10,7 @@ import { StockHeader } from "@/components/wb/StockHeader";
 import { StockPriceChart } from "@/components/wb/StockPriceChart";
 import { StockStats } from "@/components/wb/StockStats";
 import { formatWb, formatUsd } from "@/lib/wb/format";
+import { CRYPTO_ASSETS } from "@/lib/wb/assets";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Invest — Whoosh" };
@@ -145,17 +146,17 @@ export default async function InvestPage({
 
         {/* Symbol lookup */}
         <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
-          <h2 className="font-heading text-xl font-bold">Look up a stock</h2>
+          <h2 className="font-heading text-xl font-bold">Look up an asset</h2>
           <p className="mt-1 text-sm font-medium text-ink/70">
-            Real US-market quotes (delayed ~15 min). Orders fill at the most
-            recent quote — Whoosh Bucks only, no real money.
+            Real US stocks (~15 min delayed) and live crypto quotes. Orders
+            fill at the most recent quote — Whoosh Bucks only, no real money.
           </p>
           <form action="/invest" method="GET" className="mt-4 flex flex-wrap gap-3">
             <input
               type="text"
               name="symbol"
               defaultValue={lookupSymbol}
-              placeholder="Symbol (e.g. AAPL)"
+              placeholder="Symbol (e.g. AAPL, BTC)"
               required
               autoComplete="off"
               className="flex-1 min-w-[180px] rounded-full border-2 border-ink bg-white-smoke px-4 py-3 font-heading font-bold uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-ink"
@@ -167,6 +168,33 @@ export default async function InvestPage({
               Look up
             </button>
           </form>
+
+          {/* Crypto quick-picks */}
+          <div className="mt-5">
+            <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
+              Crypto
+            </div>
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {CRYPTO_ASSETS.map((c) => {
+                const isActive = c.symbol === lookupSymbol;
+                return (
+                  <li key={c.symbol}>
+                    <Link
+                      href={`/invest?symbol=${c.symbol}`}
+                      className={`inline-flex items-center gap-1.5 rounded-full border-2 border-ink px-3 py-1 text-xs font-bold transition-colors ${
+                        isActive
+                          ? "bg-ink text-white-smoke"
+                          : "bg-white-smoke text-ink hover:bg-ink hover:text-white-smoke"
+                      }`}
+                    >
+                      <span className="font-heading font-black">{c.symbol}</span>
+                      <span className="opacity-70">· {c.name}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </section>
 
         {/* Stock detail view */}

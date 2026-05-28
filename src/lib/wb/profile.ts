@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { getCryptoAsset } from "@/lib/wb/assets";
 
 const FINNHUB_BASE = "https://finnhub.io/api/v1";
 
@@ -78,5 +79,26 @@ const fetchProfileCached = unstable_cache(
 export async function getCompanyProfile(symbolRaw: string): Promise<CompanyProfile | null> {
   const symbol = symbolRaw.trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, "").slice(0, 12);
   if (!symbol) return null;
+
+  // Cryptos don't have a company profile — Finnhub /stock/profile2 returns
+  // an empty object. Hand-roll a minimal profile from the whitelist so the
+  // stock header card renders a logo + name for crypto too.
+  const crypto = getCryptoAsset(symbol);
+  if (crypto) {
+    return {
+      symbol: crypto.symbol,
+      name: crypto.name,
+      industry: "Cryptocurrency",
+      country: null,
+      currency: "USD",
+      exchange: "Crypto",
+      ipo: null,
+      logoUrl: crypto.logoUrl,
+      weburl: null,
+      marketCap: null,
+      shareOutstandingMillions: null,
+    };
+  }
+
   return fetchProfileCached(symbol);
 }
