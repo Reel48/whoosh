@@ -39,7 +39,7 @@ const billing = [
 
 const faqs = [
   { q: "What is Whoosh?", a: "A premium, invite-worthy group chat that lives in Discord — covering sports, entertainment, business, and whatever else the crew is into that day." },
-  { q: "How do I get in?", a: "Pick a plan, subscribe, and your premium Discord access is granted automatically. (Payments are coming soon via Stripe.)" },
+  { q: "How do I get in?", a: "Pick a plan, sign in with Discord, and pay through Stripe. Your Premium role lands in the server automatically — usually within seconds." },
   { q: "Can I cancel anytime?", a: "Yes. Manage or cancel your subscription whenever you like — no awkward DMs required." },
   { q: "Is it really just guys?", a: "It started as one group chat with the guys. Everyone who's down for good takes and better banter is welcome." },
 ];
@@ -273,7 +273,7 @@ export default async function Home() {
                 </div>
               ))}
               <p className="pt-2 text-sm text-smooth-black/50">
-                Payments coming soon via Stripe. Cancel anytime.
+                Secure payments via Stripe. Cancel anytime.
               </p>
             </div>
           </div>
