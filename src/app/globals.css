@@ -20,8 +20,8 @@
   --fresh-green: #12a96a;
   --bench-green: #053f33;
 
-  --background: var(--sandstone);
-  --foreground: var(--asphalt);
+  --background: var(--clear-white);
+  --foreground: var(--smooth-black);
 }
 
 @theme inline {

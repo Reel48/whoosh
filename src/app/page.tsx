@@ -21,12 +21,12 @@ const Stroke = ({ d }: { d: string }) => (
 );
 
 const topics = [
-  { name: "Sports", blurb: "Game threads, hot takes, and the bets to back them up.", d: "M12 3a9 9 0 100 18 9 9 0 000-18|M3 12h18|M12 3c3 3 3 15 0 18|M12 3c-3 3-3 15 0 18" },
-  { name: "Entertainment", blurb: "Shows, movies, music — what to watch and what to skip.", d: "M5 5h14v14H5z|M10 9l5 3-5 3V9z" },
-  { name: "Business", blurb: "Markets, deals, and side hustles worth your time.", d: "M4 19V9|M10 19V5|M16 19v-7|M21 19H3" },
-  { name: "Tech", blurb: "Gadgets, launches, and the stuff that actually matters.", d: "M9 3h6v3H9z|M5 6h14v12H5z|M9 21h6" },
-  { name: "Culture", blurb: "The group chat that gets the joke before everyone else.", d: "M4 5h16v11H8l-4 4V5z" },
-  { name: "& more", blurb: "If the guys are talking about it, it's a channel.", d: "M5 12h14|M12 5v14" },
+  { name: "Sports", blurb: "Game threads, hot takes, and the bets to back them up.", chip: "bg-real-blue/10 text-real-blue", d: "M12 3a9 9 0 100 18 9 9 0 000-18|M3 12h18|M12 3c3 3 3 15 0 18|M12 3c-3 3-3 15 0 18" },
+  { name: "Entertainment", blurb: "Shows, movies, music — what to watch and what to skip.", chip: "bg-bright-red/10 text-bright-red", d: "M5 5h14v14H5z|M10 9l5 3-5 3V9z" },
+  { name: "Business", blurb: "Markets, deals, and side hustles worth your time.", chip: "bg-fresh-green/10 text-fresh-green", d: "M4 19V9|M10 19V5|M16 19v-7|M21 19H3" },
+  { name: "Tech", blurb: "Gadgets, launches, and the stuff that actually matters.", chip: "bg-matte-orange/20 text-matte-orange", d: "M9 3h6v3H9z|M5 6h14v12H5z|M9 21h6" },
+  { name: "Culture", blurb: "The group chat that gets the joke before everyone else.", chip: "bg-smudged-blue/10 text-smudged-blue", d: "M4 5h16v11H8l-4 4V5z" },
+  { name: "& more", blurb: "If the guys are talking about it, it's a channel.", chip: "bg-smooth-black/10 text-smooth-black", d: "M5 12h14|M12 5v14" },
 ];
 
 const tiers = [
@@ -50,9 +50,9 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col bg-sandstone text-asphalt">
+    <div className="flex flex-1 flex-col bg-clear-white text-smooth-black">
       {/* Nav */}
-      <header className="sticky top-0 z-30 border-b border-asphalt/10 bg-sandstone/90 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-smooth-black/10 bg-clear-white/90 backdrop-blur">
         <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
           <Image src="/whoosh-wordmark-asphalt.svg" alt="Whoosh" width={1440} height={368} className="h-6 w-auto" priority />
           <div className="flex items-center gap-7 text-sm font-medium">
@@ -73,7 +73,7 @@ export default function Home() {
           <h1 className="mt-5 font-heading text-5xl font-bold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
             The only group chat you&rsquo;ll ever need.
           </h1>
-          <p className="mt-6 max-w-md text-lg leading-relaxed text-rooftop-grey">
+          <p className="mt-6 max-w-md text-lg leading-relaxed text-smooth-black/60">
             Whoosh is a premium group chat for the guys — sports takes, what to
             watch, market moves, and the banter in between. All in one Discord.
           </p>
@@ -81,36 +81,36 @@ export default function Home() {
             <a href="#" className="inline-flex items-center justify-center gap-2 rounded-full bg-real-blue px-7 py-3.5 text-base font-medium text-clear-white transition-colors hover:bg-smudged-blue">
               <Bolt className="h-5 w-5" /> Join the Discord
             </a>
-            <a href="#plans" className="inline-flex items-center justify-center rounded-full border border-asphalt/20 px-7 py-3.5 text-base font-medium transition-colors hover:border-asphalt/40">
+            <a href="#plans" className="inline-flex items-center justify-center rounded-full border border-smooth-black/20 px-7 py-3.5 text-base font-medium transition-colors hover:border-smooth-black/40">
               See the plans
             </a>
           </div>
         </div>
 
         {/* Hatch motif panel */}
-        <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-real-blue">
-          <div className="hatch absolute inset-10 text-clear-white/25" />
+        <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-smooth-black">
+          <div className="hatch absolute inset-10 text-clear-white/15" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <Bolt className="h-2/5 w-2/5 text-clear-white drop-shadow" />
+            <Bolt className="h-2/5 w-2/5 text-real-blue drop-shadow" />
           </div>
         </div>
       </section>
 
       {/* Topics */}
-      <section id="topics" className="border-t border-asphalt/10">
+      <section id="topics" className="border-t border-smooth-black/10">
         <div className="mx-auto w-full max-w-6xl px-6 py-24">
           <SectionLabel>What we talk about</SectionLabel>
           <h2 className="mt-4 max-w-2xl font-heading text-4xl font-bold tracking-tight sm:text-5xl">
             Every channel worth opening.
           </h2>
-          <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-asphalt/10 bg-asphalt/10 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-smooth-black/10 bg-smooth-black/10 sm:grid-cols-2 lg:grid-cols-3">
             {topics.map((t) => (
-              <div key={t.name} className="bg-sandstone p-8">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-city-sky text-real-blue">
+              <div key={t.name} className="bg-clear-white p-8">
+                <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${t.chip}`}>
                   <Stroke d={t.d} />
                 </div>
                 <h3 className="mt-5 font-heading text-xl font-semibold">{t.name}</h3>
-                <p className="mt-2 text-rooftop-grey">{t.blurb}</p>
+                <p className="mt-2 text-smooth-black/60">{t.blurb}</p>
               </div>
             ))}
           </div>
@@ -118,7 +118,7 @@ export default function Home() {
       </section>
 
       {/* Mission band */}
-      <section className="border-t border-asphalt/10 bg-asphalt text-sandstone">
+      <section className="border-t border-smooth-black/10 bg-smooth-black text-clear-white">
         <div className="mx-auto w-full max-w-5xl px-6 py-28 text-center">
           <Bolt className="mx-auto h-10 w-10 text-matte-orange" />
           <p className="mt-8 font-heading text-3xl font-medium leading-snug tracking-tight sm:text-4xl">
@@ -129,12 +129,12 @@ export default function Home() {
       </section>
 
       {/* Plans */}
-      <section id="plans" className="border-t border-asphalt/10">
+      <section id="plans" className="border-t border-smooth-black/10">
         <div className="mx-auto w-full max-w-6xl px-6 py-24">
           <div className="max-w-2xl">
             <SectionLabel>Membership</SectionLabel>
             <h2 className="mt-4 font-heading text-4xl font-bold tracking-tight sm:text-5xl">Pick your tier.</h2>
-            <p className="mt-4 text-lg text-rooftop-grey">
+            <p className="mt-4 text-lg text-smooth-black/60">
               Subscribe through Whoosh and your premium Discord access is granted automatically.
             </p>
           </div>
@@ -146,14 +146,14 @@ export default function Home() {
                 className={`flex flex-col rounded-3xl border p-8 ${
                   tier.highlight
                     ? "border-real-blue bg-real-blue text-clear-white"
-                    : "border-asphalt/15 bg-clear-white text-asphalt"
+                    : "border-smooth-black/15 bg-clear-white text-smooth-black"
                 }`}
               >
                 <h3 className="font-heading text-2xl font-semibold">{tier.name}</h3>
-                <p className={`mt-1 text-sm ${tier.highlight ? "text-city-sky" : "text-rooftop-grey"}`}>{tier.blurb}</p>
+                <p className={`mt-1 text-sm ${tier.highlight ? "text-city-sky" : "text-smooth-black/60"}`}>{tier.blurb}</p>
                 <div className="mt-6 flex items-baseline gap-1">
                   <span className="font-heading text-5xl font-bold">{tier.price}</span>
-                  <span className={tier.highlight ? "text-city-sky" : "text-rooftop-grey"}>/mo</span>
+                  <span className={tier.highlight ? "text-city-sky" : "text-smooth-black/60"}>/mo</span>
                 </div>
                 <ul className="mt-6 flex-1 space-y-3 text-sm">
                   {tier.perks.map((perk) => (
@@ -176,25 +176,25 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <p className="mt-8 text-sm text-rooftop-grey">Payments coming soon via Stripe.</p>
+          <p className="mt-8 text-sm text-smooth-black/60">Payments coming soon via Stripe.</p>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="border-t border-asphalt/10">
+      <section id="faq" className="border-t border-smooth-black/10">
         <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-24 lg:grid-cols-[1fr_2fr]">
           <div>
             <SectionLabel>FAQ</SectionLabel>
             <h2 className="mt-4 font-heading text-4xl font-bold tracking-tight sm:text-5xl">Good questions.</h2>
           </div>
-          <div className="divide-y divide-asphalt/10 border-y border-asphalt/10">
+          <div className="divide-y divide-smooth-black/10 border-y border-smooth-black/10">
             {faqs.map((f) => (
               <details key={f.q} className="group py-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between font-heading text-lg font-medium [&::-webkit-details-marker]:hidden">
                   {f.q}
                   <span className="ml-4 text-2xl text-real-blue transition-transform group-open:rotate-45">+</span>
                 </summary>
-                <p className="mt-3 max-w-2xl text-rooftop-grey">{f.a}</p>
+                <p className="mt-3 max-w-2xl text-smooth-black/60">{f.a}</p>
               </details>
             ))}
           </div>
@@ -202,17 +202,17 @@ export default function Home() {
       </section>
 
       {/* CTA band */}
-      <section className="border-t border-asphalt/10 bg-real-blue text-clear-white">
+      <section className="border-t border-smooth-black/10 bg-smooth-black text-clear-white">
         <div className="relative mx-auto w-full max-w-6xl overflow-hidden px-6 py-24 text-center">
           <div className="hatch pointer-events-none absolute inset-0 text-clear-white/10" />
           <div className="relative">
             <h2 className="mx-auto max-w-3xl font-heading text-4xl font-bold tracking-tight sm:text-5xl">
               Stop scrolling five different apps.
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-lg text-city-sky">
+            <p className="mx-auto mt-4 max-w-xl text-lg text-clear-white/60">
               One chat for everything you actually care about. Come hang.
             </p>
-            <a href="#" className="mt-9 inline-flex items-center justify-center gap-2 rounded-full bg-clear-white px-8 py-4 text-base font-medium text-real-blue transition-colors hover:bg-city-sky">
+            <a href="#" className="mt-9 inline-flex items-center justify-center gap-2 rounded-full bg-real-blue px-8 py-4 text-base font-medium text-clear-white transition-colors hover:bg-smudged-blue">
               <Bolt className="h-5 w-5" /> Join the Discord
             </a>
           </div>
