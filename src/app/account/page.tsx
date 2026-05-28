@@ -87,15 +87,15 @@ export default async function AccountPage() {
           <form action="/api/auth/discord/logout" method="POST">
             <button
               type="submit"
-              className="cursor-pointer rounded-full border-2 border-ink bg-white-smoke px-4 py-2 text-sm font-bold transition-colors hover:bg-mango"
+              className="cursor-pointer rounded-full border-2 border-ink bg-white-smoke px-4 py-2 text-sm font-bold transition-colors hover:bg-ink hover:text-white-smoke"
             >
               Sign out
             </button>
           </form>
         </div>
 
-        {/* Premium status card — MANGO block */}
-        <div className="mt-6 rounded-3xl border-2 border-ink bg-mango p-6 text-ink sm:p-8">
+        {/* Premium status card — neutral so colored status pills can live inside */}
+        <div className="mt-6 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-heading text-xl font-bold">Whoosh Premium</h2>
             <StatusPill status={sub?.status} />
@@ -168,7 +168,7 @@ export default async function AccountPage() {
               <form action="/api/portal" method="POST">
                 <button
                   type="submit"
-                  className="cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-colors hover:bg-imperial-red"
+                  className="cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
                 >
                   Manage subscription
                 </button>
@@ -176,7 +176,7 @@ export default async function AccountPage() {
             ) : (
               <a
                 href="/#plans"
-                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-colors hover:bg-imperial-red"
+                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
               >
                 <Bolt className="h-4 w-4" /> See the plans
               </a>
@@ -185,7 +185,7 @@ export default async function AccountPage() {
               href="https://discord.gg/zzP8nFFzQt"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-full border-2 border-ink bg-white-smoke px-6 py-3 text-sm font-bold text-ink transition-colors hover:bg-lime"
+              className="inline-flex items-center justify-center rounded-full border-2 border-ink bg-white-smoke px-6 py-3 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
             >
               Open Discord
             </a>

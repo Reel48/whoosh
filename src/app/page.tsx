@@ -78,13 +78,13 @@ export default async function Home() {
                 href={DISCORD_INVITE}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-ink px-7 py-3.5 text-base font-bold text-white-smoke transition-colors hover:bg-imperial-red"
+                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-ink px-7 py-3.5 text-base font-bold text-white-smoke transition-opacity hover:opacity-90"
               >
                 <Bolt className="h-5 w-5" /> {discordLabel}
               </a>
               <a
                 href="#plans"
-                className="inline-flex items-center justify-center rounded-full border-2 border-ink bg-white-smoke px-7 py-3.5 text-base font-bold text-ink transition-colors hover:bg-mango"
+                className="inline-flex items-center justify-center rounded-full border-2 border-ink bg-white-smoke px-7 py-3.5 text-base font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
               >
                 See the plans
               </a>
@@ -92,8 +92,8 @@ export default async function Home() {
           </div>
 
           {/* Hatch motif panel — LIME with ink stripes + ink bolt */}
-          <div className="relative aspect-square w-full overflow-hidden rounded-3xl border-2 border-ink bg-lime">
-            <div className="hatch absolute inset-10 text-ink/25" />
+          <div className="relative aspect-square w-full overflow-hidden rounded-3xl border-2 border-ink bg-blue">
+            <div className="hatch absolute inset-10 text-ink/30" />
             <div className="absolute inset-0 flex items-center justify-center">
               <Bolt className="h-2/5 w-2/5 text-ink" />
             </div>
@@ -153,7 +153,7 @@ export default async function Home() {
                   key={c}
                   className="inline-flex items-center gap-1.5 rounded-lg border-2 border-ink bg-mango px-3 py-1.5 text-sm font-medium"
                 >
-                  <span className="font-heading font-black text-imperial-red">#</span>
+                  <span className="font-heading font-black text-ink">#</span>
                   {c}
                 </span>
               ))}
@@ -219,7 +219,7 @@ export default async function Home() {
               ) : (
                 <a
                   href="/api/auth/discord"
-                  className="flex items-center justify-between gap-3 rounded-2xl border-2 border-ink bg-lavender px-4 py-3 text-sm text-ink transition-colors hover:bg-plum"
+                  className="flex items-center justify-between gap-3 rounded-2xl border-2 border-ink bg-lavender px-4 py-3 text-sm text-ink transition-opacity hover:opacity-90"
                 >
                   <span className="font-medium">
                     <strong className="font-heading font-bold">Connect your Discord</strong>{" "}
@@ -261,7 +261,7 @@ export default async function Home() {
                     <div className="flex items-center gap-2.5">
                       <h3 className="font-heading text-lg font-bold">{b.name}</h3>
                       {b.badge && (
-                        <span className="rounded-full border-2 border-ink bg-imperial-red px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-white-smoke">
+                        <span className="rounded-full border-2 border-ink bg-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-mango">
                           {b.badge}
                         </span>
                       )}
@@ -276,7 +276,7 @@ export default async function Home() {
                     <input type="hidden" name="interval" value={b.interval} />
                     <button
                       type="submit"
-                      className="shrink-0 cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2.5 text-sm font-bold text-white-smoke transition-colors hover:bg-imperial-red"
+                      className="shrink-0 cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2.5 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
                     >
                       Subscribe
                     </button>
@@ -331,7 +331,7 @@ export default async function Home() {
               href={DISCORD_INVITE}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-9 inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-ink px-8 py-4 text-base font-bold text-white-smoke transition-colors hover:bg-blue"
+              className="mt-9 inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-ink px-8 py-4 text-base font-bold text-white-smoke transition-opacity hover:opacity-90"
             >
               <Bolt className="h-5 w-5" /> {discordLabel}
             </a>
@@ -344,10 +344,10 @@ export default async function Home() {
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 py-12 sm:flex-row sm:justify-between">
           <Image src="/whoosh-wordmark-white.svg" alt="Whoosh" width={1440} height={368} className="h-6 w-auto" />
           <div className="flex items-center gap-6 text-sm font-medium">
-            <a href="#channels" className="hover:text-lime">Channels</a>
-            <a href="#plans" className="hover:text-lime">Plans</a>
-            <a href="#faq" className="hover:text-lime">FAQ</a>
-            <a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer" className="hover:text-lime">Discord</a>
+            <a href="#channels" className="hover:underline">Channels</a>
+            <a href="#plans" className="hover:underline">Plans</a>
+            <a href="#faq" className="hover:underline">FAQ</a>
+            <a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer" className="hover:underline">Discord</a>
           </div>
           <p className="text-sm text-white-smoke/60">&copy; {new Date().getFullYear()} Whoosh</p>
         </div>

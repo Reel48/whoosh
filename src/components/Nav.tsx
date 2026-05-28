@@ -41,7 +41,7 @@ export async function Nav() {
           {session ? (
             <a
               href="/account"
-              className="flex items-center gap-2 rounded-full border-2 border-ink bg-white-smoke py-1 pl-1 pr-3 transition-colors hover:bg-mango"
+              className="flex items-center gap-2 rounded-full border-2 border-ink bg-white-smoke py-1 pl-1 pr-3 transition-colors hover:bg-ink/5"
             >
               <Avatar id={session.id} hash={session.avatar} username={session.username} size={28} />
               <span className="hidden text-sm sm:inline">@{session.username}</span>
@@ -59,7 +59,7 @@ export async function Nav() {
             href={DISCORD_INVITE}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-ink px-4 py-2 text-white-smoke transition-colors hover:bg-blue hover:text-ink"
+            className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-ink px-4 py-2 text-white-smoke transition-opacity hover:opacity-90"
           >
             <Bolt className="h-4 w-4" /> {discordLabel}
           </a>
