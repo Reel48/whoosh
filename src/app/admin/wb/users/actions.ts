@@ -39,7 +39,7 @@ export async function adjustWbAction(formData: FormData): Promise<void> {
     kind: "adjustment",
     memo:
       memo ??
-      `Admin ${op === "add" ? "credit" : "debit"} ${Math.abs(signedCents) / 100} WB`,
+      `Admin ${op === "add" ? "credit" : "debit"} $${Math.abs(signedCents) / 100}`,
   });
 
   revalidatePath(`/admin/wb/users`);

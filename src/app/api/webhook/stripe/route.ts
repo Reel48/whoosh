@@ -49,7 +49,7 @@ export async function POST(req: Request) {
               kind: "purchase",
               refKind: "stripe_event",
               refId: event.id,
-              memo: `Bought ${Math.round(wbCents / 100).toLocaleString("en-US")} WB`,
+              memo: `Bought $${Math.round(wbCents / 100).toLocaleString("en-US")} of Whoosh Bucks`,
               metadata: { session_id: session.id },
             });
           } else {

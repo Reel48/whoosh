@@ -67,7 +67,7 @@ export async function createWbPurchaseCheckoutUrl({
           unit_amount: amountCents,
           product_data: {
             name: "Whoosh Bucks",
-            description: `${wbWhole.toLocaleString("en-US")} WB credited to @${discordUsername}`,
+            description: `$${wbWhole.toLocaleString("en-US")} of Whoosh Bucks credited to @${discordUsername}`,
           },
         },
       },

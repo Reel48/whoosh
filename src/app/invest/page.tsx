@@ -9,16 +9,19 @@ import { Nav } from "@/components/Nav";
 import { StockHeader } from "@/components/wb/StockHeader";
 import { StockPriceChart } from "@/components/wb/StockPriceChart";
 import { StockStats } from "@/components/wb/StockStats";
-import { formatWb, formatUsd } from "@/lib/wb/format";
+import { formatWb, formatUsdAsWb } from "@/lib/wb/format";
 import { WB_PER_USD } from "@/lib/wb/purchase";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Invest — Whoosh" };
 
-// WB amounts (cash, positions, equity, P/L) get the WB suffix; real-USD
-// market data (stock prices, day changes) keeps the dollar sign.
+// WB amounts (cash, positions, equity, P/L) display with $.
+// Real-USD market data (stock prices, day changes) is scaled by
+// WB_PER_USD before rendering so the displayed "$X" amount matches the
+// WB cost the user actually transacts in — keeping the chart, trade
+// panel, and balance all in one coherent unit.
 const fmtWb = formatWb;
-const fmtUsd = formatUsd;
+const fmtUsdAsWb = formatUsdAsWb;
 
 function fmtShares(n: number): string {
   return n.toLocaleString("en-US", { maximumFractionDigits: 6 });
@@ -189,7 +192,7 @@ export default async function InvestPage({
                         }`}
                       >
                         {rangeChangeCents >= 0 ? "+" : ""}
-                        {fmtUsd(rangeChangeCents, { signed: true })} ({fmtPct(rangeChangePct)})
+                        {fmtUsdAsWb(rangeChangeCents, { signed: true })} ({fmtPct(rangeChangePct)})
                       </span>{" "}
                       <span className="text-ink/60">
                         over the last {RANGE_OPTIONS.find((r) => r.key === range)?.label}
@@ -222,7 +225,7 @@ export default async function InvestPage({
                 <StockPriceChart
                   candles={snapshot.candles}
                   refLineCents={refLineCents}
-                  refLineLabel={refLineCents ? `Your cost ${fmtUsd(refLineCents)}` : undefined}
+                  refLineLabel={refLineCents ? `Your cost ${fmtUsdAsWb(refLineCents)}` : undefined}
                 />
               </div>
             </div>
@@ -234,14 +237,9 @@ export default async function InvestPage({
                 <div className="text-sm font-medium text-ink/70">
                   Filling at{" "}
                   <span className="font-heading font-black">
-                    {livePriceCents != null ? fmtUsd(livePriceCents) : "—"}
-                  </span>{" "}
-                  <span className="text-ink/60">
-                    ({livePriceCents != null
-                      ? fmtWb(livePriceCents * WB_PER_USD, { decimals: 0 })
-                      : "—"}
-                    /share)
+                    {livePriceCents != null ? fmtUsdAsWb(livePriceCents) : "—"}
                   </span>
+                  <span className="text-ink/60">/share</span>
                 </div>
               </div>
               {existingPosition && (
@@ -375,7 +373,7 @@ export default async function InvestPage({
                     {o.side === "buy" ? "Bought" : "Sold"} {fmtShares(o.shares)} {o.symbol}
                   </div>
                   <div className="text-xs text-ink/60">
-                    @ {fmtUsd(o.priceCents)}/share · {new Date(o.createdAt).toLocaleString("en-US")}
+                    @ {fmtUsdAsWb(o.priceCents)}/share · {new Date(o.createdAt).toLocaleString("en-US")}
                   </div>
                 </div>
                 <div

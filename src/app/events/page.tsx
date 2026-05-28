@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Events — Whoosh" };
 
 function formatWb(cents: number): string {
-  return `${(cents / 100).toLocaleString("en-US", {
+  return `$${(cents / 100).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })} WB`;
+  })}`;
 }
 
 export default async function EventsPage({

@@ -1,14 +1,17 @@
 import type { StockSnapshot } from "@/lib/wb/history";
 import type { CompanyProfile } from "@/lib/wb/profile";
+import { WB_PER_USD } from "@/lib/wb/purchase";
 
 type Props = {
   snapshot: StockSnapshot;
   profile: CompanyProfile | null;
 };
 
+/** Real-USD stock data → WB-dollar display. See StockHeader for rationale. */
 function fmtMoney(cents: number | null): string {
   if (cents == null) return "—";
-  return `$${(cents / 100).toLocaleString("en-US", {
+  const wbCents = cents * WB_PER_USD;
+  return `$${(wbCents / 100).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
@@ -16,10 +19,11 @@ function fmtMoney(cents: number | null): string {
 
 function fmtBigDollars(dollars: number | null): string {
   if (dollars == null || !Number.isFinite(dollars)) return "—";
-  if (dollars >= 1e12) return `$${(dollars / 1e12).toFixed(2)}T`;
-  if (dollars >= 1e9) return `$${(dollars / 1e9).toFixed(2)}B`;
-  if (dollars >= 1e6) return `$${(dollars / 1e6).toFixed(2)}M`;
-  return `$${dollars.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  const wbDollars = dollars * WB_PER_USD;
+  if (wbDollars >= 1e12) return `$${(wbDollars / 1e12).toFixed(2)}T`;
+  if (wbDollars >= 1e9) return `$${(wbDollars / 1e9).toFixed(2)}B`;
+  if (wbDollars >= 1e6) return `$${(wbDollars / 1e6).toFixed(2)}M`;
+  return `$${wbDollars.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
 function fmtBigNumber(n: number | null): string {

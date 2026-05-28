@@ -13,10 +13,10 @@ export const dynamic = "force-dynamic";
 
 function formatMoney(cents: number): string {
   const sign = cents < 0 ? "-" : "";
-  return `${sign}${(Math.abs(cents) / 100).toLocaleString("en-US", {
+  return `${sign}$${(Math.abs(cents) / 100).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })} WB`;
+  })}`;
 }
 
 function formatDateTime(iso: string): string {
@@ -277,11 +277,11 @@ export default async function AdminWbPage() {
                 </div>
                 <div className="text-right">
                   <div className="font-heading font-bold tabular-nums">
-                    {(d.wbCentsPerShare / 100).toLocaleString("en-US", {
+                    ${(d.wbCentsPerShare / 100).toLocaleString("en-US", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 4,
-                    })}{" "}
-                    WB/share
+                    })}
+                    /share
                   </div>
                   <div className="text-xs text-ink/60">{d.source}</div>
                 </div>

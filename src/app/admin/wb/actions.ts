@@ -85,7 +85,7 @@ export async function adjustmentAction(formData: FormData): Promise<void> {
     discordUsername: username || userId,
     amountCents,
     kind: "adjustment",
-    memo: memo ?? `Admin adjustment ${amountCents >= 0 ? "+" : ""}${amountCents / 100} WB`,
+    memo: memo ?? `Admin adjustment ${amountCents >= 0 ? "+" : "-"}$${Math.abs(amountCents) / 100}`,
   });
   revalidatePath("/admin/wb");
 }
