@@ -309,8 +309,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* FAQ — PLUM block */}
-      <section id="faq" className="border-b-2 border-ink bg-plum">
+      {/* FAQ — PIGMENT GREEN block */}
+      <section id="faq" className="border-b-2 border-ink bg-pigment-green">
         <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-24 lg:grid-cols-[1fr_2fr]">
           <div>
             <SectionLabel>FAQ</SectionLabel>
