@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { ensureWallet, getBalance } from "@/lib/wb/ledger";
@@ -129,7 +130,7 @@ function OutcomeForm({ event, outcome }: { event: BetEvent; outcome: BetOutcome 
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ wager?: string; error?: string }>;
+  searchParams: Promise<{ wager?: string; error?: string; sport?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/api/auth/discord?next=/events");
@@ -162,6 +163,26 @@ export default async function EventsPage({
     }
     section.games.push(g);
   }
+
+  // Sport filter (URL-driven so it stays a server component).
+  const selectedSport = sp.sport ?? "all";
+  const filterOptions: { key: string; label: string }[] = [
+    { key: "all", label: "All" },
+    ...sports.map((s) => ({
+      key: s.sportKey ?? "sports",
+      label: sportTitle(s.sportKey),
+    })),
+  ];
+  if (manual.length > 0) filterOptions.push({ key: "more", label: "More" });
+
+  const visibleSports =
+    selectedSport === "all"
+      ? sports
+      : selectedSport === "more"
+        ? []
+        : sports.filter((s) => (s.sportKey ?? "sports") === selectedSport);
+  const showManual =
+    manual.length > 0 && (selectedSport === "all" || selectedSport === "more");
 
   return (
     <>
@@ -200,7 +221,29 @@ export default async function EventsPage({
           </div>
         ) : (
           <div className="mt-8 space-y-12">
-            {sports.map((section) => (
+            {filterOptions.length > 2 && (
+              <div className="flex flex-wrap gap-2">
+                {filterOptions.map((opt) => {
+                  const active = selectedSport === opt.key;
+                  const href =
+                    opt.key === "all" ? "/events" : `/events?sport=${opt.key}`;
+                  return (
+                    <Link
+                      key={opt.key}
+                      href={href}
+                      className={`tap-press rounded-full border-2 border-ink px-4 py-1.5 text-sm font-bold transition-colors ${
+                        active
+                          ? "bg-ink text-white-smoke"
+                          : "bg-white-smoke text-ink hover:bg-ink hover:text-white-smoke"
+                      }`}
+                    >
+                      {opt.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+            {visibleSports.map((section) => (
               <section key={section.sportKey ?? "sports"}>
                 <h2 className="font-heading text-xl font-black tracking-tight text-ink">
                   {sportTitle(section.sportKey)}
@@ -256,7 +299,7 @@ export default async function EventsPage({
               </section>
             ))}
 
-            {manual.length > 0 && (
+            {showManual && (
               <section>
                 {sports.length > 0 && (
                   <h2 className="font-heading text-xl font-black tracking-tight text-ink">
