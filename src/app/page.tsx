@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { createCheckoutSession } from "./actions";
 
 const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
 
@@ -37,9 +38,9 @@ const included = [
 ];
 
 const billing = [
-  { name: "Monthly", price: "$4", per: "/month", note: "Billed every month", highlight: false },
-  { name: "6 Months", price: "$20", per: "/6 months", note: "$3.33/mo · save 17%", highlight: false },
-  { name: "Annual", price: "$36", per: "/year", note: "$3/mo · save 25%", highlight: true, badge: "Best value" },
+  { name: "Monthly", interval: "monthly", price: "$4", per: "/month", note: "Billed every month", highlight: false },
+  { name: "6 Months", interval: "six_months", price: "$20", per: "/6 months", note: "$3.33/mo · save 17%", highlight: false },
+  { name: "Annual", interval: "annual", price: "$36", per: "/year", note: "$3/mo · save 25%", highlight: true, badge: "Best value" },
 ];
 
 const faqs = [
@@ -217,16 +218,19 @@ export default function Home() {
                     </div>
                     <p className="mt-1 text-sm text-smooth-black/50">{b.note}</p>
                   </div>
-                  <a
-                    href="#"
-                    className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-medium transition-colors ${
-                      b.highlight
-                        ? "bg-real-blue text-clear-white hover:bg-smudged-blue"
-                        : "border border-smooth-black/20 hover:border-smooth-black/40"
-                    }`}
-                  >
-                    Subscribe
-                  </a>
+                  <form action={createCheckoutSession}>
+                    <input type="hidden" name="interval" value={b.interval} />
+                    <button
+                      type="submit"
+                      className={`shrink-0 cursor-pointer rounded-full px-5 py-2.5 text-sm font-medium transition-colors ${
+                        b.highlight
+                          ? "bg-real-blue text-clear-white hover:bg-smudged-blue"
+                          : "border border-smooth-black/20 hover:border-smooth-black/40"
+                      }`}
+                    >
+                      Subscribe
+                    </button>
+                  </form>
                 </div>
               ))}
               <p className="pt-2 text-sm text-smooth-black/50">
