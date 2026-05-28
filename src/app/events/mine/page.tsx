@@ -5,6 +5,7 @@ import { ensureWallet } from "@/lib/wb/ledger";
 import { listUserWagers, type UserWager, type WagerStatus } from "@/lib/wb/bets";
 import { MARKET_LABELS } from "@/lib/wb/odds";
 import { Nav } from "@/components/Nav";
+import { LocalTime } from "@/components/LocalTime";
 import { Disclaimer } from "@/components/Disclaimer";
 import { formatWb } from "@/lib/wb/format";
 
@@ -18,16 +19,6 @@ const FILTERS: { key: string; label: string; match: (s: WagerStatus) => boolean 
   { key: "lost", label: "Lost", match: (s) => s === "lost" },
   { key: "refunded", label: "Pushes", match: (s) => s === "refunded" },
 ];
-
-function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
 
 export default async function MyBetsPage({
   searchParams,
@@ -152,7 +143,9 @@ function WagerRow({ wager: w }: { wager: UserWager }) {
               ×{w.oddsFrozen.toFixed(2)}
             </span>
           </p>
-          <p className="mt-1 text-xs text-ink/55">{fmtDate(w.createdAt)}</p>
+          <p className="mt-1 text-xs text-ink/55">
+            <LocalTime iso={w.createdAt} options={{ year: "numeric" }} />
+          </p>
         </div>
         <StatusBadge status={w.status} />
       </div>

@@ -11,6 +11,7 @@ import {
 } from "@/lib/wb/bets";
 import { MARKET_LABELS } from "@/lib/wb/odds";
 import { Nav } from "@/components/Nav";
+import { LocalTime } from "@/components/LocalTime";
 import { Disclaimer } from "@/components/Disclaimer";
 
 export const dynamic = "force-dynamic";
@@ -268,12 +269,7 @@ export default async function EventsPage({
                         </h3>
                         {game.commenceTime && (
                           <span className="text-xs font-bold uppercase tracking-wider text-ink/60">
-                            {new Date(game.commenceTime).toLocaleString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              hour: "numeric",
-                              minute: "2-digit",
-                            })}
+                            <LocalTime iso={game.commenceTime} />
                           </span>
                         )}
                       </div>
@@ -339,7 +335,7 @@ export default async function EventsPage({
                       )}
                       {e.closesAt && (
                         <p className="mt-2 text-xs font-bold uppercase tracking-wider text-ink/60">
-                          Closes {new Date(e.closesAt).toLocaleString("en-US")}
+                          <LocalTime iso={e.closesAt} prefix="Closes " />
                         </p>
                       )}
                       <ul className="mt-5 space-y-3">
