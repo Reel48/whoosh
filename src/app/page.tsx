@@ -27,10 +27,17 @@ const channelGroups = [
 
 const premiumChannels = ["Premium Wheel Spin", "Sports News", "Sports Betting", "Business", "Politics"];
 
-const tiers = [
-  { name: "Splash", price: "$5", blurb: "Dip your toes in.", perks: ["Premium channels", "Member events", "Whoosh role"], highlight: false },
-  { name: "Current", price: "$12", blurb: "Ride with the core crew.", perks: ["Everything in Splash", "Priority support", "Drops & giveaways", "Voice lounges"], highlight: true },
-  { name: "Riptide", price: "$25", blurb: "All in. The full Whoosh.", perks: ["Everything in Current", "1:1 channel access", "Early features", "Founding badge"], highlight: false },
+const included = [
+  "Every Premium channel — Wheel Spin, Sports News, Sports Betting, Business & Politics",
+  "Full run of the chat — all sports, media & misc channels",
+  "Members-only events, drops & giveaways",
+  "The Whoosh Premium role",
+];
+
+const billing = [
+  { name: "Monthly", price: "$4", per: "/month", note: "Billed every month", highlight: false },
+  { name: "6 Months", price: "$20", per: "/6 months", note: "$3.33/mo · save 17%", highlight: false },
+  { name: "Annual", price: "$36", per: "/year", note: "$3/mo · save 25%", highlight: true, badge: "Best value" },
 ];
 
 const faqs = [
@@ -163,52 +170,68 @@ export default function Home() {
       {/* Plans */}
       <section id="plans" className="border-t border-smooth-black/10">
         <div className="mx-auto w-full max-w-6xl px-6 py-24">
-          <div className="max-w-2xl">
-            <SectionLabel>Membership</SectionLabel>
-            <h2 className="mt-4 font-heading text-4xl font-bold tracking-tight sm:text-5xl">Pick your tier.</h2>
-            <p className="mt-4 text-lg text-smooth-black/60">
-              Subscribe through Whoosh and your premium Discord access is granted automatically.
-            </p>
-          </div>
+          <div className="grid gap-12 lg:grid-cols-2">
+            {/* What's included */}
+            <div>
+              <SectionLabel>Membership</SectionLabel>
+              <h2 className="mt-4 font-heading text-4xl font-bold tracking-tight sm:text-5xl">
+                One membership.<br />Everything unlocked.
+              </h2>
+              <p className="mt-4 max-w-md text-lg text-smooth-black/60">
+                Whoosh Premium opens every members-only channel and perk. Pick
+                the billing that suits you — cancel anytime.
+              </p>
+              <ul className="mt-8 space-y-4">
+                {included.map((item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <Bolt className="mt-1 h-4 w-4 shrink-0 text-real-blue" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {tiers.map((tier) => (
-              <div
-                key={tier.name}
-                className={`flex flex-col rounded-3xl border p-8 ${
-                  tier.highlight
-                    ? "border-real-blue bg-real-blue text-clear-white"
-                    : "border-smooth-black/15 bg-clear-white text-smooth-black"
-                }`}
-              >
-                <h3 className="font-heading text-2xl font-semibold">{tier.name}</h3>
-                <p className={`mt-1 text-sm ${tier.highlight ? "text-city-sky" : "text-smooth-black/60"}`}>{tier.blurb}</p>
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span className="font-heading text-5xl font-bold">{tier.price}</span>
-                  <span className={tier.highlight ? "text-city-sky" : "text-smooth-black/60"}>/mo</span>
-                </div>
-                <ul className="mt-6 flex-1 space-y-3 text-sm">
-                  {tier.perks.map((perk) => (
-                    <li key={perk} className="flex items-start gap-2.5">
-                      <Bolt className={`mt-0.5 h-4 w-4 shrink-0 ${tier.highlight ? "text-matte-orange" : "text-real-blue"}`} />
-                      <span>{perk}</span>
-                    </li>
-                  ))}
-                </ul>
-                <a
-                  href="#"
-                  className={`mt-8 inline-flex items-center justify-center rounded-full px-6 py-3 text-base font-medium transition-colors ${
-                    tier.highlight
-                      ? "bg-clear-white text-real-blue hover:bg-city-sky"
-                      : "bg-real-blue text-clear-white hover:bg-smudged-blue"
+            {/* Billing options */}
+            <div className="space-y-4">
+              {billing.map((b) => (
+                <div
+                  key={b.name}
+                  className={`flex items-center justify-between gap-4 rounded-2xl border p-6 ${
+                    b.highlight ? "border-real-blue bg-real-blue/5" : "border-smooth-black/15"
                   }`}
                 >
-                  Subscribe
-                </a>
-              </div>
-            ))}
+                  <div>
+                    <div className="flex items-center gap-2.5">
+                      <h3 className="font-heading text-lg font-semibold">{b.name}</h3>
+                      {b.badge && (
+                        <span className="rounded-full bg-real-blue px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-clear-white">
+                          {b.badge}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-2 flex items-baseline gap-1">
+                      <span className="font-heading text-3xl font-bold">{b.price}</span>
+                      <span className="text-smooth-black/50">{b.per}</span>
+                    </div>
+                    <p className="mt-1 text-sm text-smooth-black/50">{b.note}</p>
+                  </div>
+                  <a
+                    href="#"
+                    className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-medium transition-colors ${
+                      b.highlight
+                        ? "bg-real-blue text-clear-white hover:bg-smudged-blue"
+                        : "border border-smooth-black/20 hover:border-smooth-black/40"
+                    }`}
+                  >
+                    Subscribe
+                  </a>
+                </div>
+              ))}
+              <p className="pt-2 text-sm text-smooth-black/50">
+                Payments coming soon via Stripe. Cancel anytime.
+              </p>
+            </div>
           </div>
-          <p className="mt-8 text-sm text-smooth-black/60">Payments coming soon via Stripe.</p>
         </div>
       </section>
 
