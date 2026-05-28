@@ -87,8 +87,10 @@ export async function listOpenEvents(): Promise<BetEvent[]> {
     .from("bet_event")
     .select("*")
     .in("status", ["open", "locked"])
-    .order("created_at", { ascending: false })
-    .limit(50);
+    // Soonest games first; high limit so a heavy slate in one sport (e.g. a full
+    // MLB day = ~50 rows across markets) can't crowd other sports out of the list.
+    .order("commence_time", { ascending: true, nullsFirst: false })
+    .limit(500);
   if (error) throw new Error(`event query failed: ${error.message}`);
   const events = (data ?? []) as Record<string, unknown>[];
   const outcomes = await loadOutcomes(events.map((e) => Number(e.id)));
