@@ -1,5 +1,6 @@
 import { listAllEvents } from "@/lib/wb/bets";
 import { MARKET_LABELS, getEnabledSports } from "@/lib/wb/odds";
+import { LocalTime } from "@/components/LocalTime";
 import {
   createEventAction,
   lockEventAction,
@@ -13,16 +14,6 @@ import {
 export const dynamic = "force-dynamic";
 
 const OUTCOME_SLOTS = 4;
-
-function formatDate(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
 
 const SPORT_LABELS: Record<string, string> = {
   americanfootball_nfl: "NFL",
@@ -204,7 +195,7 @@ export default async function AdminEventsPage() {
             className="rounded-2xl border-2 border-ink bg-white-smoke px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink"
           />
           <label className="text-xs font-bold uppercase tracking-wider text-ink/60">
-            Betting closes at (UTC)
+            Betting closes at (your time zone)
           </label>
           <input
             type="datetime-local"
@@ -266,8 +257,13 @@ export default async function AdminEventsPage() {
                     )}
                   </div>
                   <p className="text-xs text-ink/60">
-                    Created {formatDate(e.createdAt)}
-                    {e.closesAt ? ` · closes ${formatDate(e.closesAt)}` : ""}
+                    Created <LocalTime iso={e.createdAt} />
+                    {e.closesAt && (
+                      <>
+                        {" · closes "}
+                        <LocalTime iso={e.closesAt} />
+                      </>
+                    )}
                   </p>
                 </div>
                 <span
