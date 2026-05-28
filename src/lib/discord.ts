@@ -39,6 +39,40 @@ export async function isGuildMember(userId: string): Promise<boolean> {
   return (await fetchGuildMember(userId)) !== null;
 }
 
+/**
+ * Fetch the Whoosh guild's public widget (no auth required — works as long
+ * as "Server Widget" is enabled in Discord server settings). Returns the
+ * online presence count + the partial member list the widget exposes.
+ * Cached per render via React's `cache()`.
+ */
+export const fetchGuildWidget = cache(async function (): Promise<{
+  name?: string;
+  presence_count?: number;
+} | null> {
+  const guild = process.env.DISCORD_GUILD_ID;
+  if (!guild) return null;
+  const r = await fetch(`${DISCORD_API}/guilds/${guild}/widget.json`);
+  if (!r.ok) {
+    console.warn(`Discord widget fetch failed: ${r.status}`);
+    return null;
+  }
+  return r.json();
+});
+
+/**
+ * Approximate number of Whoosh members currently online (from the public
+ * server widget). Returns null on failure.
+ */
+export async function getGuildOnlineCount(): Promise<number | null> {
+  try {
+    const w = await fetchGuildWidget();
+    return w?.presence_count ?? null;
+  } catch (e) {
+    console.warn("getGuildOnlineCount failed:", e);
+    return null;
+  }
+}
+
 /** True iff the user is a member of the Whoosh guild AND has the Premium role. */
 export async function hasPremiumRole(userId: string): Promise<boolean> {
   const role = process.env.DISCORD_PREMIUM_ROLE_ID;

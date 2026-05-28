@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { createCheckoutSession } from "./actions";
 import { getSession } from "@/lib/session";
-import { isGuildMember } from "@/lib/discord";
+import { isGuildMember, getGuildOnlineCount } from "@/lib/discord";
 import { Nav } from "@/components/Nav";
 import { Bolt } from "@/components/Bolt";
 
@@ -32,9 +32,9 @@ const included = [
 ];
 
 const billing = [
-  { name: "Monthly", interval: "monthly", price: "$4", per: "/month", note: "Billed every month", bg: "bg-cream", highlight: false },
-  { name: "6 Months", interval: "six_months", price: "$20", per: "/6 months", note: "$3.33/mo · save 17%", bg: "bg-lavender", highlight: false },
-  { name: "Annual", interval: "annual", price: "$36", per: "/year", note: "$3/mo · save 25%", bg: "bg-mango", highlight: true, badge: "Best value" },
+  { name: "Monthly", interval: "monthly", price: "$4", per: "/month", note: "Billed every month", highlight: false },
+  { name: "6 Months", interval: "six_months", price: "$20", per: "/6 months", note: "$3.33/mo · save 17%", highlight: false },
+  { name: "Annual", interval: "annual", price: "$36", per: "/year", note: "$3/mo · save 25%", highlight: true, badge: "Best value" },
 ];
 
 const faqs = [
@@ -52,9 +52,10 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 
 export default async function Home() {
   const session = await getSession();
-  const inServer = session
-    ? await isGuildMember(session.id).catch(() => false)
-    : false;
+  const [inServer, onlineCount] = await Promise.all([
+    session ? isGuildMember(session.id).catch(() => false) : Promise.resolve(false),
+    getGuildOnlineCount(),
+  ]);
   const discordLabel = inServer ? "Open Discord" : "Join the Discord";
 
   return (
@@ -170,20 +171,26 @@ export default async function Home() {
             &ldquo;The only group chat you&rsquo;ll ever need.&rdquo;
           </p>
           <p className="mt-6 text-sm font-bold uppercase tracking-[0.3em] text-ink">Whoosh</p>
+          {onlineCount != null && onlineCount > 0 && (
+            <p className="mt-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-ink/70">
+              <span className="inline-flex h-2 w-2 rounded-full border-2 border-ink bg-ink" />
+              {onlineCount.toLocaleString()} members online now
+            </p>
+          )}
         </div>
       </section>
 
-      {/* Plans — WHITE SMOKE canvas with colored billing cards */}
-      <section id="plans" className="border-b-2 border-ink bg-white-smoke">
+      {/* Plans — MANGO block. One section color + ink, white-smoke cards. */}
+      <section id="plans" className="border-b-2 border-ink bg-mango">
         <div className="mx-auto w-full max-w-6xl px-6 py-24">
           <div className="grid gap-12 lg:grid-cols-2">
             {/* What's included */}
-            <div>
+            <div className="text-ink">
               <SectionLabel>Membership</SectionLabel>
               <h2 className="mt-4 font-heading text-4xl font-black tracking-tight sm:text-5xl">
                 One membership.<br />Everything unlocked.
               </h2>
-              <p className="mt-4 max-w-md text-lg font-medium text-ink/70">
+              <p className="mt-4 max-w-md text-lg font-medium text-ink/80">
                 Whoosh Premium opens every members-only channel and perk. Pick
                 the billing that suits you — cancel anytime.
               </p>
@@ -199,10 +206,10 @@ export default async function Home() {
 
             {/* Billing options */}
             <div className="space-y-4">
-              {/* Discord connection banner */}
+              {/* Discord connection banner — ink CTA when signed out, neutral confirmation when signed in */}
               {session ? (
-                <div className="flex items-center gap-3 rounded-2xl border-2 border-ink bg-pigment-green px-4 py-3 text-sm text-ink">
-                  <span className="inline-flex h-2.5 w-2.5 shrink-0 rounded-full border-2 border-ink bg-white-smoke" />
+                <div className="flex items-center gap-3 rounded-2xl border-2 border-ink bg-white-smoke px-4 py-3 text-sm text-ink">
+                  <span className="inline-flex h-2.5 w-2.5 shrink-0 rounded-full border-2 border-ink bg-ink" />
                   <span className="flex-1 font-medium">
                     Connected as{" "}
                     <strong className="font-heading font-bold">@{session.username}</strong>
@@ -219,21 +226,21 @@ export default async function Home() {
               ) : (
                 <a
                   href="/api/auth/discord"
-                  className="flex items-center justify-between gap-3 rounded-2xl border-2 border-ink bg-lavender px-4 py-3 text-sm text-ink transition-opacity hover:opacity-90"
+                  className="flex items-center justify-between gap-3 rounded-2xl border-2 border-ink bg-ink px-4 py-3 text-sm text-white-smoke transition-opacity hover:opacity-90"
                 >
                   <span className="font-medium">
                     <strong className="font-heading font-bold">Connect your Discord</strong>{" "}
                     so we can grant your Premium role on payment.
                   </span>
-                  <span className="shrink-0 rounded-full border-2 border-ink bg-ink px-3 py-1 text-xs font-bold text-white-smoke">
+                  <span className="shrink-0 rounded-full border-2 border-ink bg-mango px-3 py-1 text-xs font-bold text-ink">
                     Connect →
                   </span>
                 </a>
               )}
               {inServer ? (
                 <p className="text-xs font-medium text-ink/70">
-                  <span className="font-bold text-pigment-green">✓</span> You&rsquo;re in
-                  the Whoosh server — your Premium role will land as soon as
+                  <span className="font-black">✓</span> You&rsquo;re in the
+                  Whoosh server — your Premium role will land as soon as
                   payment clears.
                 </p>
               ) : (
@@ -243,7 +250,7 @@ export default async function Home() {
                     href={DISCORD_INVITE}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-bold text-imperial-red underline-offset-2 hover:underline"
+                    className="font-bold text-ink underline underline-offset-2"
                   >
                     joined the Whoosh server
                   </a>{" "}
@@ -252,38 +259,49 @@ export default async function Home() {
                 </p>
               )}
 
-              {billing.map((b) => (
-                <div
-                  key={b.name}
-                  className={`flex items-center justify-between gap-4 rounded-2xl border-2 border-ink p-6 text-ink ${b.bg}`}
-                >
-                  <div>
-                    <div className="flex items-center gap-2.5">
-                      <h3 className="font-heading text-lg font-bold">{b.name}</h3>
-                      {b.badge && (
-                        <span className="rounded-full border-2 border-ink bg-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-mango">
-                          {b.badge}
+              {billing.map((b) => {
+                const isHi = b.highlight;
+                return (
+                  <div
+                    key={b.name}
+                    className={`flex items-center justify-between gap-4 rounded-2xl border-2 border-ink p-6 ${
+                      isHi ? "bg-ink text-white-smoke" : "bg-white-smoke text-ink"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2.5">
+                        <h3 className="font-heading text-lg font-bold">{b.name}</h3>
+                        {b.badge && (
+                          <span className="rounded-full border-2 border-ink bg-mango px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-ink">
+                            {b.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 flex items-baseline gap-1">
+                        <span className="font-heading text-3xl font-black">{b.price}</span>
+                        <span className={`font-medium ${isHi ? "text-white-smoke/70" : "text-ink/70"}`}>
+                          {b.per}
                         </span>
-                      )}
+                      </div>
+                      <p className={`mt-1 text-sm font-medium ${isHi ? "text-white-smoke/70" : "text-ink/70"}`}>
+                        {b.note}
+                      </p>
                     </div>
-                    <div className="mt-2 flex items-baseline gap-1">
-                      <span className="font-heading text-3xl font-black">{b.price}</span>
-                      <span className="font-medium text-ink/70">{b.per}</span>
-                    </div>
-                    <p className="mt-1 text-sm font-medium text-ink/70">{b.note}</p>
+                    <form action={createCheckoutSession}>
+                      <input type="hidden" name="interval" value={b.interval} />
+                      <button
+                        type="submit"
+                        className={`shrink-0 cursor-pointer rounded-full border-2 border-ink px-5 py-2.5 text-sm font-bold transition-opacity hover:opacity-90 ${
+                          isHi ? "bg-mango text-ink" : "bg-ink text-white-smoke"
+                        }`}
+                      >
+                        Subscribe
+                      </button>
+                    </form>
                   </div>
-                  <form action={createCheckoutSession}>
-                    <input type="hidden" name="interval" value={b.interval} />
-                    <button
-                      type="submit"
-                      className="shrink-0 cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2.5 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
-                    >
-                      Subscribe
-                    </button>
-                  </form>
-                </div>
-              ))}
-              <p className="pt-2 text-sm font-medium text-ink/60">
+                );
+              })}
+              <p className="pt-2 text-sm font-medium text-ink/70">
                 Secure payments via Stripe. Cancel anytime.
               </p>
             </div>
