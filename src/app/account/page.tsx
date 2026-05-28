@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { hasPremiumRole } from "@/lib/discord";
+import { hasPremiumRole, addPremiumRole } from "@/lib/discord";
 import { findSubscriptionForDiscordUser } from "@/lib/stripe";
 import { Nav } from "@/components/Nav";
 import { Avatar } from "@/components/Avatar";
@@ -45,7 +45,7 @@ export default async function AccountPage() {
     redirect("/api/auth/discord?next=/account");
   }
 
-  const [roleGranted, sub] = await Promise.all([
+  const [initialRoleGranted, sub] = await Promise.all([
     hasPremiumRole(session.id).catch((e) => {
       console.error("Premium role lookup failed:", e);
       return false;
@@ -58,6 +58,44 @@ export default async function AccountPage() {
 
   const isActive = sub?.status === "active" || sub?.status === "trialing";
   const renewalDate = sub ? formatDate(sub.currentPeriodEnd) : null;
+
+  // Self-healing: if the user has an active Stripe subscription but the
+  // Discord role isn't granted (webhook missed, user just joined the server,
+  // bot was down at the time, etc.), attempt to grant it on this page visit.
+  // The Discord API call is idempotent — granting an already-granted role is
+  // a 204 no-op.
+  let roleGranted = initialRoleGranted;
+  if (isActive && !initialRoleGranted) {
+    try {
+      const r = await addPremiumRole(session.id);
+      if (r.ok) {
+        roleGranted = true;
+        // Note: we deliberately don't invalidate the unstable_cache here.
+        // The local roleGranted=true reflects reality in this render; the
+        // cache will catch up within ~5 minutes, and the self-heal is
+        // idempotent so any redundant call before then is harmless.
+        console.log(
+          JSON.stringify({
+            at: "account.self_heal.granted",
+            discord_user_id: session.id,
+            subscription_id: sub?.id,
+          }),
+        );
+      } else {
+        console.warn(
+          JSON.stringify({
+            at: "account.self_heal.failed",
+            discord_user_id: session.id,
+            subscription_id: sub?.id,
+            status: r.status,
+            body: r.body,
+          }),
+        );
+      }
+    } catch (e) {
+      console.error("Self-heal exception:", e);
+    }
+  }
 
   return (
     <>

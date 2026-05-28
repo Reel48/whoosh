@@ -1,6 +1,13 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 
 const DISCORD_API = "https://discord.com/api/v10";
+
+/** Tag used by unstable_cache for the per-user guild-member cache; can be
+ *  invalidated with `revalidateTag(GUILD_MEMBER_CACHE_TAG)` after a role
+ *  change so the next read pulls fresh data. */
+export const GUILD_MEMBER_CACHE_TAG = "discord:guild-member";
+export const GUILD_WIDGET_CACHE_TAG = "discord:guild-widget";
 
 export function authorizeUrl(redirectUri: string, state: string): string {
   const clientId = process.env.DISCORD_CLIENT_ID;
@@ -16,11 +23,10 @@ export function authorizeUrl(redirectUri: string, state: string): string {
 }
 
 /**
- * Fetch a member's data in the Whoosh guild (or null if they aren't a member).
- * Wrapped in React's request-scoped `cache()` so multiple call sites within a
- * single server render share one Discord API call.
+ * Bare fetcher — hits Discord every time. Never call this directly; go
+ * through `fetchGuildMember` so caching applies.
  */
-export const fetchGuildMember = cache(async function (
+async function _fetchGuildMemberFresh(
   userId: string,
 ): Promise<{ roles: string[]; nick?: string | null } | null> {
   const guild = process.env.DISCORD_GUILD_ID;
@@ -32,7 +38,22 @@ export const fetchGuildMember = cache(async function (
   if (r.status === 404) return null;
   if (!r.ok) throw new Error(`Discord /guilds/.../members failed: ${r.status} ${await r.text()}`);
   return (await r.json()) as { roles: string[]; nick?: string | null };
-});
+}
+
+/**
+ * Fetch a guild member, with two layers of caching:
+ *   1. `unstable_cache` — per-userId, 5-minute cross-request cache, tagged
+ *      so a role change can invalidate it.
+ *   2. React `cache()` — per-render dedup so multiple call sites within one
+ *      render share a single result.
+ */
+const _fetchGuildMemberCached = unstable_cache(
+  _fetchGuildMemberFresh,
+  ["discord:guild-member"],
+  { revalidate: 300, tags: [GUILD_MEMBER_CACHE_TAG] },
+);
+
+export const fetchGuildMember = cache(_fetchGuildMemberCached);
 
 /** True iff the user is currently a member of the Whoosh guild. */
 export async function isGuildMember(userId: string): Promise<boolean> {
@@ -40,12 +61,9 @@ export async function isGuildMember(userId: string): Promise<boolean> {
 }
 
 /**
- * Fetch the Whoosh guild's public widget (no auth required — works as long
- * as "Server Widget" is enabled in Discord server settings). Returns the
- * online presence count + the partial member list the widget exposes.
- * Cached per render via React's `cache()`.
+ * Bare widget fetcher — hits Discord every time.
  */
-export const fetchGuildWidget = cache(async function (): Promise<{
+async function _fetchGuildWidgetFresh(): Promise<{
   name?: string;
   presence_count?: number;
 } | null> {
@@ -57,7 +75,20 @@ export const fetchGuildWidget = cache(async function (): Promise<{
     return null;
   }
   return r.json();
-});
+}
+
+/**
+ * Public widget (no auth needed). Cached cross-request for 60s — the
+ * online-count display doesn't need to be real-time, and we don't want a
+ * Discord call on every page render.
+ */
+const _fetchGuildWidgetCached = unstable_cache(
+  _fetchGuildWidgetFresh,
+  ["discord:guild-widget"],
+  { revalidate: 60, tags: [GUILD_WIDGET_CACHE_TAG] },
+);
+
+export const fetchGuildWidget = cache(_fetchGuildWidgetCached);
 
 /**
  * Approximate number of Whoosh members currently online (from the public
