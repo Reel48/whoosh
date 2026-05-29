@@ -4,8 +4,7 @@ import { getSession } from "@/lib/session";
 import { findSubscriptionForDiscordUser } from "@/lib/stripe";
 import { Disclaimer } from "@/components/Disclaimer";
 import { Avatar } from "@/components/Avatar";
-import { Bolt } from "@/components/Bolt";
-import { ReferralCard } from "@/components/wb/ReferralCard";
+import { ReferralCard } from "@/components/capital/ReferralCard";
 import { ensureWallet, getRecentLedger, type LedgerKind } from "@/lib/wb/ledger";
 import { loadDashboard } from "@/lib/wb/dashboard";
 import { hasClaimedToday, getUserStreak } from "@/lib/wb/bonus";
@@ -16,8 +15,6 @@ import { getBiggestWinsLeaderboard } from "@/lib/wb/leaderboard";
 import { getReferralStats } from "@/lib/wb/referrals";
 import { listEarned, ACHIEVEMENTS, getAchievementDef } from "@/lib/wb/achievements";
 import { formatWb, formatUsd } from "@/lib/wb/format";
-
-const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
 
 export const dynamic = "force-dynamic";
 
@@ -93,8 +90,7 @@ export default async function CapitalHome() {
   ]);
 
   // Legacy members hold the Discord Premium role from the old payment
-  // processor but have no Stripe subscription yet. They reach /home via the
-  // role, but nothing here points them at checkout — surface a prompt.
+  // processor but have no Stripe subscription yet — surface a prompt.
   const needsCheckout = !(sub?.status === "active" || sub?.status === "trialing");
 
   const earnedSet = new Set(earned.map((e) => e.code));
@@ -108,383 +104,231 @@ export default async function CapitalHome() {
   const totalEquity = dashboard.allocation.totalEquityCents;
   const totalReturn = dashboard.returns.totalReturnCents;
   const returnPct = dashboard.returns.totalReturnFraction;
+  const returnPos = totalReturn >= 0;
+  const pctPos = returnPct >= 0;
+  const cashCents = dashboard.allocation.cashCents;
 
   return (
-    <>
-      <main className="mx-auto w-full max-w-3xl px-6 py-8 sm:py-12">
-        {/* 1. Welcome strip */}
-        <div className="flex items-center gap-3">
-          <Avatar
-            id={session.id}
-            hash={session.avatar}
-            username={session.username}
-            size={44}
-            className="border-theme border-ink"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-display font-bold uppercase tracking-[0.22em] text-ink/60">
-              Welcome back
-            </p>
-            <p className="truncate font-display text-xl font-black tracking-tight text-ink">
-              @{session.username}
-            </p>
-          </div>
-          {streakDays > 0 && (
-            <span className="chip-tap rounded-full border-theme border-ink bg-mango px-3 text-sm font-bold text-ink">
-              🔥 {streakDays}d
-            </span>
-          )}
+    <main className="cap-page">
+      {/* Welcome */}
+      <header className="cap-welcome">
+        <Avatar id={session.id} hash={session.avatar} username={session.username} size={44} />
+        <div className="cap-welcome__name">
+          <p className="text-eyebrow">Capital · Overview</p>
+          <h1 className="text-h2">@{session.username}</h1>
         </div>
-
-        {/* Legacy-member upgrade prompt — only when there's no active Stripe sub */}
-        {needsCheckout && (
-          <Link
-            href="/?plans=1#plans"
-            className="tap-press mt-6 flex items-center justify-between gap-4 rounded-theme shadow-theme border-theme border-ink bg-safety-orange p-5 text-ink sm:p-6"
-          >
-            <div className="min-w-0">
-              <p className="font-display text-lg font-bold">Finish setting up Premium</p>
-              <p className="mt-1 text-sm font-medium text-ink/70">
-                Move your membership onto the new billing to keep your role and
-                start earning Whoosh Bucks on every renewal.
-              </p>
-            </div>
-            <span className="shrink-0 rounded-full border-theme border-ink bg-ink px-4 py-2 text-sm font-bold text-white-smoke">
-              See plans →
-            </span>
-          </Link>
+        {streakDays > 0 && (
+          <span className="badge badge-warning">
+            <span className="dot" /> {streakDays}-day streak
+          </span>
         )}
+      </header>
 
-        {/* 2. Total equity hero — clean white finance card, gains/losses in
-            green/red. */}
-        <Link
-          href="/capital/wallet"
-          className="tap-press mt-6 block rounded-theme shadow-theme border-theme border-ink/10 bg-surface p-6 text-ink sm:p-7"
-        >
-          <p className="text-xs font-bold uppercase tracking-wider text-ink/50">
-            Total equity
-          </p>
-          <p className="mt-2 font-display text-5xl font-black tracking-tight tabular-nums sm:text-6xl">
-            {formatWb(totalEquity)}
-          </p>
-          <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm font-medium">
-            <span>
-              <span
-                className={`font-display font-black ${
-                  totalReturn >= 0 ? "text-pigment-green" : "text-imperial-red"
-                }`}
-              >
-                {formatWb(totalReturn, { signed: true })}
-              </span>{" "}
-              <span className="text-ink/50">total return</span>
-            </span>
-            <span>
-              <span
-                className={`font-display font-black ${
-                  returnPct >= 0 ? "text-pigment-green" : "text-imperial-red"
-                }`}
-              >
-                {`${returnPct >= 0 ? "+" : ""}${(returnPct * 100).toFixed(2)}%`}
-              </span>{" "}
-              <span className="text-ink/50">vs. money in</span>
-            </span>
+      {/* Legacy upgrade prompt */}
+      {needsCheckout && (
+        <div className="alert alert-warning cap-mt">
+          <div className="body">
+            <strong>Finish setting up Premium.</strong>
+            Move your membership onto the new billing to keep your role and earn Whoosh Bucks on every renewal.
+            <div className="actions">
+              <Link href="/?plans=1#plans" className="btn btn-primary btn-sm">See plans</Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* KPI row */}
+      <section className="card-grid cap-mt">
+        <Link href="/capital/wallet" className="kpi cap-kpi-link">
+          <div className="kpi__label">Total equity</div>
+          <div className="kpi__value">{formatWb(totalEquity)}</div>
+          <div className={`kpi__delta ${returnPos ? "kpi__delta--positive" : "kpi__delta--negative"}`}>
+            {returnPos ? "▲" : "▼"} {formatWb(totalReturn, { signed: true })} · {pctPos ? "+" : ""}
+            {(returnPct * 100).toFixed(2)}%
           </div>
         </Link>
+        <Link href="/capital/wallet" className="kpi cap-kpi-link">
+          <div className="kpi__label">Cash balance</div>
+          <div className="kpi__value">{formatWb(cashCents)}</div>
+          <div className="kpi__delta">Available to invest or wager</div>
+        </Link>
+        <Link href="/capital/invest" className="kpi cap-kpi-link">
+          <div className="kpi__label">Invested</div>
+          <div className="kpi__value">{formatWb(dashboard.allocation.investedValueCents)}</div>
+          <div className="kpi__delta">{watchlist.length} on watchlist</div>
+        </Link>
+      </section>
 
-        {/* 3. Daily check-in (only if unclaimed) */}
-        {!claimedToday && (
-          <section className="mt-6 rounded-theme shadow-theme border-theme border-ink bg-mango p-6 text-ink sm:p-7">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h2 className="font-display text-xl font-bold">
-                  Daily check-in ready
-                </h2>
-                <p className="mt-1 text-sm font-medium text-ink/70">
-                  {streakDays > 0
-                    ? `Extend your ${streakDays}-day streak. Reward grows with the streak.`
-                    : "Drop in daily for a bonus. Streak grows the reward."}
-                </p>
-              </div>
-              <form action="/api/wb/bonus" method="POST">
-                <button
-                  type="submit"
-                  className="tap-press cursor-pointer rounded-full border-theme border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke"
-                >
-                  Claim today
-                </button>
-              </form>
-            </div>
-          </section>
-        )}
-
-        {/* 4. Quick-action grid */}
-        <section className="mt-6 grid gap-3 sm:grid-cols-2">
-          <QuickAction
-            href="/capital/wallet"
-            label="Wallet"
-            blurb="Balance · interest · transfers"
-            tone="white"
-          />
-          <QuickAction
-            href="/capital/invest"
-            label="Invest"
-            blurb="Stocks · crypto · live P/L"
-            tone="white"
-          />
-          <QuickAction
-            href="/capital/events"
-            label="Events"
-            blurb={
-              openEvents.length > 0
-                ? `${openEvents.length} open ${openEvents.length === 1 ? "event" : "events"}`
-                : "House-curated wagers"
-            }
-            tone="white"
-          />
-          <QuickAction
-            href="/capital/wallet#leaderboard"
-            label="Leaderboard"
-            blurb="See where you rank"
-            tone="white"
-          />
-        </section>
-
-        {/* 5. Today's highlights */}
-        <section className="mt-10">
-          <h2 className="font-display text-xl font-bold text-ink">Today</h2>
-
-          {/* Open events */}
-          {openEvents.length > 0 && (
-            <div className="mt-4 rounded-theme shadow-theme border-theme border-ink bg-surface p-5">
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="font-display text-base font-bold text-ink">Open events</p>
-                <Link
-                  href="/capital/events"
-                  className="text-xs font-bold text-ink/70 underline-offset-2 hover:underline"
-                >
-                  See all →
-                </Link>
-              </div>
-              <ul className="mt-3 divide-y-2 divide-ink/10">
-                {openEvents.slice(0, 3).map((e) => (
-                  <li key={e.id}>
-                    <Link
-                      href="/capital/events"
-                      className="tap-press flex items-center justify-between gap-3 py-3 text-sm"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-display font-bold text-ink">
-                          {e.title}
-                        </p>
-                        <p className="text-xs text-ink/60">{fmtClosesAt(e.closesAt)}</p>
-                      </div>
-                      <span aria-hidden="true" className="text-ink/40">
-                        →
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Watchlist */}
-          {watchlist.length > 0 && (
-            <div className="mt-4 rounded-theme shadow-theme border-theme border-ink bg-surface p-5">
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="font-display text-base font-bold text-ink">Watchlist</p>
-                <Link
-                  href="/capital/invest"
-                  className="text-xs font-bold text-ink/70 underline-offset-2 hover:underline"
-                >
-                  See all →
-                </Link>
-              </div>
-              <ul className="mt-3 divide-y-2 divide-ink/10">
-                {watchlist.map((w) => (
-                  <li key={w.symbol}>
-                    <Link
-                      href={`/capital/invest?symbol=${encodeURIComponent(w.symbol)}`}
-                      className="tap-press flex items-center justify-between gap-3 py-3 text-sm"
-                    >
-                      <span className="font-display text-base font-black text-ink">
-                        {w.symbol}
-                      </span>
-                      <span className="font-display font-bold tabular-nums text-ink/80">
-                        {w.priceCents != null ? formatUsd(w.priceCents) : "—"}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Biggest wins */}
-          {biggestWins.length > 0 && (
-            <div className="mt-4 rounded-theme shadow-theme border-theme border-ink bg-surface p-5">
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="font-display text-base font-bold text-ink">
-                  Biggest wins this week
-                </p>
-                <Link
-                  href="/capital/wallet#leaderboard"
-                  className="text-xs font-bold text-ink/70 underline-offset-2 hover:underline"
-                >
-                  See leaderboard →
-                </Link>
-              </div>
-              <ul className="mt-3 divide-y-2 divide-ink/10">
-                {biggestWins.map((w) => (
-                  <li
-                    key={`${w.rank}-${w.discordUserId}`}
-                    className="flex items-center justify-between gap-3 py-3 text-sm"
-                  >
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="font-display text-sm font-black text-ink/60 tabular-nums">
-                        #{w.rank}
-                      </span>
-                      <span className="truncate font-display font-bold text-ink">
-                        @{w.discordUsername}
-                      </span>
-                    </div>
-                    <span className="font-display font-black tabular-nums text-pigment-green">
-                      ▲ {formatWb(w.payoutCents, { signed: true })}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-
-        {/* 6. Recent activity */}
-        <section className="mt-10">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 className="font-display text-xl font-bold text-ink">Recent activity</h2>
-            <Link
-              href="/capital/wallet/activity"
-              className="text-xs font-bold text-ink/70 underline-offset-2 hover:underline"
-            >
-              See all →
-            </Link>
-          </div>
-          {ledger.length === 0 ? (
-            <p className="mt-4 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-center text-sm text-ink/60">
-              No activity yet. Try a trade, a wager, or claim your daily bonus.
+      {/* Daily check-in */}
+      {!claimedToday && (
+        <section className="card cap-mt cap-checkin">
+          <div>
+            <h2 className="text-h3">Daily check-in ready</h2>
+            <p className="text-body-sm cap-mt-1">
+              {streakDays > 0
+                ? `Extend your ${streakDays}-day streak — the reward grows with it.`
+                : "Drop in daily for a bonus. Your streak grows the reward."}
             </p>
-          ) : (
-            <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
+          </div>
+          <form action="/api/wb/bonus" method="POST">
+            <button type="submit" className="btn btn-volt">Claim today</button>
+          </form>
+        </section>
+      )}
+
+      {/* Quick actions */}
+      <section className="cap-quick cap-mt">
+        <QuickAction href="/capital/wallet" label="Wallet" blurb="Balance · interest · transfers" />
+        <QuickAction href="/capital/invest" label="Invest" blurb="Stocks · crypto · live P/L" />
+        <QuickAction
+          href="/capital/events"
+          label="Events"
+          blurb={openEvents.length > 0 ? `${openEvents.length} open ${openEvents.length === 1 ? "event" : "events"}` : "House-curated wagers"}
+        />
+        <QuickAction href="/capital/wallet#leaderboard" label="Leaderboard" blurb="See where you rank" />
+      </section>
+
+      {/* Today */}
+      {(openEvents.length > 0 || watchlist.length > 0 || biggestWins.length > 0) && (
+        <section className="cap-mt-lg">
+          <h2 className="text-h2">Today</h2>
+          <div className="cap-cols cap-mt">
+            {openEvents.length > 0 && (
+              <div className="card">
+                <div className="cap-card-head">
+                  <h3 className="text-h3">Open events</h3>
+                  <Link href="/capital/events" className="cap-link">See all →</Link>
+                </div>
+                <ul className="cap-list">
+                  {openEvents.slice(0, 4).map((e) => (
+                    <li key={e.id}>
+                      <Link href="/capital/events" className="cap-row">
+                        <span className="cap-row__main">{e.title}</span>
+                        <span className="text-caption">{fmtClosesAt(e.closesAt)}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {watchlist.length > 0 && (
+              <div className="card">
+                <div className="cap-card-head">
+                  <h3 className="text-h3">Watchlist</h3>
+                  <Link href="/capital/invest" className="cap-link">See all →</Link>
+                </div>
+                <table className="tbl cap-bare">
+                  <tbody>
+                    {watchlist.map((w) => (
+                      <tr key={w.symbol}>
+                        <td>{w.symbol}</td>
+                        <td className="num">{w.priceCents != null ? formatUsd(w.priceCents) : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {biggestWins.length > 0 && (
+              <div className="card">
+                <div className="cap-card-head">
+                  <h3 className="text-h3">Biggest wins</h3>
+                  <Link href="/capital/wallet#leaderboard" className="cap-link">Leaderboard →</Link>
+                </div>
+                <table className="tbl cap-bare">
+                  <tbody>
+                    {biggestWins.map((w) => (
+                      <tr key={`${w.rank}-${w.discordUserId}`}>
+                        <td>#{w.rank} · @{w.discordUsername}</td>
+                        <td className="num num--positive">▲ {formatWb(w.payoutCents, { signed: true })}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Recent activity */}
+      <section className="cap-mt-lg">
+        <div className="cap-card-head">
+          <h2 className="text-h2">Recent activity</h2>
+          <Link href="/capital/wallet/activity" className="cap-link">See all →</Link>
+        </div>
+        {ledger.length === 0 ? (
+          <div className="card cap-mt cap-empty">
+            No activity yet. Try a trade, a wager, or claim your daily bonus.
+          </div>
+        ) : (
+          <table className="tbl cap-mt">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>When</th>
+                <th className="num">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
               {ledger.map((entry) => {
                 const positive = entry.amountCents >= 0;
                 return (
-                  <li
-                    key={entry.id}
-                    className="grid grid-cols-[1fr_auto] items-center gap-4 py-3 text-sm"
-                  >
-                    <div className="min-w-0">
-                      <div className="font-bold">
-                        {KIND_LABEL[entry.kind] ?? entry.kind}
-                      </div>
-                      <div className="truncate text-xs text-ink/60">
-                        {entry.memo ?? fmtDateTime(entry.createdAt)}
-                      </div>
-                    </div>
-                    <div
-                      className={`font-display text-lg font-black tabular-nums ${
-                        positive ? "text-pigment-green" : "text-imperial-red"
-                      }`}
-                    >
-                      {formatWb(entry.amountCents, { signed: true })}
-                    </div>
-                  </li>
+                  <tr key={entry.id}>
+                    <td>{KIND_LABEL[entry.kind] ?? entry.kind}</td>
+                    <td className="text-body-sm">{entry.memo ?? fmtDateTime(entry.createdAt)}</td>
+                    <td className={`num ${positive ? "num--positive" : "num--negative"}`}>
+                      {positive ? "+" : "−"}
+                      {formatWb(Math.abs(entry.amountCents))}
+                    </td>
+                  </tr>
                 );
               })}
-            </ul>
-          )}
-        </section>
+            </tbody>
+          </table>
+        )}
+      </section>
 
-        {/* 7. Refer + earn */}
-        {referral && <ReferralCard stats={referral} />}
+      {/* Referral */}
+      {referral && (
+        <div className="cap-mt-lg">
+          <ReferralCard stats={referral} />
+        </div>
+      )}
 
-        {/* 8. Achievements */}
-        <section className="mt-10 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-ink sm:p-7">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 className="font-display text-xl font-bold">Achievements</h2>
-            <Link
-              href="/account"
-              className="text-xs font-bold text-ink/70 underline-offset-2 hover:underline"
-            >
-              {earned.length} / {ACHIEVEMENTS.length} →
-            </Link>
-          </div>
-          <ul className="mt-4 flex gap-3 overflow-x-auto pb-1">
-            {ACHIEVEMENTS.map((a) => {
-              const got = earnedSet.has(a.code);
-              const def = getAchievementDef(a.code)!;
-              return (
-                <li
-                  key={a.code}
-                  className={`flex w-24 shrink-0 flex-col items-center gap-1 rounded-2xl border-theme border-ink p-3 text-center text-xs ${
-                    got ? "bg-mango text-ink" : "bg-surface text-ink/50"
-                  }`}
-                  title={def.description}
-                >
-                  <span className="text-2xl" aria-hidden="true">
-                    {def.icon}
-                  </span>
-                  <span className="line-clamp-2 font-display font-bold leading-tight">
-                    {def.label}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+      {/* Achievements */}
+      <section className="card cap-mt-lg">
+        <div className="cap-card-head">
+          <h2 className="text-h3">Achievements</h2>
+          <Link href="/account" className="cap-link">{earned.length} / {ACHIEVEMENTS.length} →</Link>
+        </div>
+        <ul className="cap-achievements">
+          {ACHIEVEMENTS.map((a) => {
+            const got = earnedSet.has(a.code);
+            const def = getAchievementDef(a.code)!;
+            return (
+              <li key={a.code} className={`cap-ach ${got ? "is-earned" : ""}`} title={def.description}>
+                <span className="cap-ach__icon" aria-hidden="true">{def.icon}</span>
+                <span className="cap-ach__label">{def.label}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
 
-        {/* 9. Open Discord */}
-        <section className="mt-10">
-          <a
-            href={DISCORD_INVITE}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="tap-press flex items-center justify-center gap-2 rounded-full border-theme border-ink bg-ink px-7 py-4 text-base font-bold text-white-smoke"
-          >
-            <Bolt className="h-5 w-5" /> Open Discord
-          </a>
-          <p className="mt-2 text-center text-xs text-ink/60">
-            The chat is still the main thing. WB is the side quest.
-          </p>
-        </section>
-
-        <Disclaimer />
-      </main>
-    </>
+      <Disclaimer />
+    </main>
   );
 }
 
-function QuickAction({
-  href,
-  label,
-  blurb,
-}: {
-  href: string;
-  label: string;
-  blurb: string;
-  tone?: "white";
-}) {
+function QuickAction({ href, label, blurb }: { href: string; label: string; blurb: string }) {
   return (
-    <Link
-      href={href}
-      className="tap-press flex flex-col gap-1 rounded-theme shadow-theme border-theme border-ink bg-surface p-5 text-ink"
-    >
-      <span className="font-display text-2xl font-black tracking-tight">
-        {label}
-      </span>
-      <span className="text-sm font-medium text-ink/60">{blurb}</span>
-      <span className="mt-2 text-xs font-bold uppercase tracking-wider text-ink/70">
-        Open →
-      </span>
+    <Link href={href} className="card cap-quick__item">
+      <span className="text-h3">{label}</span>
+      <span className="text-body-sm">{blurb}</span>
+      <span className="cap-quick__cta">Open →</span>
     </Link>
   );
 }

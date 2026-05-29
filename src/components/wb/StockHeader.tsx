@@ -9,26 +9,18 @@ type Props = {
 
 function fmtMoney(cents: number | null): string {
   if (cents == null) return "—";
-  return `$${(cents / 100).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  return `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /**
- * The hero card on a stock detail view. Logo + symbol + company name on the
- * left, current price + day change on the right. Both come from cheap APIs
- * (Finnhub profile, Yahoo snapshot meta) so this renders without an extra
- * round-trip beyond what the page already does.
+ * Hero card on a stock detail view — Capital design system. Logo + symbol +
+ * company name on the left, current price + day change (mono, green/red) on
+ * the right.
  */
 export function StockHeader({ profile, snapshot }: Props) {
   const name = profile?.name ?? snapshot.longName ?? snapshot.symbol;
-  const subtitle = [profile?.industry, snapshot.exchange]
-    .filter(Boolean)
-    .join(" · ");
+  const subtitle = [profile?.industry, snapshot.exchange].filter(Boolean).join(" · ");
 
-  // Day change: today vs. previous candle close (more reliable than Yahoo's
-  // chart-meta change which sometimes lags).
   const last = snapshot.candles[snapshot.candles.length - 1];
   const prev = snapshot.candles[snapshot.candles.length - 2];
   let dayDeltaCents: number | null = null;
@@ -40,60 +32,33 @@ export function StockHeader({ profile, snapshot }: Props) {
   const positive = (dayDeltaCents ?? 0) >= 0;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-6 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-ink sm:p-8">
-      <div className="flex items-center gap-5 min-w-0">
+    <div className="card cap-stockhead">
+      <div className="cap-stockhead__id">
         {profile?.logoUrl ? (
-          <div className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-2xl border-theme border-ink bg-surface">
-            {/* Finnhub logos can be PNG or remote — using next/image with
-                unoptimized to avoid bundling/fetching weirdness. */}
-            <Image
-              src={profile.logoUrl}
-              alt={`${name} logo`}
-              width={56}
-              height={56}
-              unoptimized
-              className="max-h-14 max-w-14 object-contain"
-            />
+          <div className="cap-stockhead__logo">
+            <Image src={profile.logoUrl} alt={`${name} logo`} width={56} height={56} unoptimized className="cap-stockhead__logoimg" />
           </div>
         ) : (
-          <div className="flex h-16 w-16 flex-none items-center justify-center rounded-2xl border-theme border-ink bg-surface font-display text-2xl font-black">
-            {snapshot.symbol.slice(0, 2)}
-          </div>
+          <div className="cap-stockhead__logo cap-stockhead__logo--text">{snapshot.symbol.slice(0, 2)}</div>
         )}
         <div className="min-w-0">
-          <div className="font-display text-3xl font-black tracking-tight sm:text-4xl">
-            {snapshot.symbol}
-          </div>
-          <div className="truncate font-medium text-ink/90">{name}</div>
-          {subtitle && (
-            <div className="mt-0.5 text-xs font-bold uppercase tracking-wider text-ink/60">
-              {subtitle}
-            </div>
-          )}
+          <div className="text-h2">{snapshot.symbol}</div>
+          <div className="cap-stockhead__name">{name}</div>
+          {subtitle && <div className="text-caption">{subtitle}</div>}
         </div>
       </div>
 
-      <div className="text-right">
-        <div className="font-display text-4xl font-black tracking-tight tabular-nums">
+      <div className="cap-stockhead__price">
+        <div className="cap-stockhead__last">
           {fmtMoney(snapshot.regularMarketPriceCents ?? last?.closeCents ?? null)}
         </div>
         {dayDeltaCents != null && (
-          <div
-            className={`mt-1 font-display text-base font-black tabular-nums ${
-              positive ? "text-pigment-green" : "text-imperial-red"
-            }`}
-          >
-            {positive ? "+" : ""}
-            {fmtMoney(dayDeltaCents)}{" "}
-            <span className="font-bold">
-              ({positive ? "+" : ""}
-              {dayDeltaPct!.toFixed(2)}%)
-            </span>
+          <div className="num" style={{ color: positive ? "var(--positive-text)" : "var(--negative-text)" }}>
+            {positive ? "▲ +" : "▼ "}
+            {fmtMoney(dayDeltaCents)} ({positive ? "+" : ""}{dayDeltaPct!.toFixed(2)}%)
           </div>
         )}
-        <div className="mt-1 text-xs font-bold uppercase tracking-wider text-ink/60">
-          Today
-        </div>
+        <div className="text-caption">Today</div>
       </div>
     </div>
   );

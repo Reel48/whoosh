@@ -1,0 +1,879 @@
+/*
+ * Whoosh Capital — design system, vendored & SCOPED to [data-theme="capital"].
+ * Source: whoosh-capital-design-system.zip. Do not edit by hand; regenerate.
+ * Fonts are wired to the app's next/font variables (see src/app/layout.tsx).
+ */
+
+[data-theme="capital"] {
+
+/* ===== tokens/colors.css ===== */
+/* ============================================================
+   Whoosh Capital · Color Tokens
+   Eight chromatic anchors + cool slate neutral ramp.
+   Each anchor has 50–900 tints/shades.
+   ============================================================ */
+& {
+  /* === BRAND ANCHORS (500) === */
+  --color-sky-500:     #0381ED;  /* Primary · trust */
+  --color-ember-500:   #FC7B00;  /* Accent · energy */
+  --color-volt-500:    #CEF932;  /* Highlight · promo */
+  --color-solar-500:   #FBD12C;  /* Warning · caution */
+  --color-forest-500:  #009640;  /* Positive · gains */
+  --color-crimson-500: #FF0C31;  /* Negative · losses */
+  --color-iris-500:    #AE78D2;  /* Data series A */
+  --color-blossom-500: #FF9FF3;  /* Data series B */
+
+  /* === SKY (primary) === */
+  --color-sky-50:  #E6F2FE;
+  --color-sky-100: #BFDEFB;
+  --color-sky-200: #80BDF6;
+  --color-sky-300: #4DA3F2;
+  --color-sky-400: #1F8FEF;
+  --color-sky-600: #0269C2;
+  --color-sky-700: #014E91;
+  --color-sky-800: #013560;
+  --color-sky-900: #001A30;
+
+  /* === EMBER (accent) === */
+  --color-ember-50:  #FFF1E0;
+  --color-ember-100: #FFD8AD;
+  --color-ember-200: #FFB870;
+  --color-ember-300: #FE9A38;
+  --color-ember-600: #C66200;
+  --color-ember-700: #944900;
+  --color-ember-800: #623100;
+  --color-ember-900: #311800;
+
+  /* === VOLT (highlight) === */
+  --color-volt-50:  #F3FDCF;
+  --color-volt-100: #E4FB99;
+  --color-volt-200: #DAFA72;
+  --color-volt-600: #A6CC27;
+  --color-volt-700: #7E9C1D;
+  --color-volt-800: #546813;
+  --color-volt-900: #2A340A;
+
+  /* === SOLAR (warning) === */
+  --color-solar-50:  #FFF7D7;
+  --color-solar-100: #FEE9A2;
+  --color-solar-200: #FDDC6D;
+  --color-solar-600: #C9A422;
+  --color-solar-700: #977B19;
+  --color-solar-800: #645210;
+  --color-solar-900: #322908;
+
+  /* === FOREST (positive) === */
+  --color-forest-50:  #D6F4E2;
+  --color-forest-100: #9DE3B9;
+  --color-forest-200: #5FD08D;
+  --color-forest-600: #007832;
+  --color-forest-700: #005A25;
+  --color-forest-800: #003C18;
+  --color-forest-900: #001E0C;
+
+  /* === CRIMSON (negative) === */
+  --color-crimson-50:  #FFD8DF;
+  --color-crimson-100: #FFA8B5;
+  --color-crimson-200: #FF6177;
+  --color-crimson-600: #CC0826;
+  --color-crimson-700: #99061C;
+  --color-crimson-800: #660413;
+  --color-crimson-900: #330209;
+
+  /* === IRIS (data A) === */
+  --color-iris-50:  #F1E8FA;
+  --color-iris-100: #DDC8F1;
+  --color-iris-200: #C6A4E5;
+  --color-iris-600: #8B5DAB;
+  --color-iris-700: #674580;
+  --color-iris-800: #432E55;
+  --color-iris-900: #20162A;
+
+  /* === BLOSSOM (data B) === */
+  --color-blossom-50:  #FFEEFE;
+  --color-blossom-100: #FFD0FA;
+  --color-blossom-200: #FFB4F6;
+  --color-blossom-600: #D17EC8;
+  --color-blossom-700: #9C5F95;
+  --color-blossom-800: #683F63;
+  --color-blossom-900: #341F31;
+
+  /* === SLATE (neutral) === */
+  --color-slate-0:   #FFFFFF;
+  --color-slate-50:  #F7F8FA;
+  --color-slate-100: #EEF0F4;
+  --color-slate-200: #DDE1E8;
+  --color-slate-300: #C3CAD4;
+  --color-slate-400: #97A1B0;
+  --color-slate-500: #6B7787;
+  --color-slate-600: #4D5666;
+  --color-slate-700: #353C49;
+  --color-slate-800: #1F242E;
+  --color-slate-900: #0E1118;
+  --color-slate-950: #060810;
+
+  /* === SEMANTIC ALIASES ===
+     Use these in components — never reach for raw scale values
+     in component CSS. Keeps theming swappable. */
+  --bg:            var(--color-slate-50);
+  --surface:       var(--color-slate-0);
+  --surface-alt:   var(--color-slate-100);
+  --border:        var(--color-slate-200);
+  --border-strong: var(--color-slate-300);
+  --text:          var(--color-slate-900);
+  --text-muted:    var(--color-slate-500);
+  --text-subtle:   var(--color-slate-400);
+  --text-inverse:  var(--color-slate-0);
+
+  --primary:       var(--color-sky-500);
+  --primary-bg:    var(--color-sky-600);     /* button backgrounds — passes AA */
+  --primary-hover: var(--color-sky-700);
+  --primary-soft:  var(--color-sky-50);
+
+  --accent:        var(--color-ember-500);
+  --accent-hover:  var(--color-ember-600);
+
+  --positive:      var(--color-forest-500);
+  --positive-text: var(--color-forest-700);
+  --positive-bg:   var(--color-forest-50);
+
+  --negative:      var(--color-crimson-500);
+  --negative-bg-strong: var(--color-crimson-600); /* button bg */
+  --negative-text: var(--color-crimson-700);
+  --negative-bg:   var(--color-crimson-50);
+
+  --warning:       var(--color-solar-500);
+  --warning-text:  var(--color-solar-700);
+  --warning-bg:    var(--color-solar-50);
+
+  --highlight:     var(--color-volt-500);
+
+  --info-text:     var(--color-sky-800);
+  --info-bg:       var(--color-sky-50);
+
+  /* === CHART SERIES ORDER === */
+  --chart-1: var(--color-sky-500);     /* primary category */
+  --chart-2: var(--color-iris-500);    /* secondary */
+  --chart-3: var(--color-ember-500);   /* tertiary */
+  --chart-4: var(--color-blossom-500); /* quaternary */
+  --chart-5: var(--color-volt-500);    /* highlight */
+  --chart-6: var(--color-solar-500);   /* fallback */
+
+  /* P&L only — never use for non-financial categorical data */
+  --chart-gain: var(--color-forest-500);
+  --chart-loss: var(--color-crimson-500);
+
+  /* === FOCUS RING === */
+  --focus-ring: 0 0 0 4px rgba(3, 129, 237, 0.25);
+}
+
+/* === DARK THEME (preview) ===
+   Optional: enable by adding `data-theme="dark"` to <html>.
+   Numbers still mono, semantics still apply. */
+
+/* ===== tokens/typography.css ===== */
+/* ============================================================
+   Whoosh Capital · Typography Tokens
+   Inter Tight for display, Inter for text, JetBrains Mono
+   for currency and tabular data.
+   ============================================================ */
+& {
+  /* === FAMILIES === */
+  --font-display: "Inter Tight", "Inter", system-ui, -apple-system, sans-serif;
+  --font-text:    "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:    "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* === FONT SIZES (px) === */
+  --fs-display-1: 64px;
+  --fs-display-2: 48px;
+  --fs-h1:        36px;
+  --fs-h2:        28px;
+  --fs-h3:        20px;
+  --fs-body-lg:   18px;
+  --fs-body:      16px;
+  --fs-body-sm:   14px;
+  --fs-caption:   12px;
+  --fs-micro:     11px;
+
+  /* === LINE HEIGHTS === */
+  --lh-display-1: 0.98;
+  --lh-display-2: 1.02;
+  --lh-h1:        1.10;
+  --lh-h2:        1.15;
+  --lh-h3:        1.25;
+  --lh-body:      1.55;
+  --lh-caption:   1.40;
+
+  /* === TRACKING (letter-spacing) === */
+  --ls-display-1: -0.030em;
+  --ls-display-2: -0.025em;
+  --ls-h1:        -0.022em;
+  --ls-h2:        -0.018em;
+  --ls-h3:        -0.012em;
+  --ls-body:       0;
+  --ls-caption:    0.08em;
+  --ls-eyebrow:    0.14em;
+
+  /* === WEIGHTS === */
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semi:    600;
+  --fw-bold:    700;
+  --fw-extra:   800;
+  --fw-black:   900;
+}
+
+/* === GLOBAL DEFAULTS === */
+& {
+  font-family: var(--font-text);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* === SEMANTIC CLASSES === */
+.text-display-1 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  font-size: var(--fs-display-1);
+  line-height: var(--lh-display-1);
+  letter-spacing: var(--ls-display-1);
+}
+
+.text-display-2 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extra);
+  font-size: var(--fs-display-2);
+  line-height: var(--lh-display-2);
+  letter-spacing: var(--ls-display-2);
+}
+
+.text-h1 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extra);
+  font-size: var(--fs-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--ls-h1);
+}
+
+.text-h2 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--ls-h2);
+}
+
+.text-h3 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-h3);
+  line-height: var(--lh-h3);
+  letter-spacing: var(--ls-h3);
+}
+
+.text-body-lg { font-size: var(--fs-body-lg); line-height: var(--lh-body); }
+.text-body    { font-size: var(--fs-body);    line-height: var(--lh-body); }
+.text-body-sm { font-size: var(--fs-body-sm); line-height: var(--lh-body); color: var(--text-muted); }
+
+.text-caption {
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  letter-spacing: var(--ls-caption);
+  text-transform: uppercase;
+  font-weight: var(--fw-semi);
+  color: var(--text-muted);
+}
+
+.text-eyebrow {
+  font-family: var(--font-display);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+/* === NUMERIC ===
+   Apply to anything that's money, percentages, counts, or any
+   value that updates in place — prevents jitter and lines up
+   in tables. */
+.text-num,
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-semi);
+}
+
+.text-num-display {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extra);
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== tokens/spacing.css ===== */
+/* ============================================================
+   Whoosh Capital · Spacing & Radius Tokens
+   4px base grid. If a value isn't on the scale, it doesn't exist.
+   ============================================================ */
+& {
+  /* === SPACING (4px base) === */
+  --space-0:   0;
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* === RADIUS === */
+  --radius-xs:   4px;   /* inputs, small chips */
+  --radius-sm:   8px;   /* buttons, fields */
+  --radius-md:  12px;   /* alerts, small cards */
+  --radius-lg:  16px;   /* cards, panels */
+  --radius-xl:  24px;   /* hero sections */
+  --radius-2xl: 32px;   /* marketing surfaces */
+  --radius-full: 999px; /* badges, primary CTAs */
+
+  /* === GRID === */
+  --container-max:   1200px;
+  --container-narrow: 720px;
+  --container-wide:  1440px;
+  --gutter:          24px;
+
+  /* === BREAKPOINTS (for reference; use in @media) === */
+  --bp-sm:  640px;
+  --bp-md:  768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+}
+
+/* ===== tokens/elevation.css ===== */
+/* ============================================================
+   Whoosh Capital · Elevation Tokens
+   Use elevation to lift interactive surfaces — never as decoration.
+   ============================================================ */
+& {
+  --shadow-xs: 0 1px 2px rgba(14, 17, 24, 0.04);
+  --shadow-sm: 0 2px 4px rgba(14, 17, 24, 0.06),
+               0 1px 2px rgba(14, 17, 24, 0.04);
+  --shadow-md: 0 6px 16px rgba(14, 17, 24, 0.08),
+               0 2px 4px rgba(14, 17, 24, 0.04);
+  --shadow-lg: 0 14px 40px rgba(14, 17, 24, 0.12),
+               0 4px 8px rgba(14, 17, 24, 0.04);
+  --shadow-xl: 0 28px 80px rgba(14, 17, 24, 0.18),
+               0 8px 16px rgba(14, 17, 24, 0.06);
+
+  /* Focus glow — used by interactive elements on :focus-visible */
+  --shadow-glow:        0 0 0 4px rgba(3, 129, 237, 0.25);
+  --shadow-glow-danger: 0 0 0 4px rgba(255, 12, 49, 0.25);
+}
+
+/* ===== tokens/motion.css ===== */
+/* ============================================================
+   Whoosh Capital · Motion Tokens
+   Fast, confident, never bouncy. Money is not a circus.
+   ============================================================ */
+& {
+  --dur-instant: 80ms;
+  --dur-fast:   120ms;
+  --dur-base:   200ms;
+  --dur-slow:   320ms;
+  --dur-slower: 500ms;
+
+  --ease-out:    cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in:     cubic-bezier(0.4, 0,   1,   1);
+  --ease-in-out: cubic-bezier(0.4, 0,   0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* use sparingly */
+}
+
+/* Respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== components/buttons.css ===== */
+/* ============================================================
+   Whoosh Capital · Buttons
+   Pills (radius-full) for actions. One primary per screen.
+   Production button backgrounds use the 600 shade to pass WCAG AA.
+   ============================================================ */
+
+.btn {
+  font-family: var(--font-display);
+  font-weight: var(--fw-semi);
+  font-size: var(--fs-body-sm);
+  line-height: 1;
+  letter-spacing: -0.005em;
+  padding: 10px 18px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color      var(--dur-fast) var(--ease-out),
+    border     var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:focus-visible { outline: none; box-shadow: var(--shadow-glow); }
+.btn:disabled, .btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* --- variants --- */
+.btn-primary   { background: var(--primary-bg);    color: var(--text-inverse); }
+.btn-primary:hover { background: var(--primary-hover); }
+
+.btn-accent    { background: var(--accent);        color: var(--color-slate-900); }
+.btn-accent:hover  { background: var(--accent-hover); color: var(--text-inverse); }
+
+.btn-secondary { background: var(--surface);       color: var(--text); border-color: var(--border-strong); }
+.btn-secondary:hover { background: var(--surface-alt); border-color: var(--color-slate-400); }
+
+.btn-ghost     { background: transparent;          color: var(--text); }
+.btn-ghost:hover   { background: var(--surface-alt); }
+
+.btn-danger    { background: var(--negative-bg-strong); color: var(--text-inverse); }
+.btn-danger:hover  { background: var(--color-crimson-700); }
+.btn-danger:focus-visible { box-shadow: var(--shadow-glow-danger); }
+
+.btn-volt      { background: var(--highlight);     color: var(--color-slate-900); font-weight: var(--fw-bold); }
+.btn-volt:hover    { background: var(--color-volt-600); }
+
+/* --- sizes --- */
+.btn-lg { padding: 14px 24px; font-size: var(--fs-body); }
+.btn-sm { padding: 7px 12px;  font-size: 13px; }
+.btn-icon-only { padding: 10px; aspect-ratio: 1; }
+
+/* --- full width --- */
+.btn-block { display: flex; width: 100%; justify-content: center; }
+
+/* ===== components/inputs.css ===== */
+/* ============================================================
+   Whoosh Capital · Inputs & Form Controls
+   8px radius, 1px border, 14px text. Focus uses Sky-blue glow.
+   ============================================================ */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--space-4);
+}
+.field label {
+  font-size: 13px;
+  font-weight: var(--fw-semi);
+  color: var(--text);
+}
+.field .help {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.field.is-error .help { color: var(--negative-text); }
+
+.input {
+  font-family: var(--font-text);
+  font-size: var(--fs-body-sm);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+  transition: border var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
+}
+.input::placeholder { color: var(--color-slate-400); }
+.input:hover { border-color: var(--color-slate-400); }
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow);
+}
+.input:disabled {
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+.field.is-error .input { border-color: var(--negative); }
+.field.is-error .input:focus { box-shadow: var(--shadow-glow-danger); }
+
+/* Numeric input — use for currency, percentages, account #s */
+.input.input-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Prefix/suffix (e.g. $ in amount field) */
+.input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
+}
+.input-group:focus-within {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow);
+}
+.input-group .input {
+  border: none;
+  box-shadow: none !important;
+  border-radius: 0;
+  flex: 1;
+}
+.input-group .addon {
+  padding: 0 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  background: var(--surface-alt);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  font-weight: var(--fw-semi);
+}
+
+/* Toggle switch */
+.toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle .track {
+  position: absolute; inset: 0;
+  background: var(--color-slate-300);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background var(--dur-base) var(--ease-out);
+}
+.toggle .track::after {
+  content: "";
+  position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--color-slate-0);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.toggle input:checked + .track { background: var(--primary); }
+.toggle input:checked + .track::after { transform: translateX(20px); }
+.toggle input:focus-visible + .track { box-shadow: var(--shadow-glow); }
+
+/* ===== components/badges.css ===== */
+/* ============================================================
+   Whoosh Capital · Badges & Status
+   Short, semantic, always paired with a dot or icon.
+   ============================================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: var(--fw-semi);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.badge-positive { background: var(--positive-bg); color: var(--positive-text); }
+.badge-negative { background: var(--negative-bg); color: var(--negative-text); }
+.badge-warning  { background: var(--warning-bg);  color: var(--warning-text); }
+.badge-info     { background: var(--info-bg);     color: var(--info-text); }
+.badge-neutral  { background: var(--surface-alt); color: var(--color-slate-700); }
+.badge-premium  { background: var(--color-iris-50);   color: var(--color-iris-700); }
+.badge-promo    { background: var(--highlight);   color: var(--color-slate-900); font-weight: var(--fw-bold); }
+
+/* Size modifiers */
+.badge-sm { padding: 2px 8px; font-size: 11px; }
+.badge-lg { padding: 6px 14px; font-size: 13px; }
+
+/* ===== components/alerts.css ===== */
+/* ============================================================
+   Whoosh Capital · Alerts
+   Inline only. Important money messages never live in toasts.
+   ============================================================ */
+
+.alert {
+  display: flex;
+  gap: 12px;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  font-size: var(--fs-body-sm);
+  line-height: 1.5;
+  margin-bottom: var(--space-3);
+}
+.alert .icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+}
+.alert .body strong {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: var(--fw-bold);
+  font-family: var(--font-display);
+}
+.alert .actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.alert-info     { background: var(--info-bg);     border-color: var(--color-sky-100);     color: var(--info-text); }
+.alert-positive { background: var(--positive-bg); border-color: var(--color-forest-100);  color: var(--positive-text); }
+.alert-warning  { background: var(--warning-bg);  border-color: var(--color-solar-100);   color: var(--warning-text); }
+.alert-negative { background: var(--negative-bg); border-color: var(--color-crimson-100); color: var(--negative-text); }
+
+/* ===== components/cards.css ===== */
+/* ============================================================
+   Whoosh Capital · Cards & KPIs
+   KPI cards pair a big number with delta + sparkline.
+   Never show a number in isolation.
+   ============================================================ */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-xs);
+}
+.card-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+/* === KPI === */
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  position: relative;
+  overflow: hidden;
+}
+.kpi__label {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: var(--fw-medium);
+}
+.kpi__value {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extra);
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  margin: 6px 0 8px;
+  color: var(--text);
+}
+.kpi__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: var(--fw-semi);
+}
+.kpi__delta--positive { color: var(--positive-text); }
+.kpi__delta--negative { color: var(--negative-text); }
+
+.kpi__spark {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 80px;
+  height: 32px;
+  opacity: 0.85;
+}
+
+/* Promo KPI — uses Volt highlight */
+.kpi--promo {
+  background: linear-gradient(135deg, var(--highlight), var(--color-volt-200));
+  border-color: transparent;
+  color: var(--color-slate-900);
+}
+.kpi--promo .kpi__label,
+.kpi--promo .kpi__value,
+.kpi--promo .kpi__delta { color: var(--color-slate-900); }
+
+/* ===== components/tables.css ===== */
+/* ============================================================
+   Whoosh Capital · Tables
+   Numbers right-aligned + mono. Labels left-aligned proportional.
+   Hover, no zebra stripes — they distract from the data.
+   ============================================================ */
+
+.tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--fs-body-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.tbl th,
+.tbl td { padding: 14px 16px; text-align: left; vertical-align: middle; }
+
+.tbl th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+  font-weight: var(--fw-semi);
+  border-bottom: 1px solid var(--border);
+}
+.tbl tr + tr td { border-top: 1px solid var(--border); }
+.tbl tbody tr:hover td { background: var(--color-slate-50); }
+
+.tbl td.num,
+.tbl th.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.tbl td.num--positive { color: var(--positive-text); font-weight: var(--fw-semi); }
+.tbl td.num--negative { color: var(--negative-text); font-weight: var(--fw-semi); }
+
+.tbl .merchant {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tbl .avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: var(--fw-extra);
+  font-size: 13px;
+  color: var(--color-slate-0);
+  flex-shrink: 0;
+}
+
+/* ===== components/charts.css ===== */
+/* ============================================================
+   Whoosh Capital · Data Visualization
+   Chart palette uses Iris + Blossom + Sky + Ember + Volt + Solar
+   (in that order) for categorical data. Forest/Crimson are
+   reserved for P&L (gain/loss) only.
+   ============================================================ */
+
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+.chart-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-5);
+}
+.chart-card__total {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extra);
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  font-size: 13px;
+}
+.chart-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
+.chart-legend__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+/* Series classes — apply to <path>, <rect>, dot <circle>, etc. */
+.series-1 { color: var(--chart-1); stroke: var(--chart-1); fill: var(--chart-1); }
+.series-2 { color: var(--chart-2); stroke: var(--chart-2); fill: var(--chart-2); }
+.series-3 { color: var(--chart-3); stroke: var(--chart-3); fill: var(--chart-3); }
+.series-4 { color: var(--chart-4); stroke: var(--chart-4); fill: var(--chart-4); }
+.series-5 { color: var(--chart-5); stroke: var(--chart-5); fill: var(--chart-5); }
+.series-6 { color: var(--chart-6); stroke: var(--chart-6); fill: var(--chart-6); }
+
+.series-gain { color: var(--chart-gain); stroke: var(--chart-gain); fill: var(--chart-gain); }
+.series-loss { color: var(--chart-loss); stroke: var(--chart-loss); fill: var(--chart-loss); }
+
+/* Grid lines */
+.chart-grid { stroke: var(--color-slate-100); stroke-width: 1; }
+.chart-axis-label { fill: var(--text-muted); font-size: 11px; font-family: var(--font-mono); }
+
+/* ===== app integration overrides ===== */
+& {
+  /* Paint the section canvas (the DS does this on <body> in its showcase). */
+  background: var(--bg);
+  color: var(--text);
+
+  /* Typefaces via next/font instead of the DS's Google @import. */
+  --font-display: var(--font-capital), "Inter Tight", system-ui, sans-serif;
+  --font-text: var(--font-capital-body, var(--font-body)), Inter, system-ui, sans-serif;
+  --font-mono: var(--font-capital-num), ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Remap the shared global palette + structural tokens that the shared
+     AppShell chrome consumes, so the header/back-button/bottom-bar match the
+     design system inside Capital. */
+  --ink: var(--color-slate-900);
+  --white: var(--color-slate-0);
+  --white-smoke: var(--color-slate-50);
+  --cream: var(--color-slate-100);
+  --pigment-green: var(--color-forest-700);
+  --imperial-red: var(--color-crimson-700);
+  --blue: var(--color-sky-600);
+  --theme-border-width: 1px;
+  --theme-radius: var(--radius-lg);
+  --theme-card-shadow: var(--shadow-sm);
+  --theme-surface: var(--color-slate-0);
+}
+
+}

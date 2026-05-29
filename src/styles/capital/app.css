@@ -1,0 +1,341 @@
+/*
+ * Whoosh Capital — app layout helpers.
+ * Capital-owned structural classes (page shells, grids, rows) that compose the
+ * vendored design-system components into pages. Scoped to [data-theme="capital"]
+ * and built only from design-system tokens — no shared "main design" pieces.
+ */
+
+[data-theme="capital"] {
+  /* page shell */
+  .cap-page {
+    max-width: var(--container-narrow);
+    margin: 0 auto;
+    padding: var(--space-10) var(--space-6) var(--space-20);
+  }
+  .cap-page--wide {
+    max-width: var(--container-max);
+  }
+
+  /* spacing helpers */
+  .cap-mt { margin-top: var(--space-6); }
+  .cap-mt-1 { margin-top: var(--space-1); }
+  .cap-mt-sm { margin-top: var(--space-3); }
+  .cap-mt-lg { margin-top: var(--space-10); }
+
+  /* welcome strip */
+  .cap-welcome { display: flex; align-items: center; gap: var(--space-3); }
+  .cap-welcome__name { flex: 1; min-width: 0; }
+
+  /* a KPI/card that's also a link */
+  .cap-kpi-link,
+  .cap-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow var(--dur-fast) var(--ease-out);
+  }
+  .cap-kpi-link:hover,
+  .cap-card-link:hover { box-shadow: var(--shadow-md); }
+
+  /* daily check-in */
+  .cap-checkin {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  /* quick actions */
+  .cap-quick {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cap-quick__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow var(--dur-fast) var(--ease-out);
+  }
+  .cap-quick__item:hover { box-shadow: var(--shadow-md); }
+  .cap-quick__cta {
+    margin-top: var(--space-2);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-bold);
+    color: var(--primary);
+  }
+
+  /* two-column card row */
+  .cap-cols {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: 1fr;
+  }
+
+  /* card header (title + link) */
+  .cap-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .cap-link {
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-semi);
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .cap-link:hover { color: var(--text); }
+
+  /* simple list of rows inside a card */
+  .cap-list { list-style: none; margin: var(--space-3) 0 0; padding: 0; }
+  .cap-list > li + li { border-top: 1px solid var(--border); }
+  .cap-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .cap-row__main {
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* borderless table that sits inside a .card */
+  .tbl.cap-bare {
+    border: none;
+    border-radius: 0;
+    margin-top: var(--space-2);
+    background: transparent;
+  }
+  .tbl.cap-bare td { padding: var(--space-2) 0; }
+  .tbl.cap-bare tr + tr td { border-top: 1px solid var(--border); }
+  .tbl.cap-bare tbody tr:hover td { background: transparent; }
+
+  .cap-empty { text-align: center; color: var(--text-muted); }
+
+  /* achievements rail */
+  .cap-achievements {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0 0 var(--space-1);
+    display: flex;
+    gap: var(--space-3);
+    overflow-x: auto;
+  }
+  .cap-ach {
+    flex: 0 0 auto;
+    width: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--text-subtle);
+  }
+  .cap-ach.is-earned {
+    background: var(--positive-bg);
+    color: var(--positive-text);
+    border-color: transparent;
+  }
+  .cap-ach__icon { font-size: 22px; line-height: 1; }
+  .cap-ach__label {
+    font-family: var(--font-display);
+    font-weight: var(--fw-semi);
+    font-size: var(--fs-caption);
+    line-height: 1.2;
+  }
+
+  /* referral card */
+  .cap-ref { padding: var(--space-4); }
+  .cap-ref__row { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
+  .cap-ref__row .btn { margin-left: auto; }
+  .cap-ref__value { font-size: var(--fs-h3); font-weight: var(--fw-bold); }
+  .cap-ref__url {
+    min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: var(--fs-body-sm);
+  }
+  .cap-ref__stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+  .cap-ref__stat {
+    text-align: center; border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: var(--space-3); background: var(--surface);
+  }
+  .cap-ref__statval { display: block; margin-top: var(--space-1); font-size: var(--fs-h3); font-weight: var(--fw-bold); }
+
+  /* send-money form */
+  .cap-send {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: 1fr 170px;
+    align-items: end;
+  }
+  .cap-send .field { margin-bottom: 0; }
+  .cap-send__memo { grid-column: 1 / -1; }
+  .cap-send__submit { grid-column: 1 / -1; justify-self: start; }
+
+  /* filter bar (date range + actions) */
+  .cap-filterbar { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: end; }
+  .cap-filterbar .field { margin-bottom: 0; }
+
+  /* event outcomes */
+  .cap-outcomes { display: flex; flex-direction: column; margin-top: var(--space-2); }
+  .cap-outcome {
+    display: grid;
+    grid-template-columns: 1fr 150px auto;
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--border);
+  }
+  .cap-outcome:first-child { border-top: 0; }
+  .cap-outcome__label { font-family: var(--font-display); font-weight: var(--fw-bold); }
+
+  /* symbol search */
+  .cap-search { position: relative; }
+  .cap-search__form { display: flex; gap: var(--space-3); }
+  .cap-search__form .input { flex: 1; }
+  .cap-search__menu {
+    position: absolute; left: 0; right: 0; top: 100%; z-index: 20; margin-top: var(--space-2);
+    max-height: 320px; overflow-y: auto; list-style: none; padding: var(--space-1);
+    border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-lg);
+  }
+  .cap-search__opt {
+    display: flex; width: 100%; align-items: center; justify-content: space-between; gap: var(--space-3);
+    padding: var(--space-3) var(--space-4); text-align: left; background: transparent; color: var(--text);
+    cursor: pointer; border: 0; border-radius: var(--radius-sm); min-height: 48px;
+  }
+  .cap-search__opt.is-active { background: var(--surface-alt); }
+  .cap-search__optmain { display: flex; min-width: 0; align-items: center; gap: var(--space-3); }
+  .cap-search__optname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); }
+
+  /* key stats grid */
+  .cap-stats { display: grid; gap: var(--space-4) var(--space-8); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cap-stats__val { display: block; margin-top: var(--space-1); font-size: var(--fs-body-lg); font-weight: var(--fw-semi); }
+
+  /* stock detail header */
+  .cap-stockhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-5); }
+  .cap-stockhead__id { display: flex; align-items: center; gap: var(--space-4); min-width: 0; }
+  .cap-stockhead__logo {
+    width: 64px; height: 64px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
+    overflow: hidden; border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--surface);
+  }
+  .cap-stockhead__logo--text { font-family: var(--font-display); font-weight: var(--fw-extra); font-size: var(--fs-h2); }
+  .cap-stockhead__logoimg { max-width: 56px; max-height: 56px; object-fit: contain; }
+  .cap-stockhead__name { color: var(--text-muted); font-weight: var(--fw-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cap-stockhead__price { text-align: right; }
+  .cap-stockhead__last {
+    font-family: var(--font-display); font-weight: var(--fw-extra); font-size: var(--fs-h1);
+    letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+  }
+
+  /* trade panel form */
+  .cap-trade {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: 110px 1fr 1fr auto;
+    align-items: center;
+  }
+
+  /* buy-WB form */
+  .cap-buy { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+  .cap-buy .input-group { width: 200px; }
+  .cap-buy__hint { flex-basis: 100%; }
+
+  /* allocation bar */
+  .cap-alloc__track {
+    display: flex;
+    height: 16px;
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-full);
+    background: var(--surface-alt);
+  }
+  .cap-alloc__legend {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+  .cap-alloc__item { display: flex; gap: var(--space-2); align-items: flex-start; }
+  .cap-alloc__swatch { margin-top: 4px; width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+  .cap-alloc__val { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: var(--fw-semi); }
+
+  /* segmented tabs */
+  .cap-tabs { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+  .cap-tab {
+    font-family: var(--font-display);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-semi);
+    padding: 7px 14px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-out);
+  }
+  .cap-tab:hover { background: var(--surface-alt); }
+  .cap-tab.is-active { background: var(--primary-bg); color: var(--text-inverse); border-color: transparent; }
+
+  /* ranked list (leaderboard) */
+  .cap-rank { list-style: none; margin: var(--space-5) 0 0; padding: 0; }
+  .cap-rank__row {
+    display: grid;
+    grid-template-columns: 1.75rem auto 1fr auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+  }
+  .cap-rank__row + .cap-rank__row { border-top: 1px solid var(--border); }
+  .cap-rank__row.is-me {
+    background: var(--primary-soft);
+    margin: 0 calc(var(--space-3) * -1);
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+    border-radius: var(--radius-md);
+  }
+  .cap-rank__n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--text-muted); font-weight: var(--fw-bold); }
+  .cap-rank__who { min-width: 0; }
+  .cap-rank__name { font-family: var(--font-display); font-weight: var(--fw-bold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cap-rank__val { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: var(--fw-semi); }
+
+  /* generic helpers reused across pages */
+  .cap-section-title { margin-bottom: var(--space-4); }
+  .cap-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+  .cap-muted { color: var(--text-muted); }
+  .cap-stack > * + * { margin-top: var(--space-4); }
+
+  @media (min-width: 640px) {
+    .cap-page { padding-top: var(--space-12); }
+    .cap-quick { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .cap-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (min-width: 1024px) {
+    .cap-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 639px) {
+    .cap-send { grid-template-columns: 1fr; }
+    .cap-trade { grid-template-columns: 1fr 1fr; }
+    .cap-outcome { grid-template-columns: 1fr auto; }
+    .cap-outcome__stake { grid-column: 1 / -1; }
+  }
+}

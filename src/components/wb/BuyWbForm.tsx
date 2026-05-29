@@ -4,10 +4,9 @@ import { useRef, useState } from "react";
 import { ConfirmSheet } from "@/components/ConfirmSheet";
 
 /**
- * Client-side wrapper around the Buy WB form. The actual submission still
- * posts to /api/wb/buy (which redirects to Stripe). We intercept submit on
- * amounts above $10 to show a branded ConfirmSheet so a misclicked $100
- * doesn't immediately launch Stripe checkout.
+ * Client-side wrapper around the Buy WB form. Submission posts to /api/wb/buy
+ * (which redirects to Stripe). Amounts above $10 show a ConfirmSheet first.
+ * Styled with the Capital design system.
  */
 export function BuyWbForm() {
   const [amount, setAmount] = useState("10");
@@ -31,18 +30,11 @@ export function BuyWbForm() {
 
   return (
     <>
-      <form
-        ref={formRef}
-        action="/api/wb/buy"
-        method="POST"
-        onSubmit={onSubmit}
-        className="mt-5 flex flex-wrap items-stretch gap-3"
-      >
-        <div className="relative flex-1 min-w-[180px]">
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-display font-bold text-ink/60">
-            $
-          </span>
+      <form ref={formRef} action="/api/wb/buy" method="POST" onSubmit={onSubmit} className="cap-buy cap-mt">
+        <div className="input-group">
+          <span className="addon">$</span>
           <input
+            className="input input-num"
             type="number"
             name="amount"
             min="1"
@@ -52,25 +44,15 @@ export function BuyWbForm() {
             required
             inputMode="decimal"
             aria-label="USD amount"
-            className="w-full rounded-full border-theme border-ink bg-surface px-4 py-3 pl-8 font-display text-lg font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
           />
         </div>
-        <button
-          type="submit"
-          className="tap-press cursor-pointer rounded-full border-theme border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke"
-        >
-          Buy WB
-        </button>
+        <button type="submit" className="btn btn-primary">Buy WB</button>
         {wbAmount != null && (
-          <p className="basis-full text-xs font-medium text-ink/60">
+          <p className="text-body-sm cap-buy__hint">
             You&rsquo;ll get{" "}
-            <span className="font-display font-black text-ink">
-              $
-              {wbAmount.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>{" "}
+            <strong>
+              ${wbAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </strong>{" "}
             in Whoosh Bucks.
           </p>
         )}
@@ -80,24 +62,13 @@ export function BuyWbForm() {
         open={confirming}
         title={`Buy $${Number(amount).toFixed(2)} of Whoosh Bucks?`}
         body={
-          <>
-            <p>
-              You&rsquo;ll be sent to Stripe to pay{" "}
-              <strong className="font-display font-black text-ink">
-                ${Number(amount).toFixed(2)} USD
-              </strong>{" "}
-              and receive{" "}
-              <strong className="font-display font-black text-ink">
-                $
-                {(Number(amount) * 10).toLocaleString("en-US", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}{" "}
-                WB
-              </strong>{" "}
-              once the charge clears.
-            </p>
-          </>
+          <p>
+            You&rsquo;ll be sent to Stripe to pay <strong>${Number(amount).toFixed(2)} USD</strong> and receive{" "}
+            <strong>
+              ${(Number(amount) * 10).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} WB
+            </strong>{" "}
+            once the charge clears.
+          </p>
         }
         confirmLabel="Continue to Stripe"
         onCancel={() => setConfirming(false)}
