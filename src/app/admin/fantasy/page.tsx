@@ -1,29 +1,19 @@
 import { listAllLeagues } from "@/lib/fantasy/leagues";
 import { getNflState } from "@/lib/sleeper/client";
-import { supabase } from "@/lib/supabase";
 import {
   addLeagueAction,
   updateLeagueAction,
   toggleLeagueAction,
   removeLeagueAction,
-  refreshPlayersAction,
   syncFantasyAction,
 } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-async function getPlayerCacheSize(): Promise<number> {
-  const { count } = await supabase()
-    .from("sleeper_player")
-    .select("player_id", { count: "exact", head: true });
-  return count ?? 0;
-}
-
 export default async function AdminFantasyPage() {
-  const [leagues, state, playerCount] = await Promise.all([
+  const [leagues, state] = await Promise.all([
     listAllLeagues(),
     getNflState().catch(() => null),
-    getPlayerCacheSize().catch(() => 0),
   ]);
 
   return (
@@ -39,14 +29,6 @@ export default async function AdminFantasyPage() {
 
       {/* Maintenance actions */}
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <form action={refreshPlayersAction}>
-          <button
-            type="submit"
-            className="rounded-full border-2 border-ink bg-white-smoke px-4 py-2 text-sm font-bold hover:bg-ink hover:text-white-smoke"
-          >
-            Refresh player cache ({playerCount.toLocaleString()})
-          </button>
-        </form>
         <form action={syncFantasyAction}>
           <button
             type="submit"

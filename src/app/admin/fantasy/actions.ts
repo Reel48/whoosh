@@ -7,7 +7,6 @@ import { supabase } from "@/lib/supabase";
 import { getLeague, getNflState } from "@/lib/sleeper/client";
 import { listActiveLeagues } from "@/lib/fantasy/leagues";
 import { currentScoringWeek } from "@/lib/fantasy/format";
-import { refreshPlayers } from "@/lib/sleeper/players";
 import { ensureMatchupEvents, settleFinishedWeeks } from "@/lib/fantasy/wagers";
 
 async function requireAdmin(): Promise<string> {
@@ -89,13 +88,6 @@ export async function removeLeagueAction(formData: FormData): Promise<void> {
     .delete()
     .eq("sleeper_league_id", sleeperLeagueId);
   if (error) throw new Error(`Could not remove league: ${error.message}`);
-  refresh();
-}
-
-/** Manually refresh the cached Sleeper player index (otherwise daily cron). */
-export async function refreshPlayersAction(): Promise<void> {
-  await requireAdmin();
-  await refreshPlayers();
   refresh();
 }
 

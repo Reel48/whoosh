@@ -68,20 +68,3 @@ export type SleeperUser = {
   display_name: string;
   avatar: string | null;
 };
-
-export type SleeperTrending = {
-  player_id: string;
-  count: number;
-};
-
-/** Raw player record from /players/nfl (huge map keyed by player_id). */
-export type SleeperPlayerRaw = {
-  player_id?: string;
-  full_name?: string;
-  first_name?: string;
-  last_name?: string;
-  position?: string | null;
-  team?: string | null;
-  status?: string | null;
-  /** "DEF" entries are team defenses; position is set to "DEF". */
-};

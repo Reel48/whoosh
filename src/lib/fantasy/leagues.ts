@@ -5,7 +5,6 @@ import {
   getRosters,
   avatarThumbUrl,
 } from "@/lib/sleeper/client";
-import { getPlayers, type PlayerInfo } from "@/lib/sleeper/players";
 import type { SleeperLeagueUser, SleeperRoster } from "@/lib/sleeper/types";
 
 /** A curated Whoosh league row from `fantasy_league`. */
@@ -147,43 +146,4 @@ export async function getLeagueOverview(sleeperLeagueId: string): Promise<League
     totalRosters: league?.total_rosters ?? rosters.length,
     standings: buildStandings(rosters, byUser),
   };
-}
-
-export type RosterDetail = {
-  rosterId: number;
-  teamName: string;
-  starters: PlayerInfo[];
-  bench: PlayerInfo[];
-};
-
-/**
- * Per-roster starters + bench with player names resolved from the cached
- * Sleeper player index. One getPlayers() call covers every roster.
- */
-export async function getLeagueRosterDetail(sleeperLeagueId: string): Promise<RosterDetail[]> {
-  const [rosters, users] = await Promise.all([
-    getRosters(sleeperLeagueId).catch(() => []),
-    getLeagueUsers(sleeperLeagueId).catch(() => []),
-  ]);
-  const byUser = usersById(users);
-
-  const allIds = rosters.flatMap((r) => r.players ?? []);
-  const players = await getPlayers(allIds);
-  const resolve = (id: string): PlayerInfo =>
-    players.get(id) ?? { playerId: id, fullName: id, position: null, team: null };
-
-  return rosters
-    .map((r) => {
-      const user = r.owner_id ? byUser.get(r.owner_id) : undefined;
-      const starters = (r.starters ?? []).filter(Boolean).map(resolve);
-      const starterSet = new Set(r.starters ?? []);
-      const bench = (r.players ?? []).filter((id) => !starterSet.has(id)).map(resolve);
-      return {
-        rosterId: r.roster_id,
-        teamName: teamNameFor(user, r.roster_id),
-        starters,
-        bench,
-      };
-    })
-    .sort((a, b) => a.teamName.localeCompare(b.teamName));
 }

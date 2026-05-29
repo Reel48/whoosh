@@ -3,10 +3,10 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getNflState } from "@/lib/sleeper/client";
 import { listActiveLeagues, getLeagueOverview, type LeagueOverview } from "@/lib/fantasy/leagues";
+import { getCrossLeagueScoreboard } from "@/lib/fantasy/rankings";
 import { getLink } from "@/lib/fantasy/link";
-import { getTrendingWithNames } from "@/lib/fantasy/trending";
 import { LeagueCard } from "@/components/fantasy/LeagueCard";
-import { TrendingPlayers } from "@/components/fantasy/TrendingPlayers";
+import { CrossLeagueTable } from "@/components/fantasy/CrossLeagueTable";
 import { LinkSleeperForm } from "@/components/fantasy/LinkSleeperForm";
 import { weekLabel } from "@/lib/fantasy/format";
 
@@ -31,12 +31,11 @@ export default async function FantasyHome({
           ? { tone: "warning", text: sp.fmsg || "Could not link that account." }
           : null;
 
-  const [state, leagueConfigs, link, trendingAdd, trendingDrop] = await Promise.all([
+  const [state, leagueConfigs, link, board] = await Promise.all([
     getNflState().catch(() => null),
     listActiveLeagues(),
     getLink(session.id).catch(() => null),
-    getTrendingWithNames("add", 8),
-    getTrendingWithNames("drop", 8),
+    getCrossLeagueScoreboard().catch(() => ({ rows: [], leagues: [] })),
   ]);
 
   const overviews = (
@@ -64,19 +63,18 @@ export default async function FantasyHome({
         </div>
       )}
 
-      {/* Link prompt */}
-      {!link && (
+      {/* Link prompt / status */}
+      {!link ? (
         <section className="card ftb-mt-lg">
           <h2 className="text-h3">Link your Sleeper account</h2>
           <p className="text-body-sm ftb-mt-1">
-            Connect your Sleeper username to highlight your team across standings and matchups.
+            Connect your Sleeper username to highlight your team in the standings and power rankings.
           </p>
           <div className="ftb-mt">
             <LinkSleeperForm />
           </div>
         </section>
-      )}
-      {link && (
+      ) : (
         <div className="ftb-mt flex flex-wrap items-center gap-3">
           <span className="text-body-sm">
             Linked as <strong>@{link.sleeperUsername}</strong>
@@ -91,10 +89,10 @@ export default async function FantasyHome({
         </div>
       )}
 
-      {/* Leagues */}
+      {/* Who's leading */}
       <section className="ftb-mt-lg">
         <div className="ftb-card-head">
-          <h2 className="text-h2">Whoosh leagues</h2>
+          <h2 className="text-h2">Who&apos;s leading</h2>
           <Link href="/fantasy/leagues" className="ftb-link">
             All leagues →
           </Link>
@@ -112,19 +110,27 @@ export default async function FantasyHome({
         )}
       </section>
 
-      {/* Trending */}
-      <section className="ftb-mt-lg">
-        <div className="ftb-card-head">
-          <h2 className="text-h2">Trending players</h2>
-          <Link href="/fantasy/players" className="ftb-link">
-            Players →
-          </Link>
-        </div>
-        <div className="ftb-cols ftb-mt">
-          <TrendingPlayers title="Most added" rows={trendingAdd} tone="add" />
-          <TrendingPlayers title="Most dropped" rows={trendingDrop} tone="drop" />
-        </div>
-      </section>
+      {/* Cross-league power rankings preview */}
+      {board.rows.length > 0 && (
+        <section className="ftb-mt-lg">
+          <div className="ftb-card-head">
+            <h2 className="text-h2">Power rankings</h2>
+            <Link href="/fantasy/rankings" className="ftb-link">
+              Full rankings →
+            </Link>
+          </div>
+          <p className="text-body-sm ftb-mt-1">
+            Every team across all Whoosh leagues, ranked by a blend of record and points scored.
+          </p>
+          <div className="ftb-mt">
+            <CrossLeagueTable
+              rows={board.rows.slice(0, 5)}
+              mineSleeperUserId={link?.sleeperUserId}
+              compact
+            />
+          </div>
+        </section>
+      )}
     </main>
   );
 }

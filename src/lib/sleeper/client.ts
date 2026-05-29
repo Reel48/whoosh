@@ -4,7 +4,6 @@ import type {
   SleeperLeagueUser,
   SleeperMatchup,
   SleeperRoster,
-  SleeperTrending,
   SleeperUser,
 } from "./types";
 
@@ -25,7 +24,6 @@ export const SLEEPER_TTL = {
   rosters: 300,
   users: 300,
   matchups: 90,
-  trending: 600,
   user: 3600,
 } as const;
 
@@ -71,18 +69,6 @@ export async function getLeagueUsers(leagueId: string): Promise<SleeperLeagueUse
 
 export async function getMatchups(leagueId: string, week: number): Promise<SleeperMatchup[]> {
   return (await sleeperFetch<SleeperMatchup[]>(`/league/${leagueId}/matchups/${week}`, SLEEPER_TTL.matchups)) ?? [];
-}
-
-export async function getTrending(
-  type: "add" | "drop",
-  limit = 15,
-): Promise<SleeperTrending[]> {
-  return (
-    (await sleeperFetch<SleeperTrending[]>(
-      `/players/nfl/trending/${type}?lookback_hours=24&limit=${limit}`,
-      SLEEPER_TTL.trending,
-    )) ?? []
-  );
 }
 
 /** Resolve a Sleeper username (or user_id) to the user object. */

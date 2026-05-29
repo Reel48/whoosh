@@ -2,22 +2,20 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getNflState } from "@/lib/sleeper/client";
-import { getLeagueOverview, getLeagueRosterDetail } from "@/lib/fantasy/leagues";
+import { getLeagueOverview } from "@/lib/fantasy/leagues";
 import { getWeekMatchups } from "@/lib/fantasy/matchups";
 import { getLink } from "@/lib/fantasy/link";
 import { currentScoringWeek, weekLabel } from "@/lib/fantasy/format";
 import { StandingsTable } from "@/components/fantasy/StandingsTable";
 import { MatchupCard } from "@/components/fantasy/MatchupCard";
-import { RosterList } from "@/components/fantasy/RosterList";
 import { TeamAvatar } from "@/components/fantasy/TeamAvatar";
 
 export const dynamic = "force-dynamic";
 
-type View = "standings" | "matchups" | "rosters";
+type View = "standings" | "matchups";
 const VIEWS: { key: View; label: string }[] = [
   { key: "standings", label: "Standings" },
   { key: "matchups", label: "Matchups" },
-  { key: "rosters", label: "Rosters" },
 ];
 
 export default async function LeagueDetailPage({
@@ -47,12 +45,10 @@ export default async function LeagueDetailPage({
       : null;
   const week = currentScoringWeek(state);
 
-  const [matchups, rosters] = await Promise.all([
+  const matchups =
     view === "matchups"
-      ? getWeekMatchups(leagueId, week, link?.sleeperUserId).catch(() => [])
-      : Promise.resolve([]),
-    view === "rosters" ? getLeagueRosterDetail(leagueId).catch(() => []) : Promise.resolve([]),
-  ]);
+      ? await getWeekMatchups(leagueId, week, link?.sleeperUserId).catch(() => [])
+      : [];
 
   return (
     <main className="ftb-page ftb-page--wide">
@@ -94,20 +90,6 @@ export default async function LeagueDetailPage({
             <div className="ftb-stack">
               {matchups.map((m, i) => (
                 <MatchupCard key={m.matchupId ?? `bye-${i}`} matchup={m} />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {view === "rosters" && (
-        <section className="ftb-mt-lg">
-          {rosters.length === 0 ? (
-            <div className="card ftb-empty">No roster data available.</div>
-          ) : (
-            <div className="ftb-cols">
-              {rosters.map((r) => (
-                <RosterList key={r.rosterId} roster={r} />
               ))}
             </div>
           )}

@@ -2,9 +2,14 @@ import Link from "next/link";
 import type { LeagueOverview } from "@/lib/fantasy/leagues";
 import { TeamAvatar } from "./TeamAvatar";
 
+function fmtPts(n: number): string {
+  return n.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
+
 /**
- * League summary card for the Overview / Leagues grid. Shows the league name,
- * team count, and the linked member's standing line if they're in it.
+ * League summary card for the Overview / Leagues grid. Leads with who's winning
+ * (leader team, record, points) and adds the linked member's standing line when
+ * they're in the league.
  */
 export function LeagueCard({
   overview,
@@ -13,6 +18,7 @@ export function LeagueCard({
   overview: LeagueOverview;
   mineRosterId?: number | null;
 }) {
+  const leader = overview.standings[0];
   const mine =
     mineRosterId != null ? overview.standings.find((s) => s.rosterId === mineRosterId) : undefined;
   const mineRank =
@@ -31,20 +37,34 @@ export function LeagueCard({
           </div>
         </div>
 
-        {mine && mineRank ? (
-          <div className="ftb-mt-sm flex items-center justify-between">
-            <span className="you-chip">Your team</span>
-            <span className="text-body-sm">
-              #{mineRank} · {mine.wins}-{mine.losses}
-              {mine.ties > 0 ? `-${mine.ties}` : ""}
-            </span>
+        {leader ? (
+          <div className="ftb-mt-sm">
+            <p className="text-eyebrow">Leader</p>
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <span className="flex min-w-0 items-center gap-2">
+                <TeamAvatar url={leader.avatarUrl} name={leader.teamName} size={24} />
+                <span className="truncate font-display font-semibold uppercase tracking-tight">
+                  {leader.teamName}
+                </span>
+              </span>
+              <span className="num text-body-sm shrink-0">
+                {leader.wins}-{leader.losses}
+                {leader.ties > 0 ? `-${leader.ties}` : ""} · {fmtPts(leader.pointsFor)} PF
+              </span>
+            </div>
           </div>
         ) : (
-          <p className="text-body-sm ftb-mt-sm">
-            {overview.standings[0]
-              ? `Leader: ${overview.standings[0].teamName}`
-              : "Season hasn't started."}
-          </p>
+          <p className="text-body-sm ftb-mt-sm">Season hasn&apos;t started.</p>
+        )}
+
+        {mine && mineRank && (
+          <div className="ftb-mt-sm flex items-center justify-between">
+            <span className="you-chip">Your team</span>
+            <span className="num text-body-sm">
+              #{mineRank} · {mine.wins}-{mine.losses}
+              {mine.ties > 0 ? `-${mine.ties}` : ""} · {fmtPts(mine.pointsFor)} PF
+            </span>
+          </div>
         )}
 
         <span className="ftb-link ftb-mt-sm inline-block">View league →</span>

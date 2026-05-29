@@ -22,10 +22,6 @@
       "schedule": "0 12 * * *"
     },
     {
-      "path": "/api/cron/sleeper-players",
-      "schedule": "0 9 * * *"
-    },
-    {
       "path": "/api/cron/fantasy-sync",
       "schedule": "0 */6 * * *"
     }

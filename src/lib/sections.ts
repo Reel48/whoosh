@@ -22,7 +22,7 @@ export type IconKey =
   | "overview"
   | "leagues"
   | "matchups"
-  | "players";
+  | "rankings";
 
 export type NavItem = {
   href: string;
@@ -81,13 +81,13 @@ export const SECTIONS: Record<SectionKey, Section> = {
     nav: [
       { href: "/fantasy", label: "Overview" },
       { href: "/fantasy/leagues", label: "Leagues" },
+      { href: "/fantasy/rankings", label: "Rankings" },
       { href: "/fantasy/matchups", label: "Matchups" },
-      { href: "/fantasy/players", label: "Players" },
     ],
     tabs: [
       { href: "/fantasy/leagues", label: "Leagues", icon: "leagues" },
+      { href: "/fantasy/rankings", label: "Rankings", icon: "rankings" },
       { href: "/fantasy/matchups", label: "Matchups", icon: "matchups" },
-      { href: "/fantasy/players", label: "Players", icon: "players" },
     ],
     live: true,
   },
