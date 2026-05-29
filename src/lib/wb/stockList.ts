@@ -83,26 +83,50 @@ export const POPULAR_STOCKS: StockSuggestion[] = [
 ];
 
 /**
- * Search the popular list for tickers matching `q` by symbol prefix or
- * substring in the company name. Returns at most `limit` results, ranked:
- * exact symbol match → symbol prefix → name word prefix → name contains.
+ * Default "Popular" suggestions shown when the search box is focused but empty.
+ * Stocks only — crypto stays discoverable by typing, not surfaced by default.
+ */
+export const POPULAR_DEFAULT: StockSuggestion[] = [
+  { symbol: "AAPL", name: "Apple" },
+  { symbol: "NVDA", name: "NVIDIA" },
+  { symbol: "TSLA", name: "Tesla" },
+  { symbol: "AMZN", name: "Amazon" },
+  { symbol: "MSFT", name: "Microsoft" },
+  { symbol: "META", name: "Meta Platforms" },
+  { symbol: "GOOGL", name: "Alphabet (Google)" },
+  { symbol: "SPY", name: "S&P 500 ETF" },
+];
+
+/**
+ * Relevance score for a candidate against a query. Higher is better; 0 = no
+ * match. Shared by the curated list, crypto, and live (Finnhub) results so
+ * everything ranks consistently:
+ *   exact symbol → symbol prefix → name prefix → name-word prefix →
+ *   symbol contains → name contains.
+ */
+export function scoreSuggestion(q: string, symbol: string, name: string): number {
+  const needle = q.trim().toUpperCase();
+  if (!needle) return 0;
+  const sym = symbol.toUpperCase();
+  const nm = name.toUpperCase();
+  if (sym === needle) return 100;
+  if (sym.startsWith(needle)) return 90 - sym.length;
+  if (nm.startsWith(needle)) return 70 - Math.min(nm.length, 40);
+  if (nm.split(/[\s.&-]+/).some((w) => w.startsWith(needle))) return 60;
+  if (sym.includes(needle)) return 40;
+  if (nm.includes(needle)) return 30;
+  return 0;
+}
+
+/**
+ * Search the curated popular list. Returns at most `limit` results, ranked by
+ * {@link scoreSuggestion}.
  */
 export function searchStocks(q: string, limit = 8): StockSuggestion[] {
-  const needle = q.trim().toUpperCase();
-  if (!needle) return [];
-
-  type Scored = StockSuggestion & { score: number };
-  const scored: Scored[] = [];
+  if (!q.trim()) return [];
+  const scored: (StockSuggestion & { score: number })[] = [];
   for (const s of POPULAR_STOCKS) {
-    const sym = s.symbol.toUpperCase();
-    const name = s.name.toUpperCase();
-    let score = 0;
-    if (sym === needle) score = 100;
-    else if (sym.startsWith(needle)) score = 90 - sym.length;
-    else if (name.startsWith(needle)) score = 70 - name.length;
-    else if (name.split(/[\s.&-]+/).some((w) => w.startsWith(needle))) score = 60;
-    else if (sym.includes(needle)) score = 40;
-    else if (name.includes(needle)) score = 30;
+    const score = scoreSuggestion(q, s.symbol, s.name);
     if (score > 0) scored.push({ ...s, score });
   }
   scored.sort((a, b) => b.score - a.score);
