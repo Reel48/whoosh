@@ -121,9 +121,7 @@ export default async function WalletPage({
                 ? { tone: "warn", text: sp.error }
                 : null;
 
-  const apyHint = rate
-    ? `Earning ${(rate.apyBps / 100).toFixed(2)}% APY · ${rate.source.startsWith("fred") ? "SPAXX-tied" : rate.source}`
-    : undefined;
+  const apyHint = rate ? `${(rate.apyBps / 100).toFixed(2)}% APY` : undefined;
 
   const lifetime: { label: string; cents: number; signed?: boolean }[] = [
     { label: "Money in (purchases)", cents: returns.realDollarsInCents },
@@ -156,9 +154,9 @@ export default async function WalletPage({
           </div>
         </div>
         <div className="kpi">
-          <div className="kpi__label">Cash · earning yield</div>
+          <div className="kpi__label">Cash</div>
           <div className="kpi__value">{formatMoney(allocation.cashCents)}</div>
-          <div className="kpi__delta">{apyHint ?? "SPAXX-tied yield"}</div>
+          <div className="kpi__delta">{apyHint ?? "—"}</div>
         </div>
         <div className="kpi">
           <div className="kpi__label">Invested</div>
