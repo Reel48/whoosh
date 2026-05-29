@@ -100,7 +100,8 @@ export default async function MyBetsPage({
           )}
         </div>
       ) : (
-        <table className="tbl cap-mt-lg">
+        <div className="cap-tbl-scroll cap-mt-lg">
+        <table className="tbl">
           <thead>
             <tr>
               <th>Bet</th>
@@ -144,6 +145,7 @@ export default async function MyBetsPage({
             })}
           </tbody>
         </table>
+        </div>
       )}
 
       <Disclaimer />
