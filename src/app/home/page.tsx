@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { isPremium } from "@/lib/membership";
+import { findSubscriptionForDiscordUser } from "@/lib/stripe";
 import { Nav } from "@/components/Nav";
 import { Disclaimer } from "@/components/Disclaimer";
 import { Avatar } from "@/components/Avatar";
@@ -78,6 +79,7 @@ export default async function MemberHome() {
     biggestWins,
     referral,
     earned,
+    sub,
   ] = await Promise.all([
     loadDashboard(session.id),
     getRecentLedger(session.id, 5),
@@ -88,7 +90,13 @@ export default async function MemberHome() {
     getBiggestWinsLeaderboard(3, 7).catch(() => []),
     getReferralStats(session.id).catch(() => null),
     listEarned(session.id).catch(() => []),
+    findSubscriptionForDiscordUser(session.id).catch(() => null),
   ]);
+
+  // Legacy members hold the Discord Premium role from the old payment
+  // processor but have no Stripe subscription yet. They reach /home via the
+  // role, but nothing here points them at checkout — surface a prompt.
+  const needsCheckout = !(sub?.status === "active" || sub?.status === "trialing");
 
   const earnedSet = new Set(earned.map((e) => e.code));
   const watchlist = await Promise.all(
@@ -129,6 +137,25 @@ export default async function MemberHome() {
             </span>
           )}
         </div>
+
+        {/* Legacy-member upgrade prompt — only when there's no active Stripe sub */}
+        {needsCheckout && (
+          <Link
+            href="/?plans=1#plans"
+            className="tap-press mt-6 flex items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-safety-orange p-5 text-ink sm:p-6"
+          >
+            <div className="min-w-0">
+              <p className="font-heading text-lg font-bold">Finish setting up Premium</p>
+              <p className="mt-1 text-sm font-medium text-ink/70">
+                Move your membership onto the new billing to keep your role and
+                start earning Whoosh Bucks on every renewal.
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full border-2 border-ink bg-ink px-4 py-2 text-sm font-bold text-white-smoke">
+              See plans →
+            </span>
+          </Link>
+        )}
 
         {/* 2. Total equity hero */}
         <Link
