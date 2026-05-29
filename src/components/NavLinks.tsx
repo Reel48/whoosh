@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 // Marketing-only nav links. The signed-in app navigates via AppShell
-// (SectionSwitcher + section sub-nav), not this component.
+// (the /home hub + per-section sub-nav), not this component.
 const MARKETING_LINKS = [
   { href: "/#channels", label: "Channels" },
   { href: "/#bucks", label: "Whoosh Bucks" },
