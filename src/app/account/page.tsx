@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { hasPremiumRole, addPremiumRole } from "@/lib/discord";
 import { findSubscriptionForDiscordUser } from "@/lib/stripe";
@@ -224,12 +225,12 @@ export default async function AccountPage() {
                 </button>
               </form>
             ) : (
-              <a
-                href="/#plans"
+              <Link
+                href="/?plans=1#plans"
                 className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
               >
                 <Bolt className="h-4 w-4" /> See the plans
-              </a>
+              </Link>
             )}
             <a
               href="https://discord.gg/zzP8nFFzQt"

@@ -146,11 +146,20 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   </span>
 );
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ plans?: string }>;
+}) {
   const session = await getSession();
+  const sp = await searchParams;
   // Premium members get bounced to their app dashboard. Anon + signed-in-but-
   // not-premium continue to see the marketing site so they can convert.
-  if (session && (await isPremium(session.id))) {
+  // `?plans` is an explicit escape hatch: a user who holds the Discord Premium
+  // role without an active Stripe subscription is still "premium" here, so
+  // without this they'd be redirected away from the only page that sells a
+  // subscription — trapping them with no way to actually pay.
+  if (!sp.plans && session && (await isPremium(session.id))) {
     redirect("/home");
   }
   const [inServer, onlineCount, holders, traders, wins, streaks] = await Promise.all([
