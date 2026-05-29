@@ -66,14 +66,24 @@ export function StockPriceChart({ candles, refLineCents, refLineLabel }: Props) 
     { i: candles.length - 1, label: formatDate(last.time) },
   ];
 
+  const endX = x(candles.length - 1);
+  const endY = y(last.closeCents);
+
   return (
     <div className="cap-mt" style={{ width: "100%" }}>
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        style={{ display: "block", width: "100%", height: "auto" }}
+        style={{ display: "block", width: "100%", height: "auto", color: lineColor }}
         role="img"
         aria-label={`Price chart from ${formatDate(first.time)} to ${formatDate(last.time)}`}
       >
+        <defs>
+          <linearGradient id="stockchart-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="currentColor" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
         {ticks.map((t, i) => (
           <line key={`grid-${i}`} className="chart-grid" x1={PAD_LEFT} x2={W - PAD_RIGHT} y1={t.yPx} y2={t.yPx} />
         ))}
@@ -97,9 +107,19 @@ export function StockPriceChart({ candles, refLineCents, refLineLabel }: Props) 
           </>
         )}
 
-        <path d={areaD} fill={lineColor} opacity="0.12" />
-        <path d={pathD} fill="none" stroke={lineColor} strokeWidth="2.5" />
-        <circle cx={x(candles.length - 1)} cy={y(last.closeCents)} r="4" fill={lineColor} />
+        <path d={areaD} fill="url(#stockchart-fill)" />
+        <path
+          d={pathD}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+
+        {/* current-price marker with halo */}
+        <circle cx={endX} cy={endY} r="9" fill="currentColor" opacity="0.16" />
+        <circle cx={endX} cy={endY} r="4" fill="currentColor" stroke="var(--surface)" strokeWidth="2" />
 
         {ticks.map((t, i) => (
           <text key={`yt-${i}`} className="chart-axis-label" x={W - PAD_RIGHT + 8} y={t.yPx + 4}>
