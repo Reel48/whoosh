@@ -1,6 +1,8 @@
 import { cache } from "react";
+import { redirect } from "next/navigation";
 import { hasPremiumRole } from "@/lib/discord";
 import { findSubscriptionForDiscordUser } from "@/lib/stripe";
+import { getSession, type Session } from "@/lib/session";
 
 /**
  * Single source of truth for "is this user a Whoosh Premium member?"
@@ -29,3 +31,18 @@ async function _isPremium(userId: string): Promise<boolean> {
 }
 
 export const isPremium = cache(_isPremium);
+
+/**
+ * Gate for signed-in app sections. Returns the session for a premium member,
+ * or redirects to the marketing landing (which itself bounces premium users
+ * back to /home, so anon + non-premium land on the page that sells a sub).
+ *
+ * Used once per section `layout.tsx` so the page bodies don't each repeat the
+ * getSession + isPremium + redirect dance.
+ */
+export async function requirePremiumSession(): Promise<Session> {
+  const session = await getSession();
+  if (!session) redirect("/");
+  if (!(await isPremium(session.id))) redirect("/");
+  return session;
+}

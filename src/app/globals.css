@@ -3,6 +3,7 @@
 :root {
   /* Whoosh palette — vibrant color-block system, black holds it together */
   --ink: #000000;
+  --white: #ffffff;
   --white-smoke: #f3f3f0;
   --cream: #d5d4ce;
   --lime: #cef932;
@@ -16,10 +17,56 @@
 
   --background: var(--white-smoke);
   --foreground: var(--ink);
+
+  /* ---------------------------------------------------------------------
+   * Per-section STRUCTURAL design tokens (NOT color — colors are shared
+   * globally). Defaults below reproduce today's Whoosh color-block look,
+   * so the marketing page and anything outside a [data-theme] scope is
+   * unchanged. Each signed-in section overrides these to get its own feel.
+   * ------------------------------------------------------------------- */
+  --font-display: var(--font-body); /* heading / display typeface */
+  --font-ui: var(--font-body); /* body / UI typeface */
+  --theme-border-width: 2px; /* current hard 2px borders */
+  --theme-radius: 1.5rem; /* current rounded-3xl feel */
+  --theme-card-shadow: none; /* current look leans on borders, not shadows */
+  /* Neutral card/surface color. Both values are in the shared palette — this
+   * just lets a section compose with one or the other. Default = today's
+   * off-white so the marketing page is unchanged; Capital uses pure white. */
+  --theme-surface: var(--white-smoke);
+}
+
+/* Capital — clean, precise finance: white surfaces, hairline borders, soft
+ * shadows, tighter radius, a neutral grotesk display with tabular numerals. */
+[data-theme="capital"] {
+  --font-display: var(--font-capital);
+  --font-ui: var(--font-body);
+  --theme-border-width: 1px;
+  --theme-radius: 0.75rem;
+  --theme-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --theme-surface: var(--white);
+}
+
+/* Fantasy Football — bold, sporty: condensed display, chunky radius. */
+[data-theme="fantasy"] {
+  --font-display: var(--font-fantasy);
+  --font-ui: var(--font-body);
+  --theme-border-width: 2px;
+  --theme-radius: 1rem;
+  --theme-card-shadow: 0 2px 0 rgba(0, 0, 0, 0.9);
+}
+
+/* Pool — soft, calm, aquatic: rounded display, generous radius, soft shadow. */
+[data-theme="pool"] {
+  --font-display: var(--font-pool);
+  --font-ui: var(--font-body);
+  --theme-border-width: 1px;
+  --theme-radius: 1.75rem;
+  --theme-card-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 @theme inline {
   --color-ink: var(--ink);
+  --color-white: var(--white);
   --color-white-smoke: var(--white-smoke);
   --color-cream: var(--cream);
   --color-lime: var(--lime);
@@ -37,6 +84,29 @@
   --font-sans: var(--font-body);
   --font-heading: var(--font-heading);
   --font-body: var(--font-body);
+  /* Section-aware typefaces — resolve to whatever the active [data-theme]
+   * scope sets, defaulting to the body font outside any section. */
+  --font-display: var(--font-display);
+  --font-ui: var(--font-ui);
+  /* Section-aware neutral surface (see --theme-surface). */
+  --color-surface: var(--theme-surface);
+}
+
+/* Theme-aware STRUCTURAL utilities. These read the per-section tokens above,
+ * so the same class renders differently depending on the [data-theme] scope
+ * it sits inside — without ever touching color. Pair them with the shared
+ * color utilities (bg-white, text-ink, border-ink/10, …). */
+@layer utilities {
+  .rounded-theme {
+    border-radius: var(--theme-radius);
+  }
+  .border-theme {
+    border-style: solid;
+    border-width: var(--theme-border-width);
+  }
+  .shadow-theme {
+    box-shadow: var(--theme-card-shadow);
+  }
 }
 
 body {

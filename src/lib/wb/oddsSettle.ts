@@ -114,7 +114,7 @@ async function notifyEventSettled(
       kind: "bet_settled",
       title: "Bet settled",
       body: `${matchup} (${marketLabel}) — you ${result}.`,
-      href: "/events",
+      href: "/capital/events",
       metadata: { event_id: eventId },
     });
   }

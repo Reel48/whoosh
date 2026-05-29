@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { ensureWallet, queryLedger, type LedgerKind } from "@/lib/wb/ledger";
-import { Nav } from "@/components/Nav";
 import { Disclaimer } from "@/components/Disclaimer";
 import { formatWb } from "@/lib/wb/format";
 
@@ -53,7 +52,7 @@ export default async function ActivityPage({
   searchParams: Promise<{ group?: string; since?: string; until?: string }>;
 }) {
   const session = await getSession();
-  if (!session) redirect("/api/auth/discord?next=/wallet/activity");
+  if (!session) redirect("/api/auth/discord?next=/capital/wallet/activity");
   await ensureWallet(session.id, session.username);
   const sp = await searchParams;
 
@@ -78,12 +77,11 @@ export default async function ActivityPage({
 
   return (
     <>
-      <Nav />
       <main className="mx-auto w-full max-w-4xl px-6 py-16 sm:py-24">
-        <Link href="/wallet" className="text-xs font-bold text-ink/60 underline-offset-2 hover:underline">
+        <Link href="/capital/wallet" className="text-xs font-bold text-ink/60 underline-offset-2 hover:underline">
           ← Back to wallet
         </Link>
-        <h1 className="mt-2 font-heading text-4xl font-black tracking-tight sm:text-5xl">
+        <h1 className="mt-2 font-display text-4xl font-black tracking-tight sm:text-5xl">
           Activity
         </h1>
         <p className="mt-2 text-sm text-ink/70">
@@ -92,7 +90,7 @@ export default async function ActivityPage({
 
         {/* Filter chips */}
         <div className="mt-6 flex flex-wrap gap-1.5">
-          <FilterChip href="/wallet/activity" label="All" active={!group} />
+          <FilterChip href="/capital/wallet/activity" label="All" active={!group} />
           {KIND_GROUPS.map((g) => {
             const params = new URLSearchParams();
             params.set("group", g.label);
@@ -101,7 +99,7 @@ export default async function ActivityPage({
             return (
               <FilterChip
                 key={g.label}
-                href={`/wallet/activity?${params.toString()}`}
+                href={`/capital/wallet/activity?${params.toString()}`}
                 label={g.label}
                 active={activeGroupLabel === g.label}
               />
@@ -111,7 +109,7 @@ export default async function ActivityPage({
 
         {/* Date range */}
         <form
-          action="/wallet/activity"
+          action="/capital/wallet/activity"
           method="GET"
           className="mt-4 grid gap-3 sm:flex sm:flex-wrap sm:items-end"
         >
@@ -122,7 +120,7 @@ export default async function ActivityPage({
               type="date"
               name="since"
               defaultValue={sp.since ?? ""}
-              className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink sm:w-auto"
+              className="w-full rounded-full border-theme border-ink bg-surface px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink sm:w-auto"
             />
           </label>
           <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-ink/60 sm:flex-row sm:items-center sm:gap-2">
@@ -131,19 +129,19 @@ export default async function ActivityPage({
               type="date"
               name="until"
               defaultValue={sp.until ?? ""}
-              className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink sm:w-auto"
+              className="w-full rounded-full border-theme border-ink bg-surface px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink sm:w-auto"
             />
           </label>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
             <button
               type="submit"
-              className="tap-press chip-tap cursor-pointer rounded-full border-2 border-ink bg-ink px-4 text-sm font-bold text-white-smoke"
+              className="tap-press chip-tap cursor-pointer rounded-full border-theme border-ink bg-ink px-4 text-sm font-bold text-white-smoke"
             >
               Apply
             </button>
             <a
               href={csvHref}
-              className="chip-tap tap-press text-center cursor-pointer rounded-full border-2 border-ink bg-white-smoke px-4 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
+              className="chip-tap tap-press text-center cursor-pointer rounded-full border-theme border-ink bg-surface px-4 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
             >
               Export CSV
             </a>
@@ -170,7 +168,7 @@ export default async function ActivityPage({
 
         {/* Table */}
         {entries.length === 0 ? (
-          <p className="mt-10 rounded-3xl border-2 border-ink bg-white-smoke p-8 text-center text-sm text-ink/70">
+          <p className="mt-10 rounded-theme shadow-theme border-theme border-ink bg-surface p-8 text-center text-sm text-ink/70">
             No entries match this filter.
           </p>
         ) : (
@@ -185,7 +183,7 @@ export default async function ActivityPage({
                 >
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-baseline gap-2">
-                      <span className="font-heading font-bold text-ink">
+                      <span className="font-display font-bold text-ink">
                         {KIND_LABEL[e.kind] ?? e.kind}
                       </span>
                       <span className="text-xs text-ink/60">{fmtDate(e.createdAt)}</span>
@@ -195,7 +193,7 @@ export default async function ActivityPage({
                     )}
                   </div>
                   <div
-                    className={`font-heading text-lg font-black tabular-nums ${
+                    className={`font-display text-lg font-black tabular-nums ${
                       positive
                         ? "text-pigment-green"
                         : negative
@@ -222,8 +220,8 @@ function FilterChip({ href, label, active }: { href: string; label: string; acti
   return (
     <Link
       href={href}
-      className={`chip-tap tap-press rounded-full border-2 border-ink px-4 text-sm font-bold transition-colors ${
-        active ? "bg-ink text-white-smoke" : "bg-white-smoke text-ink hover:bg-ink hover:text-white-smoke"
+      className={`chip-tap tap-press rounded-full border-theme border-ink px-4 text-sm font-bold transition-colors ${
+        active ? "bg-ink text-white-smoke" : "bg-surface text-ink hover:bg-ink hover:text-white-smoke"
       }`}
     >
       {label}
@@ -233,9 +231,9 @@ function FilterChip({ href, label, active }: { href: string; label: string; acti
 
 function Tile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border-2 border-ink bg-white-smoke p-4">
+    <div className="rounded-2xl border-theme border-ink bg-surface p-4">
       <p className="text-xs font-bold uppercase tracking-wider text-ink/60">{label}</p>
-      <p className="mt-2 font-heading text-2xl font-black tabular-nums">{value}</p>
+      <p className="mt-2 font-display text-2xl font-black tabular-nums">{value}</p>
     </div>
   );
 }

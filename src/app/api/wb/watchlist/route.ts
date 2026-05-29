@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const session = await getSession();
   if (!session) {
     return NextResponse.redirect(
-      new URL("/api/auth/discord?next=/invest", req.url),
+      new URL("/api/auth/discord?next=/capital/invest", req.url),
       303,
     );
   }
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.redirect(
-    new URL(`/invest?symbol=${encodeURIComponent(symbol)}`, req.url),
+    new URL(`/capital/invest?symbol=${encodeURIComponent(symbol)}`, req.url),
     303,
   );
 }
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 function back(req: Request, msg: string, symbol: string) {
   const sym = symbol ? `&symbol=${encodeURIComponent(symbol)}` : "";
   return NextResponse.redirect(
-    new URL(`/invest?error=${encodeURIComponent(msg)}${sym}`, req.url),
+    new URL(`/capital/invest?error=${encodeURIComponent(msg)}${sym}`, req.url),
     303,
   );
 }

@@ -7,7 +7,6 @@ import { getStockSnapshot, RANGE_OPTIONS, type RangeKey } from "@/lib/wb/history
 import { getCompanyProfile } from "@/lib/wb/profile";
 import { getQuote } from "@/lib/wb/quotes";
 import { getWatchlist, isWatching } from "@/lib/wb/watchlist";
-import { Nav } from "@/components/Nav";
 import { StockHeader } from "@/components/wb/StockHeader";
 import { StockPriceChart } from "@/components/wb/StockPriceChart";
 import { StockStats } from "@/components/wb/StockStats";
@@ -76,7 +75,7 @@ export default async function InvestPage({
   searchParams: Promise<{ order?: string; error?: string; symbol?: string; range?: string }>;
 }) {
   const session = await getSession();
-  if (!session) redirect("/api/auth/discord?next=/invest");
+  if (!session) redirect("/api/auth/discord?next=/capital/invest");
   await ensureWallet(session.id, session.username);
 
   const sp = await searchParams;
@@ -146,9 +145,8 @@ export default async function InvestPage({
 
   return (
     <>
-      <Nav />
       <main className="mx-auto w-full max-w-5xl px-6 py-16 sm:py-24">
-        <span className="text-xs font-heading font-bold uppercase tracking-[0.22em] text-ink">
+        <span className="text-xs font-display font-bold uppercase tracking-[0.22em] text-ink">
           Simulated investing
         </span>
 
@@ -161,7 +159,7 @@ export default async function InvestPage({
 
         {banner && (
           <div
-            className={`mt-6 rounded-xl border-2 border-ink px-4 py-3 text-sm font-medium ${
+            className={`mt-6 rounded-xl border-theme border-ink px-4 py-3 text-sm font-medium ${
               banner.tone === "good"
                 ? "bg-pigment-green text-white-smoke"
                 : "bg-imperial-red text-white-smoke"
@@ -172,8 +170,8 @@ export default async function InvestPage({
         )}
 
         {/* Symbol lookup */}
-        <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
-          <h2 className="font-heading text-xl font-bold">Look up an asset</h2>
+        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-ink sm:p-8">
+          <h2 className="font-display text-xl font-bold">Look up an asset</h2>
           <p className="mt-1 text-sm font-medium text-ink/70">
             Real US stocks (~15 min delayed) and live crypto quotes. Orders
             fill at the most recent quote — Whoosh Bucks only, no real money.
@@ -193,14 +191,14 @@ export default async function InvestPage({
                 return (
                   <li key={c.symbol}>
                     <Link
-                      href={`/invest?symbol=${c.symbol}`}
-                      className={`chip-tap tap-press gap-1.5 rounded-full border-2 border-ink px-4 text-sm font-bold transition-colors ${
+                      href={`/capital/invest?symbol=${c.symbol}`}
+                      className={`chip-tap tap-press gap-1.5 rounded-full border-theme border-ink px-4 text-sm font-bold transition-colors ${
                         isActive
                           ? "bg-ink text-white-smoke"
-                          : "bg-white-smoke text-ink hover:bg-ink hover:text-white-smoke"
+                          : "bg-surface text-ink hover:bg-ink hover:text-white-smoke"
                       }`}
                     >
-                      <span className="font-heading font-black">{c.symbol}</span>
+                      <span className="font-display font-black">{c.symbol}</span>
                       <span className="opacity-70">· {c.name}</span>
                     </Link>
                   </li>
@@ -216,14 +214,14 @@ export default async function InvestPage({
             <StockHeader profile={profile} snapshot={snapshot} />
 
             {/* Chart card */}
-            <div className="rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
+            <div className="rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
               <div className="flex flex-wrap items-baseline justify-between gap-4">
                 <div>
-                  <h3 className="font-heading text-xl font-bold text-ink">Price history</h3>
+                  <h3 className="font-display text-xl font-bold text-ink">Price history</h3>
                   {rangeChangeCents != null && rangeChangePct != null && (
                     <p className="mt-1 text-sm font-medium">
                       <span
-                        className={`font-heading font-black ${
+                        className={`font-display font-black ${
                           rangeChangeCents >= 0 ? "text-pigment-green" : "text-imperial-red"
                         }`}
                       >
@@ -243,11 +241,11 @@ export default async function InvestPage({
                     return (
                       <Link
                         key={r.key}
-                        href={`/invest?symbol=${encodeURIComponent(lookupSymbol)}&range=${r.key}`}
-                        className={`chip-tap tap-press cursor-pointer rounded-full border-2 border-ink px-4 text-sm font-bold transition-colors ${
+                        href={`/capital/invest?symbol=${encodeURIComponent(lookupSymbol)}&range=${r.key}`}
+                        className={`chip-tap tap-press cursor-pointer rounded-full border-theme border-ink px-4 text-sm font-bold transition-colors ${
                           isActive
                             ? "bg-ink text-white-smoke"
-                            : "bg-white-smoke text-ink hover:bg-ink hover:text-white-smoke"
+                            : "bg-surface text-ink hover:bg-ink hover:text-white-smoke"
                         }`}
                       >
                         {r.label}
@@ -267,16 +265,16 @@ export default async function InvestPage({
             </div>
 
             {/* Trade panel */}
-            <div className="rounded-3xl border-2 border-ink bg-blue p-6 text-ink sm:p-8">
+            <div className="rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-ink sm:p-8">
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-4">
                 <div className="flex items-center justify-between gap-3 sm:contents">
-                  <h3 className="font-heading text-xl font-bold">Trade {snapshot.symbol}</h3>
+                  <h3 className="font-display text-xl font-bold">Trade {snapshot.symbol}</h3>
                   <form action="/api/wb/watchlist" method="POST">
                     <input type="hidden" name="symbol" value={snapshot.symbol} />
                     <input type="hidden" name="action" value={watching ? "remove" : "add"} />
                     <button
                       type="submit"
-                      className="chip-tap tap-press cursor-pointer rounded-full border-2 border-ink bg-white-smoke px-4 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
+                      className="chip-tap tap-press cursor-pointer rounded-full border-theme border-ink bg-surface px-4 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
                       aria-label={watching ? "Remove from watchlist" : "Add to watchlist"}
                     >
                       {watching ? "★ Watching" : "☆ Watch"}
@@ -285,7 +283,7 @@ export default async function InvestPage({
                 </div>
                 <div className="text-sm font-medium text-ink/70">
                   Filling at{" "}
-                  <span className="font-heading font-black">
+                  <span className="font-display font-black">
                     {livePriceCents != null ? fmtUsd(livePriceCents) : "—"}
                   </span>
                   <span className="text-ink/60">/share</span>
@@ -294,11 +292,11 @@ export default async function InvestPage({
               {existingPosition && (
                 <p className="mt-2 text-sm font-medium text-ink/80">
                   You own{" "}
-                  <span className="font-heading font-bold">
+                  <span className="font-display font-bold">
                     {fmtShares(existingPosition.shares)} {snapshot.symbol}
                   </span>{" "}
                   at an avg cost of{" "}
-                  <span className="font-heading font-bold">
+                  <span className="font-display font-bold">
                     {fmtWb(Math.round(existingPosition.costBasisCents / existingPosition.shares))}
                     /share
                   </span>
@@ -313,14 +311,14 @@ export default async function InvestPage({
                 <input type="hidden" name="symbol" value={snapshot.symbol} />
                 <select
                   name="side"
-                  className="rounded-full border-2 border-ink bg-white-smoke px-4 py-2 font-heading font-bold uppercase focus:outline-none focus:ring-2 focus:ring-ink"
+                  className="rounded-full border-theme border-ink bg-surface px-4 py-2 font-display font-bold uppercase focus:outline-none focus:ring-2 focus:ring-ink"
                   defaultValue="buy"
                 >
                   <option value="buy">Buy</option>
                   <option value="sell">Sell</option>
                 </select>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-heading font-bold text-ink/60">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-display font-bold text-ink/60">
                     $
                   </span>
                   <input
@@ -330,7 +328,7 @@ export default async function InvestPage({
                     step="0.01"
                     placeholder="USD"
                     inputMode="decimal"
-                    className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 pl-7 text-right font-heading font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
+                    className="w-full rounded-full border-theme border-ink bg-surface px-3 py-2 pl-7 text-right font-display font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
                   />
                 </div>
                 <input
@@ -340,11 +338,11 @@ export default async function InvestPage({
                   min="0"
                   placeholder="or shares"
                   inputMode="decimal"
-                  className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 text-right font-heading font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
+                  className="w-full rounded-full border-theme border-ink bg-surface px-3 py-2 text-right font-display font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
                 />
                 <button
                   type="submit"
-                  className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+                  className="tap-press cursor-pointer rounded-full border-theme border-ink bg-ink px-5 py-2 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
                 >
                   Place
                 </button>
@@ -359,8 +357,8 @@ export default async function InvestPage({
         )}
 
         {lookupSymbol && !snapshot && (
-          <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-8 text-center">
-            <p className="font-heading text-lg font-bold text-ink">
+          <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-8 text-center">
+            <p className="font-display text-lg font-bold text-ink">
               No data available for {lookupSymbol}.
             </p>
             <p className="mt-2 text-sm font-medium text-ink/70">
@@ -372,7 +370,7 @@ export default async function InvestPage({
         {/* Watchlist */}
         {watchlist.length > 0 && (
           <section className="mt-12">
-            <h2 className="font-heading text-xl font-bold text-ink">Watchlist</h2>
+            <h2 className="font-display text-xl font-bold text-ink">Watchlist</h2>
             <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
               {watchlist.map((w) => (
                 <li
@@ -380,8 +378,8 @@ export default async function InvestPage({
                   className="flex items-center justify-between gap-3 py-3 text-sm"
                 >
                   <Link
-                    href={`/invest?symbol=${encodeURIComponent(w.symbol)}`}
-                    className="tap-press flex-1 min-w-0 font-heading text-lg font-black underline-offset-2 hover:underline sm:text-base"
+                    href={`/capital/invest?symbol=${encodeURIComponent(w.symbol)}`}
+                    className="tap-press flex-1 min-w-0 font-display text-lg font-black underline-offset-2 hover:underline sm:text-base"
                   >
                     {w.symbol}
                     <span className="ml-2 font-bold text-ink/70 tabular-nums">
@@ -394,7 +392,7 @@ export default async function InvestPage({
                     <button
                       type="submit"
                       aria-label={`Remove ${w.symbol} from watchlist`}
-                      className="chip-tap tap-press cursor-pointer rounded-full border-2 border-ink bg-white-smoke px-3 text-xs font-bold text-ink"
+                      className="chip-tap tap-press cursor-pointer rounded-full border-theme border-ink bg-surface px-3 text-xs font-bold text-ink"
                     >
                       Remove
                     </button>
@@ -406,10 +404,10 @@ export default async function InvestPage({
         )}
 
         {/* Positions */}
-        <h2 className="mt-12 font-heading text-xl font-bold text-ink">Positions</h2>
+        <h2 className="mt-12 font-display text-xl font-bold text-ink">Positions</h2>
         {positions.length === 0 ? (
-          <div className="mt-4 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-center">
-            <p className="font-heading text-lg font-bold text-ink">No positions yet.</p>
+          <div className="mt-4 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-center">
+            <p className="font-display text-lg font-bold text-ink">No positions yet.</p>
             <p className="mt-2 text-sm text-ink/60">
               Look up a symbol above to get started — try one of these:
             </p>
@@ -417,8 +415,8 @@ export default async function InvestPage({
               {["AAPL", "TSLA", "NVDA", "MSFT", "BTC"].map((s) => (
                 <Link
                   key={s}
-                  href={`/invest?symbol=${s}`}
-                  className="chip-tap tap-press rounded-full border-2 border-ink bg-white-smoke px-4 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
+                  href={`/capital/invest?symbol=${s}`}
+                  className="chip-tap tap-press rounded-full border-theme border-ink bg-surface px-4 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
                 >
                   {s}
                 </Link>
@@ -437,8 +435,8 @@ export default async function InvestPage({
                 >
                   <div className="flex items-baseline justify-between gap-3 sm:block">
                     <Link
-                      href={`/invest?symbol=${encodeURIComponent(p.symbol)}`}
-                      className="tap-press font-heading text-lg font-black underline-offset-2 hover:underline sm:text-base"
+                      href={`/capital/invest?symbol=${encodeURIComponent(p.symbol)}`}
+                      className="tap-press font-display text-lg font-black underline-offset-2 hover:underline sm:text-base"
                     >
                       {p.symbol}
                     </Link>
@@ -449,7 +447,7 @@ export default async function InvestPage({
                       <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
                         Market
                       </div>
-                      <div className="font-heading font-bold tabular-nums">
+                      <div className="font-display font-bold tabular-nums">
                         {p.marketValueCents != null ? fmtWb(p.marketValueCents) : "—"}
                       </div>
                     </div>
@@ -458,7 +456,7 @@ export default async function InvestPage({
                         P/L
                       </div>
                       <div
-                        className={`font-heading font-black tabular-nums ${
+                        className={`font-display font-black tabular-nums ${
                           plPositive
                             ? "text-pigment-green"
                             : plNegative
@@ -478,8 +476,8 @@ export default async function InvestPage({
                     </div>
                   </div>
                   <Link
-                    href={`/invest?symbol=${encodeURIComponent(p.symbol)}`}
-                    className="chip-tap tap-press w-full justify-center rounded-full border-2 border-ink bg-white-smoke px-3 text-xs font-bold text-ink sm:w-auto"
+                    href={`/capital/invest?symbol=${encodeURIComponent(p.symbol)}`}
+                    className="chip-tap tap-press w-full justify-center rounded-full border-theme border-ink bg-surface px-3 text-xs font-bold text-ink sm:w-auto"
                   >
                     Open
                   </Link>
@@ -491,7 +489,7 @@ export default async function InvestPage({
 
         {/* Total portfolio P/L summary */}
         {positions.length > 0 && (
-          <div className="mt-6 rounded-2xl border-2 border-ink bg-blue p-5 text-ink">
+          <div className="mt-6 rounded-2xl border-theme border-ink bg-surface p-5 text-ink">
             <p className="text-xs font-bold uppercase tracking-wider text-ink/70">
               Total unrealized P/L
             </p>
@@ -509,7 +507,7 @@ export default async function InvestPage({
               const neg = totalPL < 0;
               return (
                 <p
-                  className={`mt-2 font-heading text-3xl font-black tabular-nums ${
+                  className={`mt-2 font-display text-3xl font-black tabular-nums ${
                     pos ? "text-pigment-green" : neg ? "text-imperial-red" : "text-ink"
                   }`}
                 >
@@ -526,7 +524,7 @@ export default async function InvestPage({
         )}
 
         {/* Recent orders */}
-        <h2 className="mt-12 font-heading text-xl font-bold text-ink">Recent orders</h2>
+        <h2 className="mt-12 font-display text-xl font-bold text-ink">Recent orders</h2>
         {orders.length === 0 ? (
           <p className="mt-4 text-sm text-ink/60">No orders yet.</p>
         ) : (
@@ -545,7 +543,7 @@ export default async function InvestPage({
                   </div>
                 </div>
                 <div
-                  className={`font-heading font-black tabular-nums ${
+                  className={`font-display font-black tabular-nums ${
                     o.side === "buy" ? "text-imperial-red" : "text-pigment-green"
                   }`}
                 >
@@ -565,9 +563,9 @@ export default async function InvestPage({
 
 function Tile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border-2 border-ink bg-white-smoke p-5">
+    <div className="rounded-2xl border-theme border-ink bg-surface p-5">
       <p className="text-xs font-bold uppercase tracking-[0.15em] text-ink/60">{label}</p>
-      <p className="mt-3 font-heading text-3xl font-black tracking-tight tabular-nums">{value}</p>
+      <p className="mt-3 font-display text-3xl font-black tracking-tight tabular-nums">{value}</p>
     </div>
   );
 }

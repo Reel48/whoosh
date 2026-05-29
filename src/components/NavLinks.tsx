@@ -3,47 +3,31 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const SIGNED_OUT_LINKS = [
-  { href: "/#channels", label: "Channels", match: (p: string) => p === "/" },
-  { href: "/#bucks", label: "Whoosh Bucks", match: (p: string) => p === "/" },
-  { href: "/#plans", label: "Plans", match: (p: string) => p === "/" },
-  { href: "/#faq", label: "FAQ", match: (p: string) => p === "/" },
+// Marketing-only nav links. The signed-in app navigates via AppShell
+// (SectionSwitcher + section sub-nav), not this component.
+const MARKETING_LINKS = [
+  { href: "/#channels", label: "Channels" },
+  { href: "/#bucks", label: "Whoosh Bucks" },
+  { href: "/#plans", label: "Plans" },
+  { href: "/#faq", label: "FAQ" },
 ];
 
-const SIGNED_IN_LINKS = [
-  { href: "/wallet", label: "Wallet", match: (p: string) => p === "/wallet" || p.startsWith("/wallet/") },
-  { href: "/invest", label: "Invest", match: (p: string) => p === "/invest" },
-  { href: "/events", label: "Events", match: (p: string) => p === "/events" },
-  { href: "/events/mine", label: "My bets", match: (p: string) => p === "/events/mine" },
-];
-
-export function NavLinks({ signedIn }: { signedIn: boolean }) {
+export function NavLinks() {
   const pathname = usePathname();
-  const links = signedIn ? SIGNED_IN_LINKS : SIGNED_OUT_LINKS;
+  const onHome = pathname === "/";
   return (
     <>
-      {links.map((l) => {
-        const isActive = l.match(pathname);
-        return (
-          <Link
-            key={l.href}
-            href={l.href}
-            className={`hidden hover:underline sm:inline ${
-              isActive ? "underline underline-offset-4 decoration-2" : ""
-            }`}
-          >
-            {l.label}
-          </Link>
-        );
-      })}
-      {signedIn && (
+      {MARKETING_LINKS.map((l) => (
         <Link
-          href="/#bucks"
-          className="hidden text-ink/60 hover:underline lg:inline"
+          key={l.href}
+          href={l.href}
+          className={`hidden hover:underline sm:inline ${
+            onHome ? "" : "text-ink/70"
+          }`}
         >
-          About WB
+          {l.label}
         </Link>
-      )}
+      ))}
     </>
   );
 }

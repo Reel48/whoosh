@@ -9,7 +9,6 @@ import {
   getBiggestWinsLeaderboard,
   getStreaksLeaderboard,
 } from "@/lib/wb/leaderboard";
-import { Nav } from "@/components/Nav";
 import { BalanceChart } from "@/components/wb/BalanceChart";
 import { AllocationBar } from "@/components/wb/AllocationBar";
 import { LeaderboardTabs } from "@/components/wb/LeaderboardTabs";
@@ -74,7 +73,7 @@ export default async function WalletPage({
 }) {
   const session = await getSession();
   if (!session) {
-    redirect("/api/auth/discord?next=/wallet");
+    redirect("/api/auth/discord?next=/capital/wallet");
   }
   await ensureWallet(session.id, session.username);
 
@@ -127,29 +126,28 @@ export default async function WalletPage({
 
   return (
     <>
-      <Nav />
       <main className="mx-auto w-full max-w-3xl px-6 py-16 sm:py-24">
-        <span className="text-xs font-heading font-bold uppercase tracking-[0.22em] text-ink">
+        <span className="text-xs font-display font-bold uppercase tracking-[0.22em] text-ink">
           Your portfolio
         </span>
 
         {/* Hero: total equity */}
-        <div className="mt-6 rounded-3xl border-2 border-ink bg-blue p-6 text-ink sm:p-8">
+        <div className="mt-6 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-ink sm:p-8">
           <p className="text-xs font-bold uppercase tracking-wider text-ink/70">
             Total equity
           </p>
-          <p className="mt-2 font-heading text-5xl font-black tracking-tight sm:text-6xl tabular-nums">
+          <p className="mt-2 font-display text-5xl font-black tracking-tight sm:text-6xl tabular-nums">
             {formatMoney(allocation.totalEquityCents)}
           </p>
           <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm font-medium">
             <span className="text-ink/80">
-              <span className="font-heading font-black">
+              <span className="font-display font-black">
                 {formatMoney(returns.totalReturnCents, { signed: true })}
               </span>{" "}
               <span className="text-ink/60">total return</span>
             </span>
             <span className="text-ink/80">
-              <span className="font-heading font-black text-ink">
+              <span className="font-display font-black text-ink">
                 {formatPct(returns.totalReturnFraction)}
               </span>{" "}
               <span className="text-ink/60">vs. money in</span>
@@ -159,7 +157,7 @@ export default async function WalletPage({
 
         {banner && (
           <div
-            className={`mt-6 rounded-xl border-2 border-ink px-4 py-3 text-sm font-medium ${
+            className={`mt-6 rounded-xl border-theme border-ink px-4 py-3 text-sm font-medium ${
               banner.tone === "good"
                 ? "bg-pigment-green text-white-smoke"
                 : "bg-imperial-red text-white-smoke"
@@ -170,10 +168,10 @@ export default async function WalletPage({
         )}
 
         {/* Daily check-in */}
-        <section className="mt-8 rounded-3xl border-2 border-ink bg-mango p-6 text-ink sm:p-8">
+        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-mango p-6 text-ink sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="font-heading text-xl font-bold">
+              <h2 className="font-display text-xl font-bold">
                 Daily check-in
                 {streakDays > 0 && (
                   <span className="ml-2 text-base font-medium text-ink/70">
@@ -191,7 +189,7 @@ export default async function WalletPage({
               <button
                 type="submit"
                 disabled={claimedToday}
-                className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="tap-press cursor-pointer rounded-full border-theme border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {claimedToday ? "Claimed ✓" : "Claim today's bonus"}
               </button>
@@ -200,8 +198,8 @@ export default async function WalletPage({
         </section>
 
         {/* Allocation */}
-        <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
-          <h2 className="font-heading text-xl font-bold text-ink">Where your WB lives</h2>
+        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
+          <h2 className="font-display text-xl font-bold text-ink">Where your WB lives</h2>
           <p className="mt-1 text-sm text-ink/60">
             Cash sits in your Whoosh wallet earning the SPAXX-tied yield.
             Investing and open bets each lock up part of your equity.
@@ -218,7 +216,7 @@ export default async function WalletPage({
                 {
                   label: "Invested",
                   cents: allocation.investedValueCents,
-                  className: "bg-blue",
+                  className: "bg-surface",
                   hint:
                     positions.length > 0
                       ? `${positions.length} ${positions.length === 1 ? "position" : "positions"}`
@@ -239,8 +237,8 @@ export default async function WalletPage({
         </section>
 
         {/* Lifetime breakdown */}
-        <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
-          <h2 className="font-heading text-xl font-bold text-ink">Lifetime returns</h2>
+        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
+          <h2 className="font-display text-xl font-bold text-ink">Lifetime returns</h2>
           <p className="mt-1 text-sm text-ink/60">
             What&rsquo;s contributed to (or taken from) your stack since you joined.
           </p>
@@ -291,8 +289,8 @@ export default async function WalletPage({
         </section>
 
         {/* Balance chart */}
-        <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
-          <h2 className="font-heading text-xl font-bold text-ink">Cash balance · last 90 days</h2>
+        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
+          <h2 className="font-display text-xl font-bold text-ink">Cash balance · last 90 days</h2>
           <p className="mt-1 text-sm text-ink/60">
             End-of-day cash balance — not including the value of open positions
             or open wagers.
@@ -304,8 +302,8 @@ export default async function WalletPage({
 
         {/* Positions detail (only if there are any) */}
         {positions.length > 0 && (
-          <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
-            <h2 className="font-heading text-xl font-bold text-ink">Open positions</h2>
+          <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
+            <h2 className="font-display text-xl font-bold text-ink">Open positions</h2>
             <ul className="mt-5 divide-y-2 divide-ink border-y-2 border-ink">
               {positions.map((p) => (
                 <li
@@ -313,7 +311,7 @@ export default async function WalletPage({
                   className="flex flex-col gap-2 py-3 text-sm sm:grid sm:grid-cols-[1fr_1fr_1fr] sm:items-center sm:gap-4"
                 >
                   <div className="flex items-baseline justify-between gap-3 sm:block">
-                    <div className="font-heading text-lg font-black sm:text-base">{p.symbol}</div>
+                    <div className="font-display text-lg font-black sm:text-base">{p.symbol}</div>
                     <div className="text-xs text-ink/60">{formatShares(p.shares)} shares</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 sm:contents">
@@ -321,7 +319,7 @@ export default async function WalletPage({
                       <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
                         Market
                       </div>
-                      <div className="font-heading font-bold tabular-nums">
+                      <div className="font-display font-bold tabular-nums">
                         {p.marketValueCents !== null ? formatMoney(p.marketValueCents) : "—"}
                       </div>
                     </div>
@@ -330,7 +328,7 @@ export default async function WalletPage({
                         P/L
                       </div>
                       <div
-                        className={`font-heading font-black tabular-nums ${
+                        className={`font-display font-black tabular-nums ${
                           p.unrealizedCents === null
                             ? "text-ink/60"
                             : p.unrealizedCents > 0
@@ -355,14 +353,14 @@ export default async function WalletPage({
               ))}
             </ul>
             <p className="mt-3 text-xs text-ink/60">
-              Live quotes via Yahoo (delayed ~15 min). See <a href="/invest" className="font-bold underline">/invest</a> to buy or sell.
+              Live quotes via Yahoo (delayed ~15 min). See <a href="/capital/invest" className="font-bold underline">/invest</a> to buy or sell.
             </p>
           </section>
         )}
 
         {/* Buy WB */}
-        <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
-          <h2 className="font-heading text-xl font-bold text-ink">Buy Whoosh Bucks</h2>
+        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
+          <h2 className="font-display text-xl font-bold text-ink">Buy Whoosh Bucks</h2>
           <p className="mt-2 text-sm font-medium text-ink/70">
             Every $1 paid via Stripe = $10 of Whoosh Bucks. Bucks appear here
             when the charge clears.
@@ -371,8 +369,8 @@ export default async function WalletPage({
         </section>
 
         {/* Send WB */}
-        <section className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
-          <h2 className="font-heading text-xl font-bold text-ink">Send Whoosh Bucks</h2>
+        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
+          <h2 className="font-display text-xl font-bold text-ink">Send Whoosh Bucks</h2>
           <p className="mt-2 text-sm font-medium text-ink/70">
             Send to any Whoosh user by their Discord username. They must have
             signed in to the site at least once.
@@ -393,11 +391,11 @@ export default async function WalletPage({
                 required
                 autoComplete="off"
                 aria-label="Recipient username"
-                className="w-full rounded-full border-2 border-ink bg-white-smoke px-4 py-3 pl-8 font-medium focus:outline-none focus:ring-2 focus:ring-ink"
+                className="w-full rounded-full border-theme border-ink bg-surface px-4 py-3 pl-8 font-medium focus:outline-none focus:ring-2 focus:ring-ink"
               />
             </div>
             <div className="relative">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-heading font-bold text-ink/60">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-display font-bold text-ink/60">
                 $
               </span>
               <input
@@ -409,12 +407,12 @@ export default async function WalletPage({
                 required
                 inputMode="decimal"
                 aria-label="USD amount"
-                className="w-full rounded-full border-2 border-ink bg-white-smoke px-4 py-3 pl-8 font-heading text-lg font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
+                className="w-full rounded-full border-theme border-ink bg-surface px-4 py-3 pl-8 font-display text-lg font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
               />
             </div>
             <button
               type="submit"
-              className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+              className="tap-press cursor-pointer rounded-full border-theme border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
             >
               Send
             </button>
@@ -423,17 +421,17 @@ export default async function WalletPage({
               name="memo"
               placeholder="Memo (optional)"
               aria-label="Memo (optional)"
-              className="sm:col-span-3 rounded-full border-2 border-ink bg-white-smoke px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink"
+              className="sm:col-span-3 rounded-full border-theme border-ink bg-surface px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink"
             />
           </form>
         </section>
 
         {/* Activity ledger */}
         <div className="mt-12 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-heading text-xl font-bold text-ink">Activity</h2>
+          <h2 className="font-display text-xl font-bold text-ink">Activity</h2>
           {ledger.length > 0 && (
             <a
-              href="/wallet/activity"
+              href="/capital/wallet/activity"
               className="text-sm font-bold text-ink/70 underline-offset-2 hover:underline"
             >
               See all →
@@ -441,8 +439,8 @@ export default async function WalletPage({
           )}
         </div>
         {ledger.length === 0 ? (
-          <div className="mt-4 rounded-3xl border-2 border-ink bg-white-smoke p-8 text-center">
-            <p className="font-heading text-lg font-bold text-ink">
+          <div className="mt-4 rounded-theme shadow-theme border-theme border-ink bg-surface p-8 text-center">
+            <p className="font-display text-lg font-bold text-ink">
               No activity yet.
             </p>
             <p className="mt-2 text-sm text-ink/60">
@@ -465,7 +463,7 @@ export default async function WalletPage({
                     </div>
                   </div>
                   <div
-                    className={`font-heading text-lg font-black tabular-nums ${
+                    className={`font-display text-lg font-black tabular-nums ${
                       positive ? "text-pigment-green" : "text-imperial-red"
                     }`}
                   >
@@ -501,7 +499,7 @@ function Stat({
   return (
     <div>
       <dt className="text-xs font-bold uppercase tracking-wider text-ink/60">{label}</dt>
-      <dd className={`mt-1 font-heading text-2xl font-black tabular-nums ${cls}`}>{value}</dd>
+      <dd className={`mt-1 font-display text-2xl font-black tabular-nums ${cls}`}>{value}</dd>
     </div>
   );
 }

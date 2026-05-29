@@ -64,9 +64,9 @@ export default async function AdminWbPage() {
     listRecentDividends(10).catch(() => []),
   ]);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
-  const lastDayPrev = new Date();
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 86_400_000).toISOString().slice(0, 10);
+  const lastDayPrev = new Date(now);
   lastDayPrev.setUTCDate(0);
   const lastDayPrevStr = lastDayPrev.toISOString().slice(0, 10);
 

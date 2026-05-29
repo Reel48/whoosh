@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const session = await getSession();
   if (!session) {
     return NextResponse.redirect(
-      new URL("/api/auth/discord?next=/wallet", req.url),
+      new URL("/api/auth/discord?next=/capital/wallet", req.url),
       303,
     );
   }
@@ -20,13 +20,13 @@ export async function POST(req: Request) {
     const result = await claimDailyBonus(session.id);
     await evaluateAchievements(session.id).catch(() => {});
     const dest = result.claimed
-      ? `/wallet?bonus=ok&streak=${result.streak}&amount=${result.amountCents}`
-      : "/wallet?bonus=already";
+      ? `/capital/wallet?bonus=ok&streak=${result.streak}&amount=${result.amountCents}`
+      : "/capital/wallet?bonus=already";
     return NextResponse.redirect(new URL(dest, req.url), 303);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Could not claim bonus.";
     return NextResponse.redirect(
-      new URL(`/wallet?error=${encodeURIComponent(msg)}`, req.url),
+      new URL(`/capital/wallet?error=${encodeURIComponent(msg)}`, req.url),
       303,
     );
   }

@@ -38,7 +38,7 @@ export async function createEventAction(formData: FormData): Promise<void> {
 
   await createEvent({ title, description, closesAt, createdBy: adminId, outcomes });
   revalidatePath("/admin/wb/events");
-  revalidatePath("/events");
+  revalidatePath("/capital/events");
 }
 
 export async function lockEventAction(formData: FormData): Promise<void> {
@@ -47,7 +47,7 @@ export async function lockEventAction(formData: FormData): Promise<void> {
   if (!eventId) throw new Error("Missing event_id.");
   await setEventStatus(eventId, "locked");
   revalidatePath("/admin/wb/events");
-  revalidatePath("/events");
+  revalidatePath("/capital/events");
 }
 
 export async function reopenEventAction(formData: FormData): Promise<void> {
@@ -56,7 +56,7 @@ export async function reopenEventAction(formData: FormData): Promise<void> {
   if (!eventId) throw new Error("Missing event_id.");
   await setEventStatus(eventId, "open");
   revalidatePath("/admin/wb/events");
-  revalidatePath("/events");
+  revalidatePath("/capital/events");
 }
 
 export async function settleEventAction(formData: FormData): Promise<void> {
@@ -66,7 +66,7 @@ export async function settleEventAction(formData: FormData): Promise<void> {
   if (!eventId || !outcomeId) throw new Error("Missing event or outcome.");
   await settleEvent(eventId, outcomeId);
   revalidatePath("/admin/wb/events");
-  revalidatePath("/events");
+  revalidatePath("/capital/events");
 }
 
 export async function cancelEventAction(formData: FormData): Promise<void> {
@@ -75,19 +75,19 @@ export async function cancelEventAction(formData: FormData): Promise<void> {
   if (!eventId) throw new Error("Missing event_id.");
   await cancelEvent(eventId);
   revalidatePath("/admin/wb/events");
-  revalidatePath("/events");
+  revalidatePath("/capital/events");
 }
 
 export async function syncOddsAction(): Promise<void> {
   await requireAdmin();
   await runOddsSync();
   revalidatePath("/admin/wb/events");
-  revalidatePath("/events");
+  revalidatePath("/capital/events");
 }
 
 export async function settleOddsAction(): Promise<void> {
   await requireAdmin();
   await runOddsSettle();
   revalidatePath("/admin/wb/events");
-  revalidatePath("/events");
+  revalidatePath("/capital/events");
 }

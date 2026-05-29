@@ -10,7 +10,6 @@ import {
   type BetMarket,
 } from "@/lib/wb/bets";
 import { MARKET_LABELS } from "@/lib/wb/odds";
-import { Nav } from "@/components/Nav";
 import { LocalTime } from "@/components/LocalTime";
 import { Disclaimer } from "@/components/Disclaimer";
 
@@ -82,25 +81,25 @@ function OutcomeForm({ event, outcome }: { event: BetEvent; outcome: BetOutcome 
     <form
       action="/api/wb/wager"
       method="POST"
-      className="flex flex-col gap-3 rounded-2xl border-2 border-ink bg-white-smoke p-3 sm:grid sm:grid-cols-[1fr_auto_120px_auto] sm:items-stretch sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
+      className="flex flex-col gap-3 rounded-2xl border-theme border-ink bg-surface p-3 sm:grid sm:grid-cols-[1fr_auto_120px_auto] sm:items-stretch sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
     >
       <input type="hidden" name="event_id" value={event.id} />
       <input type="hidden" name="outcome_id" value={outcome.id} />
       <div className="flex items-baseline justify-between gap-3 sm:block">
         <div className="font-bold">{outcome.label}</div>
-        <div className="font-heading text-sm font-bold tabular-nums text-ink/60 sm:hidden">
+        <div className="font-display text-sm font-bold tabular-nums text-ink/60 sm:hidden">
           ×{outcome.oddsDecimal.toFixed(2)}
         </div>
         <div className="hidden text-xs text-ink/60 sm:block">
           Pays {outcome.oddsDecimal.toFixed(2)}× stake
         </div>
       </div>
-      <div className="hidden self-center font-heading text-sm font-bold tabular-nums text-ink/60 sm:block">
+      <div className="hidden self-center font-display text-sm font-bold tabular-nums text-ink/60 sm:block">
         ×{outcome.oddsDecimal.toFixed(2)}
       </div>
       <div className="flex items-stretch gap-2 sm:contents">
         <div className="relative flex-1">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-heading font-bold text-ink/60">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-display font-bold text-ink/60">
             $
           </span>
           <input
@@ -113,13 +112,13 @@ function OutcomeForm({ event, outcome }: { event: BetEvent; outcome: BetOutcome 
             disabled={event.status !== "open"}
             inputMode="decimal"
             aria-label="Stake"
-            className="w-full rounded-full border-2 border-ink bg-white-smoke px-3 py-2 pl-7 font-heading font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink disabled:opacity-50"
+            className="w-full rounded-full border-theme border-ink bg-surface px-3 py-2 pl-7 font-display font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink disabled:opacity-50"
           />
         </div>
         <button
           type="submit"
           disabled={event.status !== "open"}
-          className="tap-press chip-tap shrink-0 cursor-pointer rounded-full border-2 border-ink bg-ink px-5 text-sm font-bold text-white-smoke disabled:cursor-not-allowed disabled:opacity-50"
+          className="tap-press chip-tap shrink-0 cursor-pointer rounded-full border-theme border-ink bg-ink px-5 text-sm font-bold text-white-smoke disabled:cursor-not-allowed disabled:opacity-50"
         >
           Bet
         </button>
@@ -134,7 +133,7 @@ export default async function EventsPage({
   searchParams: Promise<{ wager?: string; error?: string; sport?: string }>;
 }) {
   const session = await getSession();
-  if (!session) redirect("/api/auth/discord?next=/events");
+  if (!session) redirect("/api/auth/discord?next=/capital/events");
   await ensureWallet(session.id, session.username);
 
   const [events, balance, recent] = await Promise.all([
@@ -187,28 +186,27 @@ export default async function EventsPage({
 
   return (
     <>
-      <Nav />
       <main className="mx-auto w-full max-w-3xl px-6 py-16 sm:py-24">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <span className="text-xs font-heading font-bold uppercase tracking-[0.22em] text-ink">
+          <span className="text-xs font-display font-bold uppercase tracking-[0.22em] text-ink">
             Whoosh events
           </span>
           <div className="flex items-baseline gap-4">
             <Link
-              href="/events/mine"
+              href="/capital/bets"
               className="text-sm font-bold text-ink underline-offset-4 hover:underline"
             >
               My bets
             </Link>
             <span className="text-sm font-medium text-ink/70">
-              Balance: <span className="font-heading font-black">{formatWb(balance)}</span>
+              Balance: <span className="font-display font-black">{formatWb(balance)}</span>
             </span>
           </div>
         </div>
 
         {banner && (
           <div
-            className={`mt-6 rounded-xl border-2 border-ink px-4 py-3 text-sm font-medium ${
+            className={`mt-6 rounded-xl border-theme border-ink px-4 py-3 text-sm font-medium ${
               banner.tone === "good"
                 ? "bg-pigment-green text-white-smoke"
                 : "bg-imperial-red text-white-smoke"
@@ -219,8 +217,8 @@ export default async function EventsPage({
         )}
 
         {events.length === 0 ? (
-          <div className="mt-8 rounded-3xl border-2 border-ink bg-white-smoke p-8 text-center">
-            <p className="font-heading text-lg font-bold text-ink">
+          <div className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-8 text-center">
+            <p className="font-display text-lg font-bold text-ink">
               No open events right now.
             </p>
             <p className="mt-2 text-sm text-ink/60">
@@ -235,15 +233,15 @@ export default async function EventsPage({
                 {filterOptions.map((opt) => {
                   const active = selectedSport === opt.key;
                   const href =
-                    opt.key === "all" ? "/events" : `/events?sport=${opt.key}`;
+                    opt.key === "all" ? "/capital/events" : `/capital/events?sport=${opt.key}`;
                   return (
                     <Link
                       key={opt.key}
                       href={href}
-                      className={`tap-press rounded-full border-2 border-ink px-4 py-1.5 text-sm font-bold transition-colors ${
+                      className={`tap-press rounded-full border-theme border-ink px-4 py-1.5 text-sm font-bold transition-colors ${
                         active
                           ? "bg-ink text-white-smoke"
-                          : "bg-white-smoke text-ink hover:bg-ink hover:text-white-smoke"
+                          : "bg-surface text-ink hover:bg-ink hover:text-white-smoke"
                       }`}
                     >
                       {opt.label}
@@ -254,17 +252,17 @@ export default async function EventsPage({
             )}
             {visibleSports.map((section) => (
               <section key={section.sportKey ?? "sports"}>
-                <h2 className="font-heading text-xl font-black tracking-tight text-ink">
+                <h2 className="font-display text-xl font-black tracking-tight text-ink">
                   {sportTitle(section.sportKey)}
                 </h2>
                 <ul className="mt-4 space-y-6">
                   {section.games.map((game) => (
                     <li
                       key={game.key}
-                      className="rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8"
+                      className="rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-ink sm:p-8"
                     >
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <h3 className="font-heading text-xl font-black tracking-tight">
+                        <h3 className="font-display text-xl font-black tracking-tight">
                           {game.matchup}
                         </h3>
                         {game.commenceTime && (
@@ -301,7 +299,7 @@ export default async function EventsPage({
             {showManual && (
               <section>
                 {sports.length > 0 && (
-                  <h2 className="font-heading text-xl font-black tracking-tight text-ink">
+                  <h2 className="font-display text-xl font-black tracking-tight text-ink">
                     More events
                   </h2>
                 )}
@@ -309,17 +307,17 @@ export default async function EventsPage({
                   {manual.map((e) => (
                     <li
                       key={e.id}
-                      className="rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8"
+                      className="rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-ink sm:p-8"
                     >
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <h3 className="font-heading text-2xl font-black tracking-tight">
+                        <h3 className="font-display text-2xl font-black tracking-tight">
                           {e.title}
                         </h3>
                         <span
-                          className={`rounded-full border-2 border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
+                          className={`rounded-full border-theme border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
                             e.status === "open"
                               ? "bg-pigment-green text-white-smoke"
-                              : "bg-white-smoke text-ink"
+                              : "bg-surface text-ink"
                           }`}
                         >
                           {e.status}
@@ -350,7 +348,7 @@ export default async function EventsPage({
 
         {recent.length > 0 && (
           <section className="mt-12">
-            <h2 className="font-heading text-xl font-bold text-ink">Recently settled</h2>
+            <h2 className="font-display text-xl font-bold text-ink">Recently settled</h2>
             <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
               {recent.map((e) => {
                 const winner =
@@ -364,7 +362,7 @@ export default async function EventsPage({
                     className="grid grid-cols-[1fr_auto] items-center gap-4 py-3 text-sm"
                   >
                     <div>
-                      <div className="font-heading font-bold text-ink">
+                      <div className="font-display font-bold text-ink">
                         {e.title}
                         {marketSuffix}
                       </div>
@@ -377,9 +375,9 @@ export default async function EventsPage({
                       </div>
                     </div>
                     <span
-                      className={`rounded-full border-2 border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
+                      className={`rounded-full border-theme border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
                         e.status === "cancelled"
-                          ? "bg-white-smoke text-ink"
+                          ? "bg-surface text-ink"
                           : "bg-ink text-white-smoke"
                       }`}
                     >

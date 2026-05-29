@@ -1,14 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Geist, Oswald, Quicksand } from "next/font/google";
 import "./globals.css";
 
-// Single typeface — Inter, full weight range. Body and headings both use Inter;
-// headings just lean on the heavier weights (800/900) for modernist label feel.
+// Inter is the shared body/UI typeface across the whole site (marketing +
+// every section). Headings outside a themed section lean on Inter's heavier
+// weights (800/900) for the modernist label feel.
 const inter = Inter({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
 });
+
+// Section DISPLAY typefaces. Each signed-in section overrides --font-display
+// (see globals.css [data-theme] scopes) to one of these. Colors stay shared;
+// only the typographic personality changes per section.
+//   Capital — Geist: neutral, precise grotesk with tabular numerals (finance).
+//   Fantasy — Oswald: condensed, bold, sporty jersey feel.
+//   Pool    — Quicksand: soft, rounded, friendly.
+const geist = Geist({ variable: "--font-capital", subsets: ["latin"] });
+const oswald = Oswald({ variable: "--font-fantasy", subsets: ["latin"] });
+const quicksand = Quicksand({ variable: "--font-pool", subsets: ["latin"] });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://whoosh.lol";
 
@@ -60,7 +71,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} h-full antialiased`}
+      className={`${inter.variable} ${geist.variable} ${oswald.variable} ${quicksand.variable} h-full antialiased`}
       style={{ ["--font-heading" as string]: "var(--font-body)" }}
     >
       <body className="min-h-full flex flex-col">{children}</body>

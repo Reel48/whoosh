@@ -19,22 +19,17 @@ const SECTIONS_HOME = [
 ];
 
 const SIGNED_IN_LINKS = [
-  { href: "/wallet", label: "Wallet" },
-  { href: "/invest", label: "Invest" },
-  { href: "/events", label: "Events" },
+  { href: "/home", label: "App home" },
+  { href: "/capital", label: "Capital" },
+  { href: "/fantasy", label: "Fantasy" },
+  { href: "/pool", label: "Pool" },
   { href: "/account", label: "Account" },
 ];
 
 export function MobileMenu({ signedIn, isAdmin, username }: Props) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const lastPathnameRef = useRef(pathname);
-
-  // Portal target is only available after first client render.
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Close the sheet whenever the route changes. Tracking the last pathname
   // in a ref keeps the effect's setState idempotent — it only fires on a
@@ -89,7 +84,7 @@ export function MobileMenu({ signedIn, isAdmin, username }: Props) {
         </svg>
       </button>
 
-      {open && mounted && createPortal(
+      {open && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 top-[65px] z-40 flex flex-col bg-white-smoke pb-[env(safe-area-inset-bottom)] sm:hidden">
           <nav className="flex flex-col gap-2 overflow-y-auto px-6 py-8">
             {signedIn && (

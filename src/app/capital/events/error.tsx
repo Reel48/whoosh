@@ -1,6 +1,5 @@
 "use client";
 
-import { MinimalHeader } from "@/components/MinimalHeader";
 
 export default function EventsError({
   error,
@@ -11,9 +10,8 @@ export default function EventsError({
 }) {
   return (
     <>
-      <MinimalHeader />
       <main className="mx-auto w-full max-w-2xl px-6 py-24 text-center">
-        <h1 className="font-heading text-3xl font-black tracking-tight text-ink">
+        <h1 className="font-display text-3xl font-black tracking-tight text-ink">
           Events board is down.
         </h1>
         <p className="mt-3 text-sm text-ink/70">
@@ -25,7 +23,7 @@ export default function EventsError({
         <button
           type="button"
           onClick={() => reset()}
-          className="mt-8 tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+          className="mt-8 tap-press cursor-pointer rounded-full border-theme border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
         >
           Try again
         </button>

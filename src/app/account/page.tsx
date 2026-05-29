@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { hasPremiumRole, addPremiumRole } from "@/lib/discord";
 import { findSubscriptionForDiscordUser } from "@/lib/stripe";
-import { Nav } from "@/components/Nav";
 import { Avatar } from "@/components/Avatar";
 import { Bolt } from "@/components/Bolt";
 import { ensureWallet } from "@/lib/wb/ledger";
@@ -112,7 +111,6 @@ export default async function AccountPage() {
 
   return (
     <>
-      <Nav />
       <main className="mx-auto w-full max-w-3xl px-6 py-16 sm:py-24">
         <span className="text-xs font-heading font-bold uppercase tracking-[0.22em] text-ink">
           Your account

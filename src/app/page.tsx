@@ -70,7 +70,7 @@ const bucksCards = [
     title: "Earn",
     badge: "SPAXX-tied",
     body: "Idle WB earn a daily yield tracking the SPAXX 7-day rate. Posted to your wallet every month, no lock-up.",
-    href: "/wallet",
+    href: "/capital/wallet",
     cta: "Open wallet",
     cardClass: "bg-pigment-green text-ink",
     iconClass: "text-ink",
@@ -81,7 +81,7 @@ const bucksCards = [
     title: "Invest",
     badge: "Real US equities",
     body: "Buy fractional shares of any US-listed stock at live market prices. Track your P/L right alongside your cash.",
-    href: "/invest",
+    href: "/capital/invest",
     cta: "Open trade desk",
     cardClass: "bg-blue text-ink",
     iconClass: "text-ink",
@@ -92,7 +92,7 @@ const bucksCards = [
     title: "Wager",
     badge: "House events",
     body: "Bet on Whoosh-curated events at fixed odds. Stake locked at placement, paid out on settlement.",
-    href: "/events",
+    href: "/capital/events",
     cta: "See open events",
     cardClass: "bg-imperial-red text-ink",
     iconClass: "text-ink",
@@ -103,7 +103,7 @@ const bucksCards = [
     title: "Send",
     badge: "Member to member",
     body: "Transfer WB to any Whoosh member by Discord username. Instant, no fees, fully reversible only via a return transfer.",
-    href: "/wallet",
+    href: "/capital/wallet",
     cta: "Send WB",
     cardClass: "bg-lavender text-ink",
     iconClass: "text-ink",
@@ -495,7 +495,7 @@ export default async function Home({
               </p>
             </div>
             <a
-              href="/wallet"
+              href="/capital/wallet"
               className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-safety-orange px-6 py-3 text-sm font-bold text-ink transition-opacity hover:opacity-90"
             >
               <Bolt className="h-4 w-4" /> Open your wallet
