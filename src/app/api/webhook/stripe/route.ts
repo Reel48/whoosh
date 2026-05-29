@@ -122,27 +122,47 @@ export async function POST(req: Request) {
       }
       case "invoice.paid": {
         // Premium match: credit WB equal to the invoice amount for any
-        // subscription invoice that carries discord_user_id in its
-        // subscription metadata snapshot. Forward-only — past invoices
-        // are not replayed. (Stripe v22+ exposes subscription via
-        // `parent.subscription_details`.)
+        // subscription invoice that maps back to a Discord user. Forward-only —
+        // past invoices are not replayed.
+        //
+        // The invoice's shape depends on the Stripe account/endpoint API
+        // version (constructEvent does NOT reshape the payload), so resolve the
+        // subscription across both shapes:
+        //   - newer (>=2025-03-31.basil): invoice.parent.subscription_details
+        //   - older: top-level invoice.subscription (string id)
+        // Then read discord_user_id from the metadata snapshot, falling back to
+        // fetching the subscription if the snapshot doesn't carry it.
         const invoice = event.data.object as Stripe.Invoice;
-        const subDetails =
-          invoice.parent?.type === "subscription_details"
-            ? invoice.parent.subscription_details
-            : null;
-        if (!subDetails) break;
-        const subMeta = subDetails.metadata ?? {};
-        const subscriptionId =
-          typeof subDetails.subscription === "string"
-            ? subDetails.subscription
-            : subDetails.subscription?.id;
+
+        let subscriptionId: string | undefined;
+        let subMeta: Record<string, string> = {};
+
+        const parent = (invoice as { parent?: Stripe.Invoice.Parent | null }).parent ?? null;
+        if (parent?.type === "subscription_details" && parent.subscription_details) {
+          const sd = parent.subscription_details;
+          subscriptionId =
+            typeof sd.subscription === "string" ? sd.subscription : sd.subscription?.id;
+          subMeta = (sd.metadata ?? {}) as Record<string, string>;
+        } else {
+          const legacy = (invoice as { subscription?: string | { id: string } }).subscription;
+          subscriptionId = typeof legacy === "string" ? legacy : legacy?.id;
+        }
+
+        // Subscription invoice but no metadata snapshot → fetch the live sub.
+        if (subscriptionId && !subMeta.discord_user_id) {
+          try {
+            const sub = await stripe.subscriptions.retrieve(subscriptionId);
+            subMeta = (sub.metadata ?? {}) as Record<string, string>;
+          } catch (e) {
+            console.warn("invoice.paid: failed to fetch subscription", subscriptionId, e);
+          }
+        }
+
         const userId =
-          (invoice.metadata?.discord_user_id as string | undefined) ??
-          (subMeta.discord_user_id as string | undefined);
+          (invoice.metadata?.discord_user_id as string | undefined) ?? subMeta.discord_user_id;
         const username =
           (invoice.metadata?.discord_username as string | undefined) ??
-          (subMeta.discord_username as string | undefined) ??
+          subMeta.discord_username ??
           "";
         if (!userId) {
           console.warn("invoice.paid without discord_user_id metadata", invoice.id);
