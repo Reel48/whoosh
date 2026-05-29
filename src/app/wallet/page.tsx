@@ -161,8 +161,8 @@ export default async function WalletPage({
           <div
             className={`mt-6 rounded-xl border-2 border-ink px-4 py-3 text-sm font-medium ${
               banner.tone === "good"
-                ? "bg-pigment-green text-white-smoke"
-                : "bg-imperial-red text-white-smoke"
+                ? "bg-pigment-green text-ink"
+                : "bg-ink text-white-smoke"
             }`}
           >
             {banner.text}
@@ -227,7 +227,7 @@ export default async function WalletPage({
                 {
                   label: "Locked in wagers",
                   cents: allocation.openWagersCents,
-                  className: "bg-imperial-red",
+                  className: "bg-ink",
                   hint:
                     allocation.openWagersCents > 0
                       ? "settling soon"
@@ -334,9 +334,9 @@ export default async function WalletPage({
                           p.unrealizedCents === null
                             ? "text-ink/60"
                             : p.unrealizedCents > 0
-                              ? "text-pigment-green"
+                              ? "text-ink"
                               : p.unrealizedCents < 0
-                                ? "text-imperial-red"
+                                ? "text-ink"
                                 : "text-ink"
                         }`}
                         aria-label={
@@ -452,7 +452,6 @@ export default async function WalletPage({
         ) : (
           <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
             {ledger.map((entry) => {
-              const positive = entry.amountCents >= 0;
               return (
                 <li
                   key={entry.id}
@@ -464,11 +463,7 @@ export default async function WalletPage({
                       {entry.memo ?? formatDateTime(entry.createdAt)}
                     </div>
                   </div>
-                  <div
-                    className={`font-heading text-lg font-black tabular-nums ${
-                      positive ? "text-pigment-green" : "text-imperial-red"
-                    }`}
-                  >
+                  <div className="font-heading text-lg font-black tabular-nums text-ink">
                     {formatMoney(entry.amountCents, { signed: true })}
                   </div>
                 </li>
@@ -494,9 +489,9 @@ function Stat({
 }) {
   const cls =
     tone === "good"
-      ? "text-pigment-green"
+      ? "text-ink"
       : tone === "warn"
-        ? "text-imperial-red"
+        ? "text-ink"
         : "text-ink";
   return (
     <div>

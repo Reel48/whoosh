@@ -50,7 +50,7 @@ export default async function AdminDashboardPage() {
       </p>
 
       {error && (
-        <div className="mt-6 rounded-xl border-2 border-ink bg-imperial-red px-4 py-3 text-sm font-medium text-white-smoke">
+        <div className="mt-6 rounded-xl border-2 border-ink bg-ink px-4 py-3 text-sm font-medium text-white-smoke">
           Failed to load stats: {error}
         </div>
       )}
@@ -168,9 +168,9 @@ function Tile({
 }) {
   const accent =
     tone === "good"
-      ? "bg-pigment-green text-white-smoke"
+      ? "bg-pigment-green text-ink"
       : tone === "warn"
-        ? "bg-imperial-red text-white-smoke"
+        ? "bg-ink text-white-smoke"
         : "bg-white-smoke text-ink";
   return (
     <div className="rounded-2xl border-2 border-ink bg-white-smoke p-5">
@@ -194,10 +194,10 @@ function Tile({
 
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    active: { label: "Active", cls: "bg-pigment-green text-white-smoke" },
-    trialing: { label: "Trialing", cls: "bg-pigment-green text-white-smoke" },
-    past_due: { label: "Past due", cls: "bg-imperial-red text-white-smoke" },
-    unpaid: { label: "Unpaid", cls: "bg-imperial-red text-white-smoke" },
+    active: { label: "Active", cls: "bg-pigment-green text-ink" },
+    trialing: { label: "Trialing", cls: "bg-pigment-green text-ink" },
+    past_due: { label: "Past due", cls: "bg-ink text-white-smoke" },
+    unpaid: { label: "Unpaid", cls: "bg-ink text-white-smoke" },
     canceled: { label: "Canceled", cls: "bg-white-smoke text-ink" },
     incomplete: { label: "Incomplete", cls: "bg-white-smoke text-ink" },
     incomplete_expired: { label: "Expired", cls: "bg-white-smoke text-ink" },

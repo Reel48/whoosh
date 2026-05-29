@@ -96,9 +96,9 @@ export function LeaderboardTabs({
                 <span
                   className={
                     t.realizedPlCents > 0
-                      ? "text-pigment-green"
+                      ? "text-ink"
                       : t.realizedPlCents < 0
-                        ? "text-imperial-red"
+                        ? "text-ink"
                         : ""
                   }
                 >
@@ -116,7 +116,7 @@ export function LeaderboardTabs({
             highlightUserId={highlightUserId}
             empty="No big wins yet. Lay a bet in /events to qualify."
             renderRight={(e) => (
-              <span className="text-pigment-green">
+              <span className="text-ink">
                 ▲ {fmtMoney((e as BiggestWinEntry).payoutCents, { signed: true })}
               </span>
             )}

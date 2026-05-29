@@ -78,11 +78,7 @@ export function StockHeader({ profile, snapshot }: Props) {
           {fmtMoney(snapshot.regularMarketPriceCents ?? last?.closeCents ?? null)}
         </div>
         {dayDeltaCents != null && (
-          <div
-            className={`mt-1 font-heading text-base font-black tabular-nums ${
-              positive ? "text-pigment-green" : "text-imperial-red"
-            }`}
-          >
+          <div className="mt-1 font-heading text-base font-black tabular-nums text-ink">
             {positive ? "+" : ""}
             {fmtMoney(dayDeltaCents)}{" "}
             <span className="font-bold">

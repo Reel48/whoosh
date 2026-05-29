@@ -59,11 +59,7 @@ export function BalanceChart({ data }: { data: BalanceSeriesPoint[] }) {
         <span className="font-bold uppercase tracking-wider text-ink/60">
           {formatDate(first.day)} → {formatDate(last.day)}
         </span>
-        <span
-          className={`font-heading font-black tabular-nums ${
-            positive ? "text-pigment-green" : "text-imperial-red"
-          }`}
-        >
+        <span className="font-heading font-black tabular-nums text-ink">
           {positive ? "+" : ""}
           {formatMoney(delta)} over {data.length} days
         </span>

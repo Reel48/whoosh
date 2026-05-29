@@ -210,8 +210,8 @@ export default async function EventsPage({
           <div
             className={`mt-6 rounded-xl border-2 border-ink px-4 py-3 text-sm font-medium ${
               banner.tone === "good"
-                ? "bg-pigment-green text-white-smoke"
-                : "bg-imperial-red text-white-smoke"
+                ? "bg-pigment-green text-ink"
+                : "bg-ink text-white-smoke"
             }`}
           >
             {banner.text}
@@ -318,7 +318,7 @@ export default async function EventsPage({
                         <span
                           className={`rounded-full border-2 border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
                             e.status === "open"
-                              ? "bg-pigment-green text-white-smoke"
+                              ? "bg-pigment-green text-ink"
                               : "bg-white-smoke text-ink"
                           }`}
                         >

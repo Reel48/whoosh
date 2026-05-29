@@ -12,8 +12,8 @@ export default async function TwitterImage() {
         style={{
           width: "100%",
           height: "100%",
-          background: "#0381ed",
-          color: "#000",
+          background: "#48cbff",
+          color: "#010101",
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
@@ -54,8 +54,8 @@ export default async function TwitterImage() {
           <span>WHOOSH</span>
           <span
             style={{
-              background: "#000",
-              color: "#f3f3f0",
+              background: "#010101",
+              color: "#ffffff",
               padding: "16px 32px",
               borderRadius: 999,
               fontSize: 28,

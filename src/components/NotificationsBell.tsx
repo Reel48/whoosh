@@ -105,7 +105,7 @@ export function NotificationsBell() {
           <path d="M10 21a2 2 0 0 0 4 0" />
         </svg>
         {unread > 0 && (
-          <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border-2 border-ink bg-imperial-red px-1 text-[10px] font-black text-white-smoke">
+          <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border-2 border-ink bg-ink px-1 text-[10px] font-black text-white-smoke">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
@@ -147,7 +147,7 @@ export function NotificationsBell() {
                     {!it.readAt && (
                       <span
                         aria-hidden="true"
-                        className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full bg-imperial-red"
+                        className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full bg-ink"
                       />
                     )}
                   </div>
