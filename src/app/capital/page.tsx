@@ -9,6 +9,8 @@ import { ensureWallet, getRecentLedger, type LedgerKind } from "@/lib/wb/ledger"
 import { loadDashboard } from "@/lib/wb/dashboard";
 import { hasClaimedToday, getUserStreak } from "@/lib/wb/bonus";
 import { listOpenEvents } from "@/lib/wb/bets";
+import { groupSyncedByGame } from "@/lib/wb/eventGroups";
+import { EventCard } from "@/components/capital/EventCard";
 import { getWatchlist } from "@/lib/wb/watchlist";
 import { getQuote } from "@/lib/wb/quotes";
 import { getBiggestWinsLeaderboard } from "@/lib/wb/leaderboard";
@@ -47,15 +49,6 @@ function fmtDateTime(iso: string): string {
   });
 }
 
-function fmtClosesAt(iso: string | null): string {
-  if (!iso) return "open";
-  const ms = new Date(iso).getTime() - Date.now();
-  if (ms < 0) return "closing soon";
-  const hours = Math.floor(ms / 3_600_000);
-  if (hours < 1) return `closes in ${Math.max(1, Math.floor(ms / 60_000))}m`;
-  if (hours < 24) return `closes in ${hours}h`;
-  return `closes in ${Math.floor(hours / 24)}d`;
-}
 
 export default async function CapitalHome() {
   // The section layout already gates on premium; this getSession is just to
@@ -107,6 +100,7 @@ export default async function CapitalHome() {
   const returnPos = totalReturn >= 0;
   const pctPos = returnPct >= 0;
   const cashCents = dashboard.allocation.cashCents;
+  const openGames = groupSyncedByGame(openEvents);
 
   return (
     <main className="cap-page">
@@ -188,30 +182,26 @@ export default async function CapitalHome() {
         <QuickAction href="/capital/wallet#leaderboard" label="Leaderboard" blurb="See where you rank" />
       </section>
 
+      {/* Open events — collapsible, expand to bet inline */}
+      {openGames.length > 0 && (
+        <section className="cap-mt-lg">
+          <div className="cap-card-head">
+            <h2 className="text-h2">Open events</h2>
+            <Link href="/capital/events" className="cap-link">See all →</Link>
+          </div>
+          <div className="cap-stack cap-mt">
+            {openGames.slice(0, 3).map((g) => (
+              <EventCard key={g.key} game={g} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Today */}
-      {(openEvents.length > 0 || watchlist.length > 0 || biggestWins.length > 0) && (
+      {(watchlist.length > 0 || biggestWins.length > 0) && (
         <section className="cap-mt-lg">
           <h2 className="text-h2">Today</h2>
           <div className="cap-cols cap-mt">
-            {openEvents.length > 0 && (
-              <div className="card">
-                <div className="cap-card-head">
-                  <h3 className="text-h3">Open events</h3>
-                  <Link href="/capital/events" className="cap-link">See all →</Link>
-                </div>
-                <ul className="cap-list">
-                  {openEvents.slice(0, 4).map((e) => (
-                    <li key={e.id}>
-                      <Link href="/capital/events" className="cap-row">
-                        <span className="cap-row__main">{e.title}</span>
-                        <span className="text-caption">{fmtClosesAt(e.closesAt)}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
             {watchlist.length > 0 && (
               <div className="card">
                 <div className="cap-card-head">
