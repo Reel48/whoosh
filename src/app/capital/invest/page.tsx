@@ -13,7 +13,6 @@ import { StockStats } from "@/components/wb/StockStats";
 import { SymbolSearch } from "@/components/wb/SymbolSearch";
 import { Disclaimer } from "@/components/Disclaimer";
 import { formatWb, formatUsd } from "@/lib/wb/format";
-import { CRYPTO_ASSETS } from "@/lib/wb/assets";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Invest — Whoosh" };
@@ -138,24 +137,15 @@ export default async function InvestPage({
         </div>
       </section>
 
-      {/* Symbol lookup */}
+      {/* Asset lookup */}
       <section className="card cap-mt-lg">
         <h2 className="text-h3">Look up an asset</h2>
         <p className="text-body-sm cap-mt-1">
-          Real US stocks (~15 min delayed) and live crypto quotes. Orders fill at the most recent quote — Whoosh Bucks only.
+          Search any US-listed stock or supported crypto by company name or ticker. Orders fill at the
+          most recent quote — Whoosh Bucks only.
         </p>
         <div className="cap-mt">
           <SymbolSearch defaultValue={lookupSymbol} />
-        </div>
-        <div className="cap-mt">
-          <div className="text-caption">Crypto</div>
-          <div className="cap-tabs">
-            {CRYPTO_ASSETS.map((c) => (
-              <Link key={c.symbol} href={`/capital/invest?symbol=${c.symbol}`} className={`cap-tab ${c.symbol === lookupSymbol ? "is-active" : ""}`}>
-                {c.symbol} · {c.name}
-              </Link>
-            ))}
-          </div>
         </div>
       </section>
 
