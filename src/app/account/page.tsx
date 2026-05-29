@@ -151,7 +151,7 @@ export default async function AccountPage() {
             <h2 className="font-heading text-xl font-bold">Whoosh Premium</h2>
             <StatusPill status={sub?.status} />
             {isActive && sub?.cancelAtPeriodEnd && (
-              <span className="rounded-full border-2 border-ink bg-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-white-smoke">
+              <span className="rounded-full border-2 border-ink bg-imperial-red px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-white-smoke">
                 Ends {renewalDate}
               </span>
             )}
@@ -181,8 +181,8 @@ export default async function AccountPage() {
                     Granted
                   </span>
                 ) : isActive ? (
-                  <span className="inline-flex items-center gap-1.5 font-bold text-safety-orange">
-                    <span className="inline-flex h-2.5 w-2.5 rounded-full border-2 border-ink bg-safety-orange" />
+                  <span className="inline-flex items-center gap-1.5 font-bold text-imperial-red">
+                    <span className="inline-flex h-2.5 w-2.5 rounded-full border-2 border-ink bg-imperial-red" />
                     Not granted yet
                   </span>
                 ) : (
@@ -198,7 +198,7 @@ export default async function AccountPage() {
           )}
 
           {isActive && !roleGranted && (
-            <p className="mt-6 rounded-xl border-2 border-ink bg-ink px-4 py-3 text-sm font-medium text-white-smoke">
+            <p className="mt-6 rounded-xl border-2 border-ink bg-imperial-red px-4 py-3 text-sm font-medium text-white-smoke">
               We can&rsquo;t see the Premium role on your Discord account yet.
               Make sure you&rsquo;ve{" "}
               <a
@@ -322,9 +322,9 @@ function StatusPill({ status }: { status: string | undefined }) {
   const isGood = status === "active" || status === "trialing";
   const isWarn = status === "past_due" || status === "unpaid";
   const cls = isGood
-    ? "bg-pigment-green text-ink"
+    ? "bg-pigment-green text-white-smoke"
     : isWarn
-      ? "bg-ink text-white-smoke"
+      ? "bg-imperial-red text-white-smoke"
       : "bg-white-smoke text-ink";
   return (
     <span

@@ -86,7 +86,7 @@ export function ConfirmSheet({
             onClick={onConfirm}
             className={`tap-press order-1 cursor-pointer rounded-full border-2 border-ink px-5 py-3 text-sm font-bold sm:order-2 ${
               tone === "destructive"
-                ? "bg-ink text-white-smoke"
+                ? "bg-imperial-red text-white-smoke"
                 : "bg-ink text-white-smoke"
             }`}
           >

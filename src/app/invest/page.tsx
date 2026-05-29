@@ -163,8 +163,8 @@ export default async function InvestPage({
           <div
             className={`mt-6 rounded-xl border-2 border-ink px-4 py-3 text-sm font-medium ${
               banner.tone === "good"
-                ? "bg-pigment-green text-ink"
-                : "bg-ink text-white-smoke"
+                ? "bg-pigment-green text-white-smoke"
+                : "bg-imperial-red text-white-smoke"
             }`}
           >
             {banner.text}
@@ -222,7 +222,11 @@ export default async function InvestPage({
                   <h3 className="font-heading text-xl font-bold text-ink">Price history</h3>
                   {rangeChangeCents != null && rangeChangePct != null && (
                     <p className="mt-1 text-sm font-medium">
-                      <span className="font-heading font-black text-ink">
+                      <span
+                        className={`font-heading font-black ${
+                          rangeChangeCents >= 0 ? "text-pigment-green" : "text-imperial-red"
+                        }`}
+                      >
                         {rangeChangeCents >= 0 ? "+" : ""}
                         {fmtUsd(rangeChangeCents, { signed: true })} ({fmtPct(rangeChangePct)})
                       </span>{" "}
@@ -456,9 +460,9 @@ export default async function InvestPage({
                       <div
                         className={`font-heading font-black tabular-nums ${
                           plPositive
-                            ? "text-ink"
+                            ? "text-pigment-green"
                             : plNegative
-                              ? "text-ink"
+                              ? "text-imperial-red"
                               : "text-ink/60"
                         }`}
                         aria-label={
@@ -504,7 +508,11 @@ export default async function InvestPage({
               const pos = totalPL > 0;
               const neg = totalPL < 0;
               return (
-                <p className="mt-2 font-heading text-3xl font-black tabular-nums text-ink">
+                <p
+                  className={`mt-2 font-heading text-3xl font-black tabular-nums ${
+                    pos ? "text-pigment-green" : neg ? "text-imperial-red" : "text-ink"
+                  }`}
+                >
                   {pos ? "▲ " : neg ? "▼ " : ""}
                   {fmtWb(totalPL, { signed: true })}{" "}
                   <span className="text-base font-medium text-ink/70">
@@ -536,7 +544,11 @@ export default async function InvestPage({
                     @ {fmtUsd(o.priceCents)}/share · {new Date(o.createdAt).toLocaleString("en-US")}
                   </div>
                 </div>
-                <div className="font-heading font-black tabular-nums text-ink">
+                <div
+                  className={`font-heading font-black tabular-nums ${
+                    o.side === "buy" ? "text-imperial-red" : "text-pigment-green"
+                  }`}
+                >
                   {o.side === "buy" ? "-" : "+"}
                   {fmtWb(o.totalCents)}
                 </div>

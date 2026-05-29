@@ -144,7 +144,7 @@ export default async function AdminEventsPage() {
                       key={s}
                       className={`rounded-full border-2 border-ink px-2 py-0.5 text-[11px] font-bold ${
                         recommendedSet.has(s)
-                          ? "bg-pigment-green text-ink"
+                          ? "bg-pigment-green text-white-smoke"
                           : "bg-white-smoke text-ink"
                       }`}
                     >
@@ -164,7 +164,7 @@ export default async function AdminEventsPage() {
                     key={s}
                     className={`rounded-full border-2 border-ink px-2 py-0.5 text-[11px] font-bold ${
                       enabledSet.has(s)
-                        ? "bg-pigment-green text-ink"
+                        ? "bg-pigment-green text-white-smoke"
                         : "bg-blue text-ink"
                     }`}
                   >
@@ -269,11 +269,11 @@ export default async function AdminEventsPage() {
                 <span
                   className={`rounded-full border-2 border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
                     e.status === "open"
-                      ? "bg-pigment-green text-ink"
+                      ? "bg-pigment-green text-white-smoke"
                       : e.status === "settled"
                         ? "bg-blue text-ink"
                         : e.status === "cancelled"
-                          ? "bg-ink text-white-smoke"
+                          ? "bg-imperial-red text-white-smoke"
                           : "bg-white-smoke text-ink"
                   }`}
                 >
@@ -318,7 +318,7 @@ export default async function AdminEventsPage() {
                   )}
                   <form action={cancelEventAction}>
                     <input type="hidden" name="event_id" value={e.id} />
-                    <button className="cursor-pointer rounded-full border-2 border-ink bg-ink px-3 py-1 text-xs font-bold text-white-smoke transition-opacity hover:opacity-90">
+                    <button className="cursor-pointer rounded-full border-2 border-ink bg-imperial-red px-3 py-1 text-xs font-bold text-white-smoke transition-opacity hover:opacity-90">
                       Cancel + refund
                     </button>
                   </form>

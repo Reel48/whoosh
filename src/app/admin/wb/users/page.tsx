@@ -183,7 +183,7 @@ export default async function AdminUsersPage({
                 type="submit"
                 name="op"
                 value="remove"
-                className="cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+                className="cursor-pointer rounded-full border-2 border-ink bg-imperial-red px-5 py-3 text-sm font-bold text-ink transition-opacity hover:opacity-90"
               >
                 Remove WB
               </button>
@@ -195,7 +195,7 @@ export default async function AdminUsersPage({
               />
             </form>
             {balance < 0 && (
-              <p className="mt-3 text-xs font-medium text-safety-orange">
+              <p className="mt-3 text-xs font-medium text-imperial-red">
                 ⚠ This wallet would go negative on a debit. Removing more than the
                 current balance is allowed but will leave the user owing WB.
               </p>
@@ -228,6 +228,7 @@ export default async function AdminUsersPage({
             ) : (
               <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
                 {ledger.map((entry) => {
+                  const positive = entry.amountCents >= 0;
                   return (
                     <li
                       key={entry.id}
@@ -241,7 +242,11 @@ export default async function AdminUsersPage({
                           <div className="text-xs text-ink/60">{entry.memo}</div>
                         )}
                       </div>
-                      <div className="font-heading text-lg font-black tabular-nums text-ink">
+                      <div
+                        className={`font-heading text-lg font-black tabular-nums ${
+                          positive ? "text-pigment-green" : "text-imperial-red"
+                        }`}
+                      >
                         {fmtMoney(entry.amountCents, { signed: true })}
                       </div>
                       <div className="text-xs text-ink/60">

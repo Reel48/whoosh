@@ -174,7 +174,7 @@ function WagerRow({ wager: w }: { wager: UserWager }) {
               <div className="text-[11px] font-bold uppercase tracking-wider text-ink/55">
                 Payout
               </div>
-              <div className="font-heading text-lg font-black tabular-nums text-ink">
+              <div className="font-heading text-lg font-black tabular-nums text-pigment-green">
                 {formatWb(w.payoutCents)}{" "}
                 <span className="text-xs">({formatWb(profitCents, { signed: true })})</span>
               </div>
@@ -184,7 +184,7 @@ function WagerRow({ wager: w }: { wager: UserWager }) {
               <div className="text-[11px] font-bold uppercase tracking-wider text-ink/55">
                 Result
               </div>
-              <div className="font-heading text-lg font-black tabular-nums text-ink">
+              <div className="font-heading text-lg font-black tabular-nums text-imperial-red">
                 {formatWb(-w.stakeCents, { signed: true })}
               </div>
             </>
@@ -207,8 +207,8 @@ function WagerRow({ wager: w }: { wager: UserWager }) {
 function StatusBadge({ status }: { status: WagerStatus }) {
   const styles: Record<WagerStatus, string> = {
     open: "bg-blue text-ink",
-    won: "bg-pigment-green text-ink",
-    lost: "bg-ink text-white-smoke",
+    won: "bg-pigment-green text-white-smoke",
+    lost: "bg-imperial-red text-white-smoke",
     refunded: "bg-white-smoke text-ink",
   };
   const labels: Record<WagerStatus, string> = {
@@ -262,9 +262,9 @@ function Tile({
 }) {
   const valueColor =
     tone === "good"
-      ? "text-ink"
+      ? "text-pigment-green"
       : tone === "bad"
-        ? "text-ink"
+        ? "text-imperial-red"
         : "text-ink";
   return (
     <div className="rounded-2xl border-2 border-ink bg-white-smoke p-4">

@@ -138,9 +138,9 @@ function Step({
 }) {
   const numberBg =
     tone === "good"
-      ? "bg-pigment-green text-ink"
+      ? "bg-pigment-green text-white-smoke"
       : tone === "warn"
-        ? "bg-ink text-white-smoke"
+        ? "bg-imperial-red text-white-smoke"
         : "bg-ink text-white-smoke";
   const Cta = external ? "a" : Link;
   const ctaProps = external

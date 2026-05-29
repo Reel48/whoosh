@@ -49,8 +49,8 @@ export function SupplyChart({ data }: { data: SupplyPoint[] }) {
       role="img"
       aria-label="Total WB supply over time"
     >
-      <path d={fillPath} fill="rgba(72,203,255,0.15)" />
-      <path d={path} stroke="#48cbff" strokeWidth="2" fill="none" />
+      <path d={fillPath} fill="rgba(3,129,237,0.15)" />
+      <path d={path} stroke="#0381ed" strokeWidth="2" fill="none" />
       {/* y-axis ticks */}
       {[min, (min + max) / 2, max].map((v) => (
         <g key={v}>

@@ -11,7 +11,7 @@ type Props = {
  * Polished SSR-only SVG line chart of close prices over time.
  * - Y-axis: 5 ticks, drawn on the right.
  * - X-axis: start/middle/end date labels along the bottom.
- * - Line color: black (ink); direction is read from the value labels, not color.
+ * - Line color: pigment-green if final ≥ first, imperial-red otherwise.
  * - Area fill under the line at low opacity.
  * - Optional reference horizontal line (cost basis, IPO price, etc.).
  *
@@ -64,6 +64,7 @@ export function StockPriceChart({ candles, refLineCents, refLineLabel }: Props) 
 
   const first = candles[0];
   const last = candles[candles.length - 1];
+  const positive = last.closeCents >= first.closeCents;
 
   // Y-axis ticks — 5 evenly spaced between yMin and yMax, but labeled as
   // rounded dollar amounts for readability.
@@ -82,7 +83,7 @@ export function StockPriceChart({ candles, refLineCents, refLineLabel }: Props) 
     { i: candles.length - 1, label: formatDate(last.time) },
   ];
 
-  const lineColorClass = "text-ink";
+  const lineColorClass = positive ? "text-pigment-green" : "text-imperial-red";
 
   return (
     <div className="w-full">

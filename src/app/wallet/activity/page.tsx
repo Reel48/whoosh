@@ -197,9 +197,9 @@ export default async function ActivityPage({
                   <div
                     className={`font-heading text-lg font-black tabular-nums ${
                       positive
-                        ? "text-ink"
+                        ? "text-pigment-green"
                         : negative
-                          ? "text-ink"
+                          ? "text-imperial-red"
                           : "text-ink"
                     }`}
                   >

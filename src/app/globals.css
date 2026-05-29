@@ -1,19 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  /* Nike Run Club palette — vibrant color-block system, black holds it together.
-   * Variable names are legacy labels; values map to Nike colors:
-   *   ink → black, white-smoke → white, blue → cyan, mango → yellow,
-   *   safety-orange → orange, lime → lime, lavender → purple,
-   *   pigment-green → spring green. */
-  --ink: #010101;
-  --white-smoke: #ffffff;
-  --lime: #d6ff46;
-  --blue: #48cbff;
-  --safety-orange: #fe9739;
-  --mango: #fdf205;
-  --pigment-green: #03f87e;
-  --lavender: #a59afe;
+  /* Whoosh palette — vibrant color-block system, black holds it together */
+  --ink: #000000;
+  --white-smoke: #f3f3f0;
+  --cream: #d5d4ce;
+  --lime: #cef932;
+  --blue: #0381ed;
+  --safety-orange: #fc7b00;
+  --mango: #fbd12c;
+  --plum: #ff9ff3;
+  --imperial-red: #ff0c31;
+  --pigment-green: #009640;
+  --lavender: #ae78d2;
 
   --background: var(--white-smoke);
   --foreground: var(--ink);
@@ -22,10 +21,13 @@
 @theme inline {
   --color-ink: var(--ink);
   --color-white-smoke: var(--white-smoke);
+  --color-cream: var(--cream);
   --color-lime: var(--lime);
   --color-blue: var(--blue);
   --color-safety-orange: var(--safety-orange);
   --color-mango: var(--mango);
+  --color-plum: var(--plum);
+  --color-imperial-red: var(--imperial-red);
   --color-pigment-green: var(--pigment-green);
   --color-lavender: var(--lavender);
 

@@ -94,7 +94,7 @@ const bucksCards = [
     body: "Bet on Whoosh-curated events at fixed odds. Stake locked at placement, paid out on settlement.",
     href: "/events",
     cta: "See open events",
-    cardClass: "bg-safety-orange text-ink",
+    cardClass: "bg-imperial-red text-ink",
     iconClass: "text-ink",
     ctaClass: "bg-ink text-white-smoke",
     Icon: DiceIcon,
@@ -114,7 +114,7 @@ const bucksCards = [
 
 const channelGroups = [
   { name: "Sports", accent: "text-blue", dot: "bg-blue", channels: ["NFL Football", "College Football", "Baseball", "Soccer", "Basketball", "Golf", "Fights"] },
-  { name: "Media", accent: "text-safety-orange", dot: "bg-safety-orange", channels: ["Pic of the Day", "Movies & TV", "Music", "Gaming", "Videos"] },
+  { name: "Media", accent: "text-imperial-red", dot: "bg-imperial-red", channels: ["Pic of the Day", "Movies & TV", "Music", "Gaming", "Videos"] },
   { name: "Miscellaneous", accent: "text-pigment-green", dot: "bg-pigment-green", channels: ["Health & Fitness", "Food & Drinks", "Counting Game", "Money Rankings", "Water the Tree"] },
 ];
 

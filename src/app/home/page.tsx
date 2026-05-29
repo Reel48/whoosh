@@ -341,7 +341,7 @@ export default async function MemberHome() {
                         @{w.discordUsername}
                       </span>
                     </div>
-                    <span className="font-heading font-black tabular-nums text-ink">
+                    <span className="font-heading font-black tabular-nums text-pigment-green">
                       ▲ {formatWb(w.payoutCents, { signed: true })}
                     </span>
                   </li>
@@ -369,6 +369,7 @@ export default async function MemberHome() {
           ) : (
             <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
               {ledger.map((entry) => {
+                const positive = entry.amountCents >= 0;
                 return (
                   <li
                     key={entry.id}
@@ -382,7 +383,11 @@ export default async function MemberHome() {
                         {entry.memo ?? fmtDateTime(entry.createdAt)}
                       </div>
                     </div>
-                    <div className="font-heading text-lg font-black tabular-nums text-ink">
+                    <div
+                      className={`font-heading text-lg font-black tabular-nums ${
+                        positive ? "text-pigment-green" : "text-imperial-red"
+                      }`}
+                    >
                       {formatWb(entry.amountCents, { signed: true })}
                     </div>
                   </li>

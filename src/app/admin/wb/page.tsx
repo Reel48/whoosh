@@ -315,7 +315,11 @@ export default async function AdminWbPage() {
                     {r.memo ? ` · ${r.memo}` : ""}
                   </div>
                 </div>
-                <div className="font-heading text-lg font-black tabular-nums text-ink">
+                <div
+                  className={`font-heading text-lg font-black tabular-nums ${
+                    positive ? "text-pigment-green" : "text-imperial-red"
+                  }`}
+                >
                   {positive ? "+" : ""}
                   {formatMoney(cents)}
                 </div>

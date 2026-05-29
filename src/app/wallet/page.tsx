@@ -161,8 +161,8 @@ export default async function WalletPage({
           <div
             className={`mt-6 rounded-xl border-2 border-ink px-4 py-3 text-sm font-medium ${
               banner.tone === "good"
-                ? "bg-pigment-green text-ink"
-                : "bg-ink text-white-smoke"
+                ? "bg-pigment-green text-white-smoke"
+                : "bg-imperial-red text-white-smoke"
             }`}
           >
             {banner.text}
@@ -227,7 +227,7 @@ export default async function WalletPage({
                 {
                   label: "Locked in wagers",
                   cents: allocation.openWagersCents,
-                  className: "bg-ink",
+                  className: "bg-imperial-red",
                   hint:
                     allocation.openWagersCents > 0
                       ? "settling soon"
@@ -334,9 +334,9 @@ export default async function WalletPage({
                           p.unrealizedCents === null
                             ? "text-ink/60"
                             : p.unrealizedCents > 0
-                              ? "text-ink"
+                              ? "text-pigment-green"
                               : p.unrealizedCents < 0
-                                ? "text-ink"
+                                ? "text-imperial-red"
                                 : "text-ink"
                         }`}
                         aria-label={
@@ -452,6 +452,7 @@ export default async function WalletPage({
         ) : (
           <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
             {ledger.map((entry) => {
+              const positive = entry.amountCents >= 0;
               return (
                 <li
                   key={entry.id}
@@ -463,7 +464,11 @@ export default async function WalletPage({
                       {entry.memo ?? formatDateTime(entry.createdAt)}
                     </div>
                   </div>
-                  <div className="font-heading text-lg font-black tabular-nums text-ink">
+                  <div
+                    className={`font-heading text-lg font-black tabular-nums ${
+                      positive ? "text-pigment-green" : "text-imperial-red"
+                    }`}
+                  >
                     {formatMoney(entry.amountCents, { signed: true })}
                   </div>
                 </li>
@@ -489,9 +494,9 @@ function Stat({
 }) {
   const cls =
     tone === "good"
-      ? "text-ink"
+      ? "text-pigment-green"
       : tone === "warn"
-        ? "text-ink"
+        ? "text-imperial-red"
         : "text-ink";
   return (
     <div>
