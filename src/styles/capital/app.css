@@ -6,11 +6,23 @@
  */
 
 [data-theme="capital"] {
-  /* page shell */
+  /* page shell.
+   * cap-page is a flex item of the [data-theme] flex-column wrapper. With
+   * `margin: 0 auto` for desktop centering, auto inline margins suppress the
+   * normal flex stretch, so the item would size to its CONTENT's max width
+   * (capped at max-width) instead of the parent — on a phone that makes the
+   * page wider than the screen (horizontal overflow / dead gutter). Pinning
+   * `width: 100%` ties it back to the parent width; max-width still caps it
+   * and the auto margins still center it on wide screens. min-width:0 +
+   * overflow-x:clip are belt-and-suspenders so a wide child (scrolling rail,
+   * table) can never push the page sideways. */
   .cap-page {
+    width: 100%;
     max-width: var(--container-narrow);
     margin: 0 auto;
     padding: var(--space-10) var(--space-6) var(--space-20);
+    min-width: 0;
+    overflow-x: clip;
   }
   .cap-page--wide {
     max-width: var(--container-max);
