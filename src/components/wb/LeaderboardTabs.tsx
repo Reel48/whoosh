@@ -46,9 +46,9 @@ export function LeaderboardTabs({
   const subtitle = TABS.find((t) => t.id === tab)!.subtitle;
 
   return (
-    <div className="rounded-3xl border-2 border-ink bg-white-smoke p-4 sm:p-8">
+    <div className="rounded-theme shadow-theme border-theme border-ink bg-surface p-4 sm:p-8">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h2 className="font-heading text-xl font-bold text-ink">Leaderboard</h2>
+        <h2 className="font-display text-xl font-bold text-ink">Leaderboard</h2>
         <p className="text-xs font-bold uppercase tracking-wider text-ink/60">
           {subtitle}
         </p>
@@ -64,10 +64,10 @@ export function LeaderboardTabs({
               type="button"
               aria-selected={active}
               onClick={() => setTab(t.id)}
-              className={`chip-tap tap-press cursor-pointer rounded-full border-2 border-ink px-4 text-sm font-bold transition-colors ${
+              className={`chip-tap tap-press cursor-pointer rounded-full border-theme border-ink px-4 text-sm font-bold transition-colors ${
                 active
                   ? "bg-ink text-white-smoke"
-                  : "bg-white-smoke text-ink hover:bg-ink hover:text-white-smoke"
+                  : "bg-surface text-ink hover:bg-ink hover:text-white-smoke"
               }`}
             >
               {t.label}
@@ -114,7 +114,7 @@ export function LeaderboardTabs({
           <RankList
             entries={wins}
             highlightUserId={highlightUserId}
-            empty="No big wins yet. Lay a bet in /events to qualify."
+            empty="No big wins yet. Lay a bet in /capital/events to qualify."
             renderRight={(e) => (
               <span className="text-pigment-green">
                 ▲ {fmtMoney((e as BiggestWinEntry).payoutCents, { signed: true })}
@@ -132,7 +132,7 @@ export function LeaderboardTabs({
           <RankList
             entries={streaks}
             highlightUserId={highlightUserId}
-            empty="No active streaks. Open /wallet to claim today's check-in."
+            empty="No active streaks. Open /capital/wallet to claim today's check-in."
             renderRight={(e) => {
               const s = e as StreakEntry;
               return (
@@ -185,7 +185,7 @@ function RankList<T extends Entry>({
               isMe ? "bg-blue/30 -mx-2 px-2 rounded-xl sm:-mx-3 sm:px-3" : ""
             }`}
           >
-            <span className="font-heading text-base font-black text-ink/70 tabular-nums sm:text-xl">
+            <span className="font-display text-base font-black text-ink/70 tabular-nums sm:text-xl">
               {e.rank}
             </span>
             <div className="flex items-center gap-2 min-w-0 sm:gap-3">
@@ -194,25 +194,25 @@ function RankList<T extends Entry>({
                 hash={null}
                 username={e.discordUsername}
                 size={28}
-                className="border-2 border-ink flex-none sm:hidden"
+                className="border-theme border-ink flex-none sm:hidden"
               />
               <Avatar
                 id={e.discordUserId}
                 hash={null}
                 username={e.discordUsername}
                 size={32}
-                className="border-2 border-ink flex-none hidden sm:block"
+                className="border-theme border-ink flex-none hidden sm:block"
               />
               <div className="min-w-0">
                 {/* Badge lives as a sibling of the truncated username — if it
                  *  sat *inside* the .truncate span, its border/padding would
                  *  be clipped by `overflow: hidden`. */}
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <span className="truncate font-heading text-sm font-black text-ink sm:text-base">
+                  <span className="truncate font-display text-sm font-black text-ink sm:text-base">
                     @{e.discordUsername}
                   </span>
                   {isMe && (
-                    <span className="shrink-0 whitespace-nowrap rounded-full border-2 border-ink bg-blue px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink sm:px-2 sm:text-xs">
+                    <span className="shrink-0 whitespace-nowrap rounded-full border-theme border-ink bg-blue px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink sm:px-2 sm:text-xs">
                       you
                     </span>
                   )}
@@ -222,7 +222,7 @@ function RankList<T extends Entry>({
                 )}
               </div>
             </div>
-            <span className="font-heading text-sm font-black tabular-nums sm:text-lg">
+            <span className="font-display text-sm font-black tabular-nums sm:text-lg">
               {renderRight(e)}
             </span>
           </li>

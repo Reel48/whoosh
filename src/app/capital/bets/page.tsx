@@ -4,7 +4,6 @@ import { getSession } from "@/lib/session";
 import { ensureWallet } from "@/lib/wb/ledger";
 import { listUserWagers, type UserWager, type WagerStatus } from "@/lib/wb/bets";
 import { MARKET_LABELS } from "@/lib/wb/odds";
-import { Nav } from "@/components/Nav";
 import { LocalTime } from "@/components/LocalTime";
 import { Disclaimer } from "@/components/Disclaimer";
 import { formatWb } from "@/lib/wb/format";
@@ -26,7 +25,7 @@ export default async function MyBetsPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const session = await getSession();
-  if (!session) redirect("/api/auth/discord?next=/events/mine");
+  if (!session) redirect("/api/auth/discord?next=/capital/bets");
   await ensureWallet(session.id, session.username);
 
   const wagers = await listUserWagers(session.id);
@@ -44,15 +43,14 @@ export default async function MyBetsPage({
 
   return (
     <>
-      <Nav />
       <main className="mx-auto w-full max-w-3xl px-6 py-16 sm:py-24">
         <Link
-          href="/events"
+          href="/capital/events"
           className="text-xs font-bold text-ink/60 underline-offset-2 hover:underline"
         >
           ← Back to events
         </Link>
-        <h1 className="mt-2 font-heading text-4xl font-black tracking-tight sm:text-5xl">
+        <h1 className="mt-2 font-display text-4xl font-black tracking-tight sm:text-5xl">
           My bets
         </h1>
         <p className="mt-2 text-sm text-ink/70">
@@ -80,7 +78,7 @@ export default async function MyBetsPage({
           {FILTERS.map((f) => (
             <FilterChip
               key={f.key}
-              href={f.key === "all" ? "/events/mine" : `/events/mine?status=${f.key}`}
+              href={f.key === "all" ? "/capital/bets" : `/capital/bets?status=${f.key}`}
               label={f.label}
               active={activeFilter.key === f.key}
             />
@@ -89,15 +87,15 @@ export default async function MyBetsPage({
 
         {/* List */}
         {visible.length === 0 ? (
-          <div className="mt-10 rounded-3xl border-2 border-ink bg-white-smoke p-8 text-center">
-            <p className="font-heading text-lg font-bold text-ink">
+          <div className="mt-10 rounded-theme shadow-theme border-theme border-ink bg-surface p-8 text-center">
+            <p className="font-display text-lg font-bold text-ink">
               {wagers.length === 0 ? "No bets yet." : "Nothing here."}
             </p>
             <p className="mt-2 text-sm text-ink/60">
               {wagers.length === 0 ? (
                 <>
                   Head to{" "}
-                  <Link href="/events" className="font-bold underline">
+                  <Link href="/capital/events" className="font-bold underline">
                     Events
                   </Link>{" "}
                   to place your first wager.
@@ -126,20 +124,20 @@ function WagerRow({ wager: w }: { wager: UserWager }) {
   const profitCents = w.payoutCents - w.stakeCents;
 
   return (
-    <li className="rounded-2xl border-2 border-ink bg-white-smoke p-4">
+    <li className="rounded-2xl border-theme border-ink bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-heading font-black text-ink">{w.event.title}</span>
+            <span className="font-display font-black text-ink">{w.event.title}</span>
             {marketLabel && (
-              <span className="rounded-full border-2 border-ink bg-mango px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+              <span className="rounded-full border-theme border-ink bg-mango px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
                 {marketLabel}
               </span>
             )}
           </div>
           <p className="mt-1 text-sm font-medium text-ink/80">
             {w.outcomeLabel}{" "}
-            <span className="font-heading tabular-nums text-ink/60">
+            <span className="font-display tabular-nums text-ink/60">
               ×{w.oddsFrozen.toFixed(2)}
             </span>
           </p>
@@ -155,7 +153,7 @@ function WagerRow({ wager: w }: { wager: UserWager }) {
           <div className="text-[11px] font-bold uppercase tracking-wider text-ink/55">
             Stake
           </div>
-          <div className="font-heading text-lg font-black tabular-nums">
+          <div className="font-display text-lg font-black tabular-nums">
             {formatWb(w.stakeCents)}
           </div>
         </div>
@@ -165,7 +163,7 @@ function WagerRow({ wager: w }: { wager: UserWager }) {
               <div className="text-[11px] font-bold uppercase tracking-wider text-ink/55">
                 To return
               </div>
-              <div className="font-heading text-lg font-black tabular-nums text-ink">
+              <div className="font-display text-lg font-black tabular-nums text-ink">
                 {formatWb(w.potentialCents)}
               </div>
             </>
@@ -174,7 +172,7 @@ function WagerRow({ wager: w }: { wager: UserWager }) {
               <div className="text-[11px] font-bold uppercase tracking-wider text-ink/55">
                 Payout
               </div>
-              <div className="font-heading text-lg font-black tabular-nums text-pigment-green">
+              <div className="font-display text-lg font-black tabular-nums text-pigment-green">
                 {formatWb(w.payoutCents)}{" "}
                 <span className="text-xs">({formatWb(profitCents, { signed: true })})</span>
               </div>
@@ -184,7 +182,7 @@ function WagerRow({ wager: w }: { wager: UserWager }) {
               <div className="text-[11px] font-bold uppercase tracking-wider text-ink/55">
                 Result
               </div>
-              <div className="font-heading text-lg font-black tabular-nums text-imperial-red">
+              <div className="font-display text-lg font-black tabular-nums text-imperial-red">
                 {formatWb(-w.stakeCents, { signed: true })}
               </div>
             </>
@@ -193,7 +191,7 @@ function WagerRow({ wager: w }: { wager: UserWager }) {
               <div className="text-[11px] font-bold uppercase tracking-wider text-ink/55">
                 Refunded
               </div>
-              <div className="font-heading text-lg font-black tabular-nums text-ink">
+              <div className="font-display text-lg font-black tabular-nums text-ink">
                 {formatWb(w.payoutCents)}
               </div>
             </>
@@ -209,7 +207,7 @@ function StatusBadge({ status }: { status: WagerStatus }) {
     open: "bg-blue text-ink",
     won: "bg-pigment-green text-white-smoke",
     lost: "bg-imperial-red text-white-smoke",
-    refunded: "bg-white-smoke text-ink",
+    refunded: "bg-surface text-ink",
   };
   const labels: Record<WagerStatus, string> = {
     open: "Open",
@@ -219,7 +217,7 @@ function StatusBadge({ status }: { status: WagerStatus }) {
   };
   return (
     <span
-      className={`shrink-0 rounded-full border-2 border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${styles[status]}`}
+      className={`shrink-0 rounded-full border-theme border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${styles[status]}`}
     >
       {labels[status]}
     </span>
@@ -238,10 +236,10 @@ function FilterChip({
   return (
     <Link
       href={href}
-      className={`chip-tap tap-press rounded-full border-2 border-ink px-4 py-1.5 text-sm font-bold transition-colors ${
+      className={`chip-tap tap-press rounded-full border-theme border-ink px-4 py-1.5 text-sm font-bold transition-colors ${
         active
           ? "bg-ink text-white-smoke"
-          : "bg-white-smoke text-ink hover:bg-ink hover:text-white-smoke"
+          : "bg-surface text-ink hover:bg-ink hover:text-white-smoke"
       }`}
     >
       {label}
@@ -267,9 +265,9 @@ function Tile({
         ? "text-imperial-red"
         : "text-ink";
   return (
-    <div className="rounded-2xl border-2 border-ink bg-white-smoke p-4">
+    <div className="rounded-2xl border-theme border-ink bg-surface p-4">
       <p className="text-xs font-bold uppercase tracking-wider text-ink/60">{label}</p>
-      <p className={`mt-2 font-heading text-2xl font-black tabular-nums ${valueColor}`}>
+      <p className={`mt-2 font-display text-2xl font-black tabular-nums ${valueColor}`}>
         {value}
       </p>
       {sub && <p className="mt-0.5 text-xs text-ink/55">{sub}</p>}

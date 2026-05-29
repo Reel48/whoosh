@@ -61,15 +61,15 @@ export function StockStats({ snapshot, profile }: Props) {
   ];
 
   return (
-    <div className="rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
-      <h3 className="font-heading text-xl font-bold text-ink">Key stats</h3>
+    <div className="rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
+      <h3 className="font-display text-xl font-bold text-ink">Key stats</h3>
       <dl className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((s) => (
           <div key={s.label}>
             <dt className="text-xs font-bold uppercase tracking-wider text-ink/60">
               {s.label}
             </dt>
-            <dd className="mt-1 font-heading text-lg font-black tabular-nums">{s.value}</dd>
+            <dd className="mt-1 font-display text-lg font-black tabular-nums">{s.value}</dd>
           </div>
         ))}
       </dl>

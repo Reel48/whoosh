@@ -27,9 +27,9 @@ function fmtMoney(cents: number): string {
  */
 export function Leaderboard({ entries, highlightUserId, subtitle }: Props) {
   return (
-    <div className="rounded-3xl border-2 border-ink bg-white-smoke p-6 sm:p-8">
+    <div className="rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-heading text-xl font-bold text-ink">
+        <h2 className="font-display text-xl font-bold text-ink">
           Top {Math.max(entries.length, 10)} Whoosh Bucks holders
         </h2>
         {subtitle && (
@@ -55,7 +55,7 @@ export function Leaderboard({ entries, highlightUserId, subtitle }: Props) {
                   isMe ? "bg-blue/30 -mx-3 px-3 rounded-xl" : ""
                 }`}
               >
-                <span className="font-heading text-xl font-black text-ink/70 tabular-nums">
+                <span className="font-display text-xl font-black text-ink/70 tabular-nums">
                   {e.rank}
                 </span>
                 <div className="flex items-center gap-3 min-w-0">
@@ -64,18 +64,18 @@ export function Leaderboard({ entries, highlightUserId, subtitle }: Props) {
                     hash={null}
                     username={e.discordUsername}
                     size={32}
-                    className="border-2 border-ink flex-none"
+                    className="border-theme border-ink flex-none"
                   />
-                  <span className="truncate font-heading font-black text-ink">
+                  <span className="truncate font-display font-black text-ink">
                     @{e.discordUsername}
                     {isMe && (
-                      <span className="ml-2 rounded-full border-2 border-ink bg-blue px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-ink">
+                      <span className="ml-2 rounded-full border-theme border-ink bg-blue px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-ink">
                         you
                       </span>
                     )}
                   </span>
                 </div>
-                <span className="font-heading text-lg font-black tabular-nums">
+                <span className="font-display text-lg font-black tabular-nums">
                   {fmtMoney(e.totalWbCents)}
                 </span>
               </li>

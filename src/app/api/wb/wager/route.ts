@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const session = await getSession();
   if (!session) {
     return NextResponse.redirect(
-      new URL("/api/auth/discord?next=/events", req.url),
+      new URL("/api/auth/discord?next=/capital/events", req.url),
       303,
     );
   }
@@ -41,12 +41,12 @@ export async function POST(req: Request) {
 
   await evaluateAchievements(session.id).catch(() => {});
 
-  return NextResponse.redirect(new URL("/events?wager=ok", req.url), 303);
+  return NextResponse.redirect(new URL("/capital/events?wager=ok", req.url), 303);
 }
 
 function back(req: Request, msg: string) {
   return NextResponse.redirect(
-    new URL(`/events?error=${encodeURIComponent(msg)}`, req.url),
+    new URL(`/capital/events?error=${encodeURIComponent(msg)}`, req.url),
     303,
   );
 }

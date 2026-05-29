@@ -150,14 +150,14 @@ export async function POST(req: Request) {
               kind: "referral",
               title: "Referral cashed in",
               body: `@${username || "Someone"} joined Premium with your code — $${(REFERRAL_REWARD_WB_CENTS / 100).toFixed(2)} WB added.`,
-              href: "/wallet",
+              href: "/capital/wallet",
             }).catch(() => {});
             await pushNotification({
               userId,
               kind: "referral",
               title: "Welcome bonus credited",
               body: `Thanks for using a referral code — $${(REFERRAL_REWARD_WB_CENTS / 100).toFixed(2)} WB added to your wallet.`,
-              href: "/wallet",
+              href: "/capital/wallet",
             }).catch(() => {});
           }
         } catch (e) {

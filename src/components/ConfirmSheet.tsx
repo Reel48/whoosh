@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
 type Props = {
@@ -32,9 +32,6 @@ export function ConfirmSheet({
   onConfirm,
   onCancel,
 }: Props) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
@@ -49,7 +46,9 @@ export function ConfirmSheet({
     };
   }, [open, onCancel]);
 
-  if (!open || !mounted) return null;
+  // Only opens via client interaction, so `open` is always false during SSR;
+  // the document guard keeps createPortal off the server render path too.
+  if (!open || typeof document === "undefined") return null;
 
   return createPortal(
     <div

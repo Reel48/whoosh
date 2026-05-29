@@ -85,7 +85,7 @@ export default async function Thanks() {
                   : "Your Premium match WB will land in your wallet shortly. Stripe webhook → ledger usually takes a few seconds."
               }
               ctaLabel="Open wallet"
-              ctaHref="/wallet"
+              ctaHref="/capital/wallet"
               tone="good"
             />
             <Step
@@ -93,7 +93,7 @@ export default async function Thanks() {
               title="Try the trade desk"
               body="Buy a fractional share of any US-listed stock or crypto with your Whoosh Bucks. Paper trading — no real money — but the prices are live."
               ctaLabel="Open trade desk"
-              ctaHref="/invest"
+              ctaHref="/capital/invest"
               tone="neutral"
             />
           </div>

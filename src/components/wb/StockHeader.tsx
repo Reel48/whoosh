@@ -40,10 +40,10 @@ export function StockHeader({ profile, snapshot }: Props) {
   const positive = (dayDeltaCents ?? 0) >= 0;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-6 rounded-3xl border-2 border-ink bg-blue p-6 text-ink sm:p-8">
+    <div className="flex flex-wrap items-center justify-between gap-6 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-ink sm:p-8">
       <div className="flex items-center gap-5 min-w-0">
         {profile?.logoUrl ? (
-          <div className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-2xl border-2 border-ink bg-white-smoke">
+          <div className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-2xl border-theme border-ink bg-surface">
             {/* Finnhub logos can be PNG or remote — using next/image with
                 unoptimized to avoid bundling/fetching weirdness. */}
             <Image
@@ -56,12 +56,12 @@ export function StockHeader({ profile, snapshot }: Props) {
             />
           </div>
         ) : (
-          <div className="flex h-16 w-16 flex-none items-center justify-center rounded-2xl border-2 border-ink bg-white-smoke font-heading text-2xl font-black">
+          <div className="flex h-16 w-16 flex-none items-center justify-center rounded-2xl border-theme border-ink bg-surface font-display text-2xl font-black">
             {snapshot.symbol.slice(0, 2)}
           </div>
         )}
         <div className="min-w-0">
-          <div className="font-heading text-3xl font-black tracking-tight sm:text-4xl">
+          <div className="font-display text-3xl font-black tracking-tight sm:text-4xl">
             {snapshot.symbol}
           </div>
           <div className="truncate font-medium text-ink/90">{name}</div>
@@ -74,12 +74,12 @@ export function StockHeader({ profile, snapshot }: Props) {
       </div>
 
       <div className="text-right">
-        <div className="font-heading text-4xl font-black tracking-tight tabular-nums">
+        <div className="font-display text-4xl font-black tracking-tight tabular-nums">
           {fmtMoney(snapshot.regularMarketPriceCents ?? last?.closeCents ?? null)}
         </div>
         {dayDeltaCents != null && (
           <div
-            className={`mt-1 font-heading text-base font-black tabular-nums ${
+            className={`mt-1 font-display text-base font-black tabular-nums ${
               positive ? "text-pigment-green" : "text-imperial-red"
             }`}
           >

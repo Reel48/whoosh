@@ -60,7 +60,7 @@ export function BalanceChart({ data }: { data: BalanceSeriesPoint[] }) {
           {formatDate(first.day)} → {formatDate(last.day)}
         </span>
         <span
-          className={`font-heading font-black tabular-nums ${
+          className={`font-display font-black tabular-nums ${
             positive ? "text-pigment-green" : "text-imperial-red"
           }`}
         >

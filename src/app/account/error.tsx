@@ -1,6 +1,5 @@
 "use client";
 
-import { MinimalHeader } from "@/components/MinimalHeader";
 
 export default function AccountError({
   error,
@@ -11,7 +10,6 @@ export default function AccountError({
 }) {
   return (
     <>
-      <MinimalHeader />
       <main className="mx-auto w-full max-w-2xl px-6 py-24 text-center">
         <h1 className="font-heading text-3xl font-black tracking-tight text-ink">
           Couldn&rsquo;t load your account.

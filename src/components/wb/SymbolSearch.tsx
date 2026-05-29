@@ -56,7 +56,7 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
   function go(sym: string) {
     setOpen(false);
     setValue(sym);
-    router.push(`/invest?symbol=${encodeURIComponent(sym.toUpperCase().trim())}`);
+    router.push(`/capital/invest?symbol=${encodeURIComponent(sym.toUpperCase().trim())}`);
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -80,7 +80,7 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
   return (
     <div ref={wrapRef} className="relative flex flex-1 flex-wrap gap-3 min-w-[180px]">
       <form
-        action="/invest"
+        action="/capital/invest"
         method="GET"
         className="flex flex-1 flex-wrap gap-3"
         onSubmit={() => setOpen(false)}
@@ -103,11 +103,11 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
           aria-label="Symbol"
           aria-autocomplete="list"
           aria-expanded={open && results.length > 0}
-          className="flex-1 min-w-[180px] rounded-full border-2 border-ink bg-white-smoke px-4 py-3 font-heading font-bold uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-ink"
+          className="flex-1 min-w-[180px] rounded-full border-theme border-ink bg-surface px-4 py-3 font-display font-bold uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-ink"
         />
         <button
           type="submit"
-          className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-5 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
+          className="tap-press cursor-pointer rounded-full border-theme border-ink bg-ink px-5 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
         >
           Look up
         </button>
@@ -117,7 +117,7 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
         <ul
           id="symbol-search-listbox"
           role="listbox"
-          className="absolute left-0 right-0 top-full z-20 mt-2 max-h-80 overflow-y-auto rounded-2xl border-2 border-ink bg-white-smoke shadow-xl"
+          className="absolute left-0 right-0 top-full z-20 mt-2 max-h-80 overflow-y-auto rounded-2xl border-theme border-ink bg-surface shadow-xl"
         >
           {results.map((r, i) => (
             <li key={`${r.kind}:${r.symbol}`} role="option" aria-selected={i === highlight}>
@@ -126,11 +126,11 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
                 onMouseEnter={() => setHighlight(i)}
                 onClick={() => go(r.symbol)}
                 className={`tap-press flex w-full min-h-[52px] items-center justify-between gap-3 px-4 py-3 text-left text-base sm:min-h-[44px] sm:text-sm ${
-                  i === highlight ? "bg-ink text-white-smoke" : "bg-white-smoke text-ink"
+                  i === highlight ? "bg-ink text-white-smoke" : "bg-surface text-ink"
                 }`}
               >
                 <span className="flex min-w-0 items-center gap-3">
-                  <span className="font-heading font-black tabular-nums">
+                  <span className="font-display font-black tabular-nums">
                     {r.symbol}
                   </span>
                   <span

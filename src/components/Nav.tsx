@@ -8,8 +8,6 @@ import { Avatar } from "./Avatar";
 import { NavLinks } from "./NavLinks";
 import { MobileMenu } from "./MobileMenu";
 import { NotificationsBell } from "./NotificationsBell";
-import { MobileRouteStrip } from "./MobileRouteStrip";
-import { BottomTabBar } from "./BottomTabBar";
 
 const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
 
@@ -43,7 +41,7 @@ export async function Nav() {
         </Link>
 
         <div className="flex items-center gap-5 text-sm font-semibold sm:gap-7">
-          <NavLinks signedIn={!!session} />
+          <NavLinks />
 
           {isAdmin && (
             <Link
@@ -90,8 +88,6 @@ export async function Nav() {
         </div>
       </nav>
     </header>
-    {session && <MobileRouteStrip />}
-    {session && <BottomTabBar />}
     </>
   );
 }

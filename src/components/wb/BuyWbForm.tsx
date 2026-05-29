@@ -39,7 +39,7 @@ export function BuyWbForm() {
         className="mt-5 flex flex-wrap items-stretch gap-3"
       >
         <div className="relative flex-1 min-w-[180px]">
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-heading font-bold text-ink/60">
+          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-display font-bold text-ink/60">
             $
           </span>
           <input
@@ -52,19 +52,19 @@ export function BuyWbForm() {
             required
             inputMode="decimal"
             aria-label="USD amount"
-            className="w-full rounded-full border-2 border-ink bg-white-smoke px-4 py-3 pl-8 font-heading text-lg font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
+            className="w-full rounded-full border-theme border-ink bg-surface px-4 py-3 pl-8 font-display text-lg font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
           />
         </div>
         <button
           type="submit"
-          className="tap-press cursor-pointer rounded-full border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke"
+          className="tap-press cursor-pointer rounded-full border-theme border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke"
         >
           Buy WB
         </button>
         {wbAmount != null && (
           <p className="basis-full text-xs font-medium text-ink/60">
             You&rsquo;ll get{" "}
-            <span className="font-heading font-black text-ink">
+            <span className="font-display font-black text-ink">
               $
               {wbAmount.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
@@ -83,11 +83,11 @@ export function BuyWbForm() {
           <>
             <p>
               You&rsquo;ll be sent to Stripe to pay{" "}
-              <strong className="font-heading font-black text-ink">
+              <strong className="font-display font-black text-ink">
                 ${Number(amount).toFixed(2)} USD
               </strong>{" "}
               and receive{" "}
-              <strong className="font-heading font-black text-ink">
+              <strong className="font-display font-black text-ink">
                 $
                 {(Number(amount) * 10).toLocaleString("en-US", {
                   minimumFractionDigits: 2,

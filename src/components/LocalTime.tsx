@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+// The local-zone value never changes after mount, so there's nothing to
+// subscribe to — return a no-op unsubscribe.
+const subscribe = () => () => {};
 
 const DEFAULT_OPTS: Intl.DateTimeFormatOptions = {
   month: "short",
@@ -32,11 +36,14 @@ export function LocalTime({
   const fmt = (timeZone?: string) =>
     new Date(iso).toLocaleString("en-US", timeZone ? { ...opts, timeZone } : opts);
 
-  const [text, setText] = useState(() => fmt("America/Chicago"));
-  useEffect(() => {
-    setText(fmt(undefined));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [iso]);
+  // useSyncExternalStore gives a deterministic server/hydration value (Central)
+  // and the viewer's real local zone after hydration — no setState-in-effect,
+  // no hydration mismatch. The store never changes, so subscribe is a no-op.
+  const text = useSyncExternalStore(
+    subscribe,
+    () => fmt(undefined), // client: browser's local zone
+    () => fmt("America/Chicago"), // server + first hydration render
+  );
 
   return (
     <time dateTime={iso} suppressHydrationWarning>

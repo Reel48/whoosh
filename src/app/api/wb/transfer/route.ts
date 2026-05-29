@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const session = await getSession();
   if (!session) {
     return NextResponse.redirect(
-      new URL("/api/auth/discord?next=/wallet", req.url),
+      new URL("/api/auth/discord?next=/capital/wallet", req.url),
       303,
     );
   }
@@ -73,16 +73,16 @@ export async function POST(req: Request) {
       kind: "transfer_in",
       title: `@${session.username} sent you $${(amountCents / 100).toFixed(2)} WB`,
       body: memo ?? undefined,
-      href: "/wallet",
+      href: "/capital/wallet",
     }),
   ]);
 
-  return NextResponse.redirect(new URL(`/wallet?transfer=ok`, req.url), 303);
+  return NextResponse.redirect(new URL(`/capital/wallet?transfer=ok`, req.url), 303);
 }
 
 function back(req: Request, msg: string) {
   return NextResponse.redirect(
-    new URL(`/wallet?error=${encodeURIComponent(msg)}`, req.url),
+    new URL(`/capital/wallet?error=${encodeURIComponent(msg)}`, req.url),
     303,
   );
 }

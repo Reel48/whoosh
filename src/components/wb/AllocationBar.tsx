@@ -17,9 +17,9 @@ export function AllocationBar({ slices }: { slices: Slice[] }) {
 
   return (
     <div>
-      <div className="flex h-4 w-full overflow-hidden rounded-full border-2 border-ink bg-white-smoke">
+      <div className="flex h-4 w-full overflow-hidden rounded-full border-theme border-ink bg-surface">
         {total === 0 ? (
-          <div className="h-full w-full bg-white-smoke" />
+          <div className="h-full w-full bg-surface" />
         ) : (
           slices.map((s, i) => {
             const pct = (Math.max(s.cents, 0) / total) * 100;
@@ -42,13 +42,13 @@ export function AllocationBar({ slices }: { slices: Slice[] }) {
           return (
             <li key={i} className="flex items-start gap-2">
               <span
-                className={`mt-1 inline-block h-3 w-3 flex-none rounded-full border-2 border-ink ${s.className}`}
+                className={`mt-1 inline-block h-3 w-3 flex-none rounded-full border-theme border-ink ${s.className}`}
               />
               <div className="min-w-0">
                 <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
                   {s.label} · {pct.toFixed(0)}%
                 </div>
-                <div className="font-heading text-lg font-black tabular-nums">
+                <div className="font-display text-lg font-black tabular-nums">
                   {formatMoney(s.cents)}
                 </div>
                 {s.hint && <div className="text-xs text-ink/60">{s.hint}</div>}
