@@ -1,0 +1,84 @@
+/*
+ * Whoosh Fantasy — app layout helpers.
+ * Fantasy-owned structural classes (page shells, grids, rows) that compose the
+ * design-system components into pages. Scoped to [data-theme="fantasy"] and
+ * built only from the design-system tokens in index.css. Prefixed `ftb-` to
+ * mirror Capital's `cap-` convention and avoid clashing with shared utilities.
+ */
+
+[data-theme="fantasy"] {
+  /* page shell — see Capital's note: width:100% ties it to the parent flex
+     column while auto margins still center it on wide screens. */
+  .ftb-page {
+    width: 100%;
+    max-width: var(--ftb-container-narrow);
+    margin: 0 auto;
+    padding: var(--ftb-space-10) var(--ftb-space-6) var(--ftb-space-20);
+    min-width: 0;
+    overflow-x: clip;
+  }
+  .ftb-page--wide { max-width: var(--ftb-container-max); }
+
+  /* spacing helpers */
+  .ftb-mt    { margin-top: var(--ftb-space-6); }
+  .ftb-mt-1  { margin-top: var(--ftb-space-1); }
+  .ftb-mt-sm { margin-top: var(--ftb-space-3); }
+  .ftb-mt-lg { margin-top: var(--ftb-space-10); }
+
+  /* vertical stack */
+  .ftb-stack { display: flex; flex-direction: column; gap: var(--ftb-space-4); }
+
+  /* welcome strip */
+  .ftb-welcome { display: flex; align-items: center; gap: var(--ftb-space-3); }
+  .ftb-welcome__name { flex: 1; min-width: 0; }
+
+  /* a section heading with a trailing link */
+  .ftb-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--ftb-space-3);
+  }
+  .ftb-section-title { margin-bottom: var(--ftb-space-3); }
+
+  /* two-column responsive layout */
+  .ftb-cols {
+    display: grid;
+    gap: var(--ftb-space-4);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 768px) {
+    .ftb-cols { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* responsive card grid for league cards */
+  .ftb-league-grid {
+    display: grid;
+    gap: var(--ftb-space-4);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px) {
+    .ftb-league-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* a card that is also a link */
+  .ftb-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: transform var(--ftb-dur) var(--ftb-ease);
+  }
+  .ftb-card-link:hover { transform: translateY(-2px); }
+
+  /* horizontal-scroll wrapper for wide tables on mobile */
+  .ftb-tbl-scroll { width: 100%; overflow-x: auto; }
+
+  /* inline stake form (matchup wager) */
+  .ftb-wager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ftb-space-2);
+  }
+  .ftb-wager .input { width: auto; flex: 1 1 120px; min-width: 0; }
+}

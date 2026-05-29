@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
       // cryptologos.cc — free crypto logos used for the whitelisted coins
       // (BTC, ETH, SOL, XRP, ADA, DOGE, LTC).
       { protocol: "https", hostname: "cryptologos.cc" },
+      // Sleeper-hosted team/league avatar thumbnails used in the Fantasy section.
+      { protocol: "https", hostname: "sleeper.app" },
     ],
   },
   // The Whoosh Bucks pages moved under the Capital section. Keep old bookmarks,

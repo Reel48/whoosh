@@ -1,12 +1,18 @@
 import { requirePremiumSession } from "@/lib/membership";
 import { AppShell } from "@/components/AppShell";
+import "@/styles/fantasy/index.css";
+import "@/styles/fantasy/app.css";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Fantasy Football section shell. Gates on premium, sets the `fantasy` theme
- * scope (bold, sporty — condensed display font, chunky structure), and renders
- * the section chrome. Content is a placeholder for now.
+ * Fantasy Football section shell. Gates on premium once for every page below
+ * and sets the `fantasy` theme scope. Like Capital, the section's entire
+ * visual identity comes from its own vendored design system
+ * (src/styles/fantasy/index.css) — scoped to [data-theme="fantasy"] so it
+ * shares no styling with the marketing site or the other sections. That
+ * stylesheet paints the canvas/text/font, so the wrapper carries no color
+ * utilities.
  */
 export default async function FantasyLayout({
   children,
@@ -15,7 +21,7 @@ export default async function FantasyLayout({
 }) {
   await requirePremiumSession();
   return (
-    <div data-theme="fantasy" className="flex flex-1 flex-col bg-white-smoke text-ink">
+    <div data-theme="fantasy" className="flex flex-1 flex-col">
       <AppShell section="fantasy">{children}</AppShell>
     </div>
   );

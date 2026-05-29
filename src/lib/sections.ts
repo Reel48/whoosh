@@ -14,7 +14,15 @@
 export type SectionKey = "capital" | "fantasy" | "pool";
 
 /** Icon keys resolved to SVGs in the client nav components. */
-export type IconKey = "wallet" | "invest" | "events" | "bets" | "overview";
+export type IconKey =
+  | "wallet"
+  | "invest"
+  | "events"
+  | "bets"
+  | "overview"
+  | "leagues"
+  | "matchups"
+  | "players";
 
 export type NavItem = {
   href: string;
@@ -69,10 +77,19 @@ export const SECTIONS: Record<SectionKey, Section> = {
     key: "fantasy",
     label: "Fantasy",
     href: "/fantasy",
-    tagline: "Fantasy football, the Whoosh way. Coming soon.",
-    nav: [{ href: "/fantasy", label: "Overview" }],
-    tabs: [],
-    live: false,
+    tagline: "Whoosh-run Sleeper leagues — standings, live matchups, and Whoosh Bucks on the line.",
+    nav: [
+      { href: "/fantasy", label: "Overview" },
+      { href: "/fantasy/leagues", label: "Leagues" },
+      { href: "/fantasy/matchups", label: "Matchups" },
+      { href: "/fantasy/players", label: "Players" },
+    ],
+    tabs: [
+      { href: "/fantasy/leagues", label: "Leagues", icon: "leagues" },
+      { href: "/fantasy/matchups", label: "Matchups", icon: "matchups" },
+      { href: "/fantasy/players", label: "Players", icon: "players" },
+    ],
+    live: true,
   },
   pool: {
     key: "pool",

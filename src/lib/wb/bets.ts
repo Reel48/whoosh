@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 
 export type EventStatus = "open" | "locked" | "settled" | "cancelled";
-export type EventSource = "manual" | "odds_api";
+export type EventSource = "manual" | "odds_api" | "sleeper";
 export type BetMarket = "h2h" | "spreads" | "totals";
 
 export type BetOutcome = {
@@ -232,7 +232,8 @@ export async function createEvent(input: {
   title: string;
   description: string | null;
   closesAt: string | null;
-  createdBy: string;
+  /** Discord user id (FK → wallet) or null for system-generated events. */
+  createdBy: string | null;
   outcomes: { label: string; oddsDecimal: number }[];
 }): Promise<number> {
   if (input.outcomes.length < 2) {

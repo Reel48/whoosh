@@ -13,6 +13,10 @@ export function SectionSubNav({ links }: { links: NavItem[] }) {
   const pathname = usePathname();
   if (links.length <= 1) return null;
 
+  // The first nav item is the section root (Overview); it should only match
+  // exactly, never as a prefix of a nested page.
+  const rootHref = links[0]?.href;
+
   return (
     <div className="sticky top-[65px] z-20 hidden border-b border-ink/10 bg-white/80 backdrop-blur sm:block">
       <nav
@@ -22,7 +26,7 @@ export function SectionSubNav({ links }: { links: NavItem[] }) {
         {links.map((l) => {
           const active =
             pathname === l.href ||
-            (l.href !== "/capital" && pathname.startsWith(`${l.href}/`));
+            (l.href !== rootHref && pathname.startsWith(`${l.href}/`));
           return (
             <Link
               key={l.href}

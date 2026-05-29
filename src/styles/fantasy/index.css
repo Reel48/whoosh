@@ -1,0 +1,415 @@
+/*
+ * Whoosh Fantasy — design system, SCOPED to [data-theme="fantasy"].
+ * Authored from scratch (no external asset). Bold, sporty "scoreboard /
+ * jersey" personality: condensed uppercase Oswald display, heavy 2px ink
+ * rules, hard offset shadows, tabular figures for scores.
+ *
+ * Unlike Capital (which swaps in its own slate palette), Fantasy draws from
+ * the SHARED Whoosh palette declared in globals.css (:root) — only the
+ * structure/typography changes. Fonts are wired via next/font in
+ * src/app/layout.tsx (--font-fantasy = Oswald, --font-body = Inter).
+ */
+
+[data-theme="fantasy"] {
+  /* Paint the section canvas + base typography. The shared AppShell chrome
+     sits inside this scope and reads the --theme-* tokens (set in globals.css
+     for [data-theme="fantasy"]) for its borders/radius/shadow. */
+  background: var(--ftb-bg);
+  color: var(--ftb-text);
+  font-family: var(--ftb-font-text);
+
+  /* ===== tokens ===== */
+  & {
+    /* surfaces & lines — built from the shared palette */
+    --ftb-bg:           var(--white-smoke);
+    --ftb-surface:      var(--white);
+    --ftb-surface-alt:  #ececea;
+    --ftb-line:         var(--ink);              /* bold ink rules */
+    --ftb-line-soft:    rgba(0, 0, 0, 0.12);
+    --ftb-text:         var(--ink);
+    --ftb-text-muted:   rgba(0, 0, 0, 0.58);
+    --ftb-text-subtle:  rgba(0, 0, 0, 0.42);
+    --ftb-inverse:      var(--white);
+
+    --ftb-primary:      var(--blue);
+    --ftb-accent:       var(--lime);
+    --ftb-positive:     var(--pigment-green);
+    --ftb-positive-bg:  #d6f4e2;
+    --ftb-negative:     var(--imperial-red);
+    --ftb-negative-bg:  #ffd8df;
+    --ftb-warning:      var(--mango);
+    --ftb-warning-bg:   #fff3cf;
+    --ftb-info-bg:      #e6f2fe;
+
+    /* type */
+    --ftb-font-display: var(--font-fantasy), "Oswald", system-ui, sans-serif;
+    --ftb-font-text:    var(--font-body), Inter, system-ui, sans-serif;
+
+    /* font sizes */
+    --ftb-fs-caption: 12px;
+    --ftb-fs-body-sm: 14px;
+    --ftb-fs-body:    16px;
+
+    /* spacing scale */
+    --ftb-space-1:  4px;
+    --ftb-space-2:  8px;
+    --ftb-space-3:  12px;
+    --ftb-space-4:  16px;
+    --ftb-space-6:  24px;
+    --ftb-space-8:  32px;
+    --ftb-space-10: 40px;
+    --ftb-space-20: 80px;
+
+    /* structure — chunky and hard-edged */
+    --ftb-radius:    14px;
+    --ftb-radius-sm: 8px;
+    --ftb-radius-pill: 999px;
+    --ftb-border:    2px;
+    --ftb-shadow:    0 3px 0 var(--ink);
+    --ftb-shadow-sm: 0 2px 0 var(--ink);
+
+    /* containers */
+    --ftb-container-narrow: 760px;
+    --ftb-container-max:    1200px;
+
+    /* motion */
+    --ftb-dur: 120ms;
+    --ftb-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* ===== typography helpers ===== */
+  .text-eyebrow {
+    font-family: var(--ftb-font-display);
+    font-size: var(--ftb-fs-caption);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ftb-text-muted);
+  }
+  .text-h1 {
+    font-family: var(--ftb-font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    line-height: 1.02;
+    font-size: clamp(34px, 6vw, 52px);
+  }
+  .text-h2 {
+    font-family: var(--ftb-font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0;
+    line-height: 1.05;
+    font-size: clamp(24px, 4vw, 32px);
+  }
+  .text-h3 {
+    font-family: var(--ftb-font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+    font-size: 19px;
+  }
+  .text-body    { font-size: var(--ftb-fs-body);    line-height: 1.55; }
+  .text-body-sm { font-size: var(--ftb-fs-body-sm); line-height: 1.5; color: var(--ftb-text-muted); }
+  .text-caption { font-size: var(--ftb-fs-caption); line-height: 1.4; color: var(--ftb-text-subtle); }
+
+  /* tabular figures for any score / stat number */
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+  .num--positive { color: var(--ftb-positive); }
+  .num--negative { color: var(--ftb-negative); }
+  /* big scoreboard numeral */
+  .num-display {
+    font-family: var(--ftb-font-display);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* ===== buttons ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ftb-space-2);
+    min-height: 44px;
+    padding: 10px 18px;
+    border: var(--ftb-border) solid var(--ftb-line);
+    border-radius: var(--ftb-radius-sm);
+    background: var(--ftb-surface);
+    color: var(--ftb-text);
+    font-family: var(--ftb-font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform var(--ftb-dur) var(--ftb-ease), box-shadow var(--ftb-dur) var(--ftb-ease);
+    box-shadow: var(--ftb-shadow-sm);
+    text-decoration: none;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--ftb-shadow); }
+  .btn:active { transform: translateY(1px); box-shadow: none; }
+  .btn-primary   { background: var(--ftb-primary); color: var(--ftb-inverse); }
+  .btn-accent    { background: var(--ftb-accent);  color: var(--ink); }
+  .btn-secondary { background: var(--ftb-surface); color: var(--ftb-text); }
+  .btn-ghost     { background: transparent; box-shadow: none; border-color: transparent; }
+  .btn-ghost:hover { background: rgba(0, 0, 0, 0.05); box-shadow: none; transform: none; }
+  .btn-danger    { background: var(--ftb-negative); color: var(--ftb-inverse); }
+  .btn-sm  { min-height: 36px; padding: 6px 12px; font-size: 13px; }
+  .btn-block { display: flex; width: 100%; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
+
+  /* ===== inputs ===== */
+  .input,
+  select.input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: var(--ftb-border) solid var(--ftb-line);
+    border-radius: var(--ftb-radius-sm);
+    background: var(--ftb-surface);
+    color: var(--ftb-text);
+    font-family: var(--ftb-font-text);
+    font-size: var(--ftb-fs-body);
+  }
+  .input:focus,
+  select.input:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(3, 129, 237, 0.22);
+  }
+  .input-num { font-variant-numeric: tabular-nums; }
+
+  /* ===== badges / chips ===== */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border: 2px solid var(--ftb-line);
+    border-radius: var(--ftb-radius-pill);
+    font-family: var(--ftb-font-display);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--ftb-surface);
+  }
+  .badge-win     { background: var(--ftb-positive-bg); border-color: var(--ftb-positive); color: var(--ftb-positive); }
+  .badge-loss    { background: var(--ftb-negative-bg); border-color: var(--ftb-negative); color: var(--ftb-negative); }
+  .badge-warning { background: var(--ftb-warning-bg);  border-color: var(--ftb-warning); color: #7a5a00; }
+  .badge-accent  { background: var(--ftb-accent); color: var(--ink); }
+  .badge-neutral { background: var(--ftb-surface-alt); }
+
+  /* ===== alerts ===== */
+  .alert {
+    border: var(--ftb-border) solid var(--ftb-line);
+    border-radius: var(--ftb-radius);
+    padding: var(--ftb-space-4);
+    background: var(--ftb-surface);
+    box-shadow: var(--ftb-shadow-sm);
+  }
+  .alert-positive { background: var(--ftb-positive-bg); }
+  .alert-warning  { background: var(--ftb-warning-bg); }
+  .alert-negative { background: var(--ftb-negative-bg); }
+  .alert-info     { background: var(--ftb-info-bg); }
+
+  /* ===== cards ===== */
+  .card {
+    background: var(--ftb-surface);
+    border: var(--ftb-border) solid var(--ftb-line);
+    border-radius: var(--ftb-radius);
+    padding: var(--ftb-space-6);
+    box-shadow: var(--ftb-shadow);
+  }
+  .card-grid {
+    display: grid;
+    gap: var(--ftb-space-4);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  /* ===== KPI ===== */
+  .kpi {
+    background: var(--ftb-surface);
+    border: var(--ftb-border) solid var(--ftb-line);
+    border-radius: var(--ftb-radius);
+    padding: var(--ftb-space-4) var(--ftb-space-6);
+    box-shadow: var(--ftb-shadow-sm);
+  }
+  .kpi__label {
+    font-family: var(--ftb-font-display);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ftb-text-muted);
+  }
+  .kpi__value {
+    font-family: var(--ftb-font-display);
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1.1;
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi__delta { font-size: 13px; color: var(--ftb-text-muted); margin-top: 2px; }
+  .kpi__delta--positive { color: var(--ftb-positive); }
+  .kpi__delta--negative { color: var(--ftb-negative); }
+
+  /* ===== tables ===== */
+  .tbl {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--ftb-surface);
+    border: var(--ftb-border) solid var(--ftb-line);
+    border-radius: var(--ftb-radius);
+    overflow: hidden;
+  }
+  .tbl th {
+    text-align: left;
+    font-family: var(--ftb-font-display);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ftb-text-muted);
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--ftb-line);
+    background: var(--ftb-surface-alt);
+  }
+  .tbl td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--ftb-line-soft);
+    font-size: var(--ftb-fs-body-sm);
+  }
+  .tbl tr:last-child td { border-bottom: none; }
+  .tbl .num { text-align: right; }
+  .tbl th.num { text-align: right; }
+
+  /* ===== tab pills ===== */
+  .ftb-tabs { display: inline-flex; gap: var(--ftb-space-2); flex-wrap: wrap; }
+  .ftb-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 14px;
+    border: 2px solid var(--ftb-line);
+    border-radius: var(--ftb-radius-pill);
+    font-family: var(--ftb-font-display);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--ftb-surface);
+    color: var(--ftb-text);
+    text-decoration: none;
+    transition: background var(--ftb-dur) var(--ftb-ease);
+  }
+  .ftb-tab:hover { background: rgba(0, 0, 0, 0.05); }
+  .ftb-tab.is-active { background: var(--ink); color: var(--ftb-inverse); }
+
+  /* ===== scoreboard / matchup ===== */
+  .matchup {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--ftb-space-3);
+    padding: var(--ftb-space-4) var(--ftb-space-6);
+    background: var(--ftb-surface);
+    border: var(--ftb-border) solid var(--ftb-line);
+    border-radius: var(--ftb-radius);
+    box-shadow: var(--ftb-shadow-sm);
+  }
+  .matchup__team {
+    display: flex;
+    align-items: center;
+    gap: var(--ftb-space-2);
+    min-width: 0;
+  }
+  .matchup__team--away { justify-content: flex-end; text-align: right; }
+  .matchup__name {
+    font-family: var(--ftb-font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    font-size: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .matchup__score {
+    font-family: var(--ftb-font-display);
+    font-weight: 700;
+    font-size: 26px;
+    font-variant-numeric: tabular-nums;
+  }
+  .matchup__vs {
+    font-family: var(--ftb-font-display);
+    font-weight: 700;
+    color: var(--ftb-text-subtle);
+    font-size: 13px;
+    text-transform: uppercase;
+  }
+  .matchup.is-mine { border-color: var(--ftb-primary); box-shadow: 0 3px 0 var(--ftb-primary); }
+  .is-winner { color: var(--ftb-positive); }
+
+  /* roster list */
+  .roster-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ftb-space-3);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--ftb-line-soft);
+  }
+  .roster-row:last-child { border-bottom: none; }
+  .roster-pos {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    padding: 2px 6px;
+    border-radius: var(--ftb-radius-sm);
+    background: var(--ftb-surface-alt);
+    font-family: var(--ftb-font-display);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+
+  /* mine-highlight pill for the linked member */
+  .you-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 8px;
+    border-radius: var(--ftb-radius-pill);
+    background: var(--ftb-accent);
+    color: var(--ink);
+    font-family: var(--ftb-font-display);
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* empty / muted states */
+  .ftb-empty {
+    color: var(--ftb-text-muted);
+    text-align: center;
+    padding: var(--ftb-space-8) var(--ftb-space-4);
+  }
+
+  /* generic link */
+  .ftb-link {
+    font-family: var(--ftb-font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--ftb-primary);
+    text-decoration: none;
+  }
+  .ftb-link:hover { text-decoration: underline; }
+}

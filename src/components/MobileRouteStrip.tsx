@@ -50,6 +50,9 @@ export function MobileRouteStrip({ links }: { links: NavItem[] }) {
 
   if (links.length <= 1) return null;
 
+  // The first nav item is the section root (Overview); exact-match only.
+  const rootHref = links[0]?.href;
+
   return (
     <div
       // Sits at top: 65px (just below the header). When `hidden`, translate up
@@ -66,7 +69,7 @@ export function MobileRouteStrip({ links }: { links: NavItem[] }) {
         {links.map((l) => {
           const active =
             pathname === l.href ||
-            (l.href !== "/capital" && pathname.startsWith(`${l.href}/`));
+            (l.href !== rootHref && pathname.startsWith(`${l.href}/`));
           return (
             <Link
               key={l.href}

@@ -6,6 +6,7 @@ const TABS = [
   { href: "/admin/wb", label: "Whoosh Bucks" },
   { href: "/admin/wb/users", label: "WB users" },
   { href: "/admin/wb/events", label: "Events" },
+  { href: "/admin/fantasy", label: "Fantasy" },
 ];
 
 /**
