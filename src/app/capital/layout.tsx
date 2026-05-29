@@ -16,7 +16,7 @@ export default async function CapitalLayout({
 }) {
   await requirePremiumSession();
   return (
-    <div data-theme="capital" className="flex flex-1 flex-col bg-white text-ink">
+    <div data-theme="capital" className="flex flex-1 flex-col bg-white-smoke text-ink">
       <AppShell section="capital">{children}</AppShell>
     </div>
   );

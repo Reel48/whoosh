@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Geist, Oswald, Quicksand } from "next/font/google";
+import { Inter, Inter_Tight, JetBrains_Mono, Oswald, Quicksand } from "next/font/google";
 import "./globals.css";
 
 // Inter is the shared body/UI typeface across the whole site (marketing +
@@ -11,13 +11,16 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
-// Section DISPLAY typefaces. Each signed-in section overrides --font-display
-// (see globals.css [data-theme] scopes) to one of these. Colors stay shared;
-// only the typographic personality changes per section.
-//   Capital — Geist: neutral, precise grotesk with tabular numerals (finance).
+// Section typefaces. Each signed-in section overrides --font-display (see
+// globals.css [data-theme] scopes) to one of these. Colors stay shared; only
+// the typographic personality changes per section.
+//   Capital — Inter Tight (display) + JetBrains Mono (numbers), per the
+//             Whoosh Capital design system. Numbers always render in the mono
+//             face with tabular figures.
 //   Fantasy — Oswald: condensed, bold, sporty jersey feel.
 //   Pool    — Quicksand: soft, rounded, friendly.
-const geist = Geist({ variable: "--font-capital", subsets: ["latin"] });
+const interTight = Inter_Tight({ variable: "--font-capital", subsets: ["latin"] });
+const jetbrainsMono = JetBrains_Mono({ variable: "--font-capital-num", subsets: ["latin"] });
 const oswald = Oswald({ variable: "--font-fantasy", subsets: ["latin"] });
 const quicksand = Quicksand({ variable: "--font-pool", subsets: ["latin"] });
 
@@ -71,7 +74,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${geist.variable} ${oswald.variable} ${quicksand.variable} h-full antialiased`}
+      className={`${inter.variable} ${interTight.variable} ${jetbrainsMono.variable} ${oswald.variable} ${quicksand.variable} h-full antialiased`}
       style={{ ["--font-heading" as string]: "var(--font-body)" }}
     >
       <body className="min-h-full flex flex-col">{children}</body>
