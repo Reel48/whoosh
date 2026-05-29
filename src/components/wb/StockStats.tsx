@@ -8,10 +8,7 @@ type Props = {
 
 function fmtMoney(cents: number | null): string {
   if (cents == null) return "—";
-  return `$${(cents / 100).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  return `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function fmtBigDollars(dollars: number | null): string {
@@ -47,44 +44,31 @@ export function StockStats({ snapshot, profile }: Props) {
     { label: "Market cap", value: fmtBigDollars(profile?.marketCap ?? null) },
     {
       label: "Shares outstanding",
-      value:
-        profile?.shareOutstandingMillions != null
-          ? fmtBigNumber(profile.shareOutstandingMillions * 1_000_000)
-          : "—",
+      value: profile?.shareOutstandingMillions != null ? fmtBigNumber(profile.shareOutstandingMillions * 1_000_000) : "—",
     },
     { label: "IPO", value: fmtDate(profile?.ipo ?? null) },
     { label: "Exchange", value: snapshot.exchange ?? profile?.exchange ?? "—" },
-    {
-      label: "Country",
-      value: profile?.country ?? "—",
-    },
+    { label: "Country", value: profile?.country ?? "—" },
   ];
 
   return (
-    <div className="rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
-      <h3 className="font-display text-xl font-bold text-ink">Key stats</h3>
-      <dl className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="card">
+      <h3 className="text-h3">Key stats</h3>
+      <dl className="cap-stats cap-mt">
         {stats.map((s) => (
           <div key={s.label}>
-            <dt className="text-xs font-bold uppercase tracking-wider text-ink/60">
-              {s.label}
-            </dt>
-            <dd className="mt-1 font-display text-lg font-black tabular-nums">{s.value}</dd>
+            <dt className="kpi__label">{s.label}</dt>
+            <dd className="num cap-stats__val">{s.value}</dd>
           </div>
         ))}
       </dl>
 
       {(profile?.weburl || profile?.industry) && (
-        <p className="mt-6 text-sm text-ink/60">
-          {profile?.industry && <span className="font-medium">{profile.industry}</span>}
+        <p className="text-body-sm cap-mt">
+          {profile?.industry && <span>{profile.industry}</span>}
           {profile?.industry && profile?.weburl && <span> · </span>}
           {profile?.weburl && (
-            <a
-              href={profile.weburl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold underline underline-offset-2 hover:text-ink"
-            >
+            <a href={profile.weburl} target="_blank" rel="noopener noreferrer" className="cap-link">
               Company site →
             </a>
           )}

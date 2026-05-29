@@ -34,10 +34,7 @@ function sportTitle(sportKey: string | null): string {
 }
 
 function formatWb(cents: number): string {
-  return `$${(cents / 100).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  return `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 type Game = {
@@ -45,10 +42,9 @@ type Game = {
   sportKey: string | null;
   matchup: string;
   commenceTime: string | null;
-  markets: BetEvent[]; // one event per market
+  markets: BetEvent[];
 };
 
-/** Group synced events by game (externalEventId), markets ordered ML/Spread/Total. */
 function groupSyncedByGame(events: BetEvent[]): Game[] {
   const byGame = new Map<string, Game>();
   for (const e of events) {
@@ -64,10 +60,7 @@ function groupSyncedByGame(events: BetEvent[]): Game[] {
     byGame.set(key, g);
   }
   for (const g of byGame.values()) {
-    g.markets.sort(
-      (a, b) =>
-        MARKET_ORDER.indexOf(a.market ?? "h2h") - MARKET_ORDER.indexOf(b.market ?? "h2h"),
-    );
+    g.markets.sort((a, b) => MARKET_ORDER.indexOf(a.market ?? "h2h") - MARKET_ORDER.indexOf(b.market ?? "h2h"));
   }
   return [...byGame.values()].sort((a, b) => {
     const ta = a.commenceTime ? new Date(a.commenceTime).getTime() : Infinity;
@@ -77,52 +70,31 @@ function groupSyncedByGame(events: BetEvent[]): Game[] {
 }
 
 function OutcomeForm({ event, outcome }: { event: BetEvent; outcome: BetOutcome }) {
+  const disabled = event.status !== "open";
   return (
-    <form
-      action="/api/wb/wager"
-      method="POST"
-      className="flex flex-col gap-3 rounded-2xl border-theme border-ink bg-surface p-3 sm:grid sm:grid-cols-[1fr_auto_120px_auto] sm:items-stretch sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
-    >
+    <form action="/api/wb/wager" method="POST" className="cap-outcome">
       <input type="hidden" name="event_id" value={event.id} />
       <input type="hidden" name="outcome_id" value={outcome.id} />
-      <div className="flex items-baseline justify-between gap-3 sm:block">
-        <div className="font-bold">{outcome.label}</div>
-        <div className="font-display text-sm font-bold tabular-nums text-ink/60 sm:hidden">
-          ×{outcome.oddsDecimal.toFixed(2)}
-        </div>
-        <div className="hidden text-xs text-ink/60 sm:block">
-          Pays {outcome.oddsDecimal.toFixed(2)}× stake
-        </div>
+      <div className="cap-outcome__info">
+        <div className="cap-outcome__label">{outcome.label}</div>
+        <div className="text-caption">Pays {outcome.oddsDecimal.toFixed(2)}× stake</div>
       </div>
-      <div className="hidden self-center font-display text-sm font-bold tabular-nums text-ink/60 sm:block">
-        ×{outcome.oddsDecimal.toFixed(2)}
+      <div className="input-group cap-outcome__stake">
+        <span className="addon">$</span>
+        <input
+          className="input input-num"
+          type="number"
+          name="stake"
+          min="0.01"
+          step="0.01"
+          placeholder="0.00"
+          required={!disabled}
+          disabled={disabled}
+          inputMode="decimal"
+          aria-label="Stake"
+        />
       </div>
-      <div className="flex items-stretch gap-2 sm:contents">
-        <div className="relative flex-1">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-display font-bold text-ink/60">
-            $
-          </span>
-          <input
-            type="number"
-            name="stake"
-            min="0.01"
-            step="0.01"
-            placeholder="0.00"
-            required={event.status === "open"}
-            disabled={event.status !== "open"}
-            inputMode="decimal"
-            aria-label="Stake"
-            className="w-full rounded-full border-theme border-ink bg-surface px-3 py-2 pl-7 font-display font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink disabled:opacity-50"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={event.status !== "open"}
-          className="tap-press chip-tap shrink-0 cursor-pointer rounded-full border-theme border-ink bg-ink px-5 text-sm font-bold text-white-smoke disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Bet
-        </button>
-      </div>
+      <button type="submit" disabled={disabled} className="btn btn-primary">Bet</button>
     </form>
   );
 }
@@ -143,17 +115,12 @@ export default async function EventsPage({
   ]);
   const sp = await searchParams;
   const banner =
-    sp.wager === "ok"
-      ? { tone: "good", text: "Wager placed." }
-      : sp.error
-        ? { tone: "warn", text: sp.error }
-        : null;
+    sp.wager === "ok" ? { tone: "good", text: "Wager placed." } : sp.error ? { tone: "warn", text: sp.error } : null;
 
   const synced = events.filter((e) => e.source === "odds_api");
   const manual = events.filter((e) => e.source !== "odds_api");
   const games = groupSyncedByGame(synced);
 
-  // Section games by sport, preserving the time-sorted order within each sport.
   const sports: { sportKey: string | null; games: Game[] }[] = [];
   for (const g of games) {
     let section = sports.find((s) => s.sportKey === g.sportKey);
@@ -164,14 +131,10 @@ export default async function EventsPage({
     section.games.push(g);
   }
 
-  // Sport filter (URL-driven so it stays a server component).
   const selectedSport = sp.sport ?? "all";
   const filterOptions: { key: string; label: string }[] = [
     { key: "all", label: "All" },
-    ...sports.map((s) => ({
-      key: s.sportKey ?? "sports",
-      label: sportTitle(s.sportKey),
-    })),
+    ...sports.map((s) => ({ key: s.sportKey ?? "sports", label: sportTitle(s.sportKey) })),
   ];
   if (manual.length > 0) filterOptions.push({ key: "more", label: "More" });
 
@@ -181,217 +144,139 @@ export default async function EventsPage({
       : selectedSport === "more"
         ? []
         : sports.filter((s) => (s.sportKey ?? "sports") === selectedSport);
-  const showManual =
-    manual.length > 0 && (selectedSport === "all" || selectedSport === "more");
+  const showManual = manual.length > 0 && (selectedSport === "all" || selectedSport === "more");
 
   return (
-    <>
-      <main className="mx-auto w-full max-w-3xl px-6 py-16 sm:py-24">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <span className="text-xs font-display font-bold uppercase tracking-[0.22em] text-ink">
-            Whoosh events
-          </span>
-          <div className="flex items-baseline gap-4">
-            <Link
-              href="/capital/bets"
-              className="text-sm font-bold text-ink underline-offset-4 hover:underline"
-            >
-              My bets
-            </Link>
-            <span className="text-sm font-medium text-ink/70">
-              Balance: <span className="font-display font-black">{formatWb(balance)}</span>
-            </span>
-          </div>
+    <main className="cap-page">
+      <div className="cap-card-head">
+        <div>
+          <p className="text-eyebrow">Capital · Events</p>
+          <h1 className="text-h1 cap-mt-1">House wagers</h1>
         </div>
+        <div className="cap-actions">
+          <Link href="/capital/bets" className="cap-link">My bets →</Link>
+          <span className="badge badge-neutral">Balance {formatWb(balance)}</span>
+        </div>
+      </div>
 
-        {banner && (
-          <div
-            className={`mt-6 rounded-xl border-theme border-ink px-4 py-3 text-sm font-medium ${
-              banner.tone === "good"
-                ? "bg-pigment-green text-white-smoke"
-                : "bg-imperial-red text-white-smoke"
-            }`}
-          >
-            {banner.text}
-          </div>
-        )}
+      {banner && (
+        <div className={`alert ${banner.tone === "good" ? "alert-positive" : "alert-warning"} cap-mt`}>
+          <div className="body">{banner.text}</div>
+        </div>
+      )}
 
-        {events.length === 0 ? (
-          <div className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-8 text-center">
-            <p className="font-display text-lg font-bold text-ink">
-              No open events right now.
-            </p>
-            <p className="mt-2 text-sm text-ink/60">
-              We post new events around big games, drops, and culture moments.
-              Drop into Discord to be the first to know.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-8 space-y-12">
-            {filterOptions.length > 2 && (
-              <div className="flex flex-wrap gap-2">
-                {filterOptions.map((opt) => {
-                  const active = selectedSport === opt.key;
-                  const href =
-                    opt.key === "all" ? "/capital/events" : `/capital/events?sport=${opt.key}`;
-                  return (
-                    <Link
-                      key={opt.key}
-                      href={href}
-                      className={`tap-press rounded-full border-theme border-ink px-4 py-1.5 text-sm font-bold transition-colors ${
-                        active
-                          ? "bg-ink text-white-smoke"
-                          : "bg-surface text-ink hover:bg-ink hover:text-white-smoke"
-                      }`}
-                    >
-                      {opt.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-            {visibleSports.map((section) => (
-              <section key={section.sportKey ?? "sports"}>
-                <h2 className="font-display text-xl font-black tracking-tight text-ink">
-                  {sportTitle(section.sportKey)}
-                </h2>
-                <ul className="mt-4 space-y-6">
-                  {section.games.map((game) => (
-                    <li
-                      key={game.key}
-                      className="rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-ink sm:p-8"
-                    >
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <h3 className="font-display text-xl font-black tracking-tight">
-                          {game.matchup}
-                        </h3>
-                        {game.commenceTime && (
-                          <span className="text-xs font-bold uppercase tracking-wider text-ink/60">
-                            <LocalTime iso={game.commenceTime} />
-                          </span>
-                        )}
-                      </div>
+      {events.length === 0 ? (
+        <div className="card cap-mt-lg cap-empty">
+          No open events right now. We post new events around big games, drops, and culture moments.
+        </div>
+      ) : (
+        <div className="cap-mt-lg cap-stack">
+          {filterOptions.length > 2 && (
+            <div className="cap-tabs" style={{ marginTop: 0 }}>
+              {filterOptions.map((opt) => (
+                <Link
+                  key={opt.key}
+                  href={opt.key === "all" ? "/capital/events" : `/capital/events?sport=${opt.key}`}
+                  className={`cap-tab ${selectedSport === opt.key ? "is-active" : ""}`}
+                >
+                  {opt.label}
+                </Link>
+              ))}
+            </div>
+          )}
 
-                      <div className="mt-5 space-y-6">
-                        {game.markets.map((mkt) => (
-                          <div key={mkt.id}>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold uppercase tracking-wider text-ink/60">
-                                {mkt.market ? MARKET_LABELS[mkt.market] : "Bet"}
-                              </span>
-                            </div>
-                            <ul className="mt-2 space-y-3">
-                              {mkt.outcomes.map((o) => (
-                                <li key={o.id}>
-                                  <OutcomeForm event={mkt} outcome={o} />
-                                </li>
-                              ))}
-                            </ul>
+          {visibleSports.map((section) => (
+            <section key={section.sportKey ?? "sports"}>
+              <h2 className="text-h2 cap-section-title">{sportTitle(section.sportKey)}</h2>
+              <div className="cap-stack">
+                {section.games.map((game) => (
+                  <div key={game.key} className="card">
+                    <div className="cap-card-head">
+                      <h3 className="text-h3">{game.matchup}</h3>
+                      {game.commenceTime && (
+                        <span className="text-caption"><LocalTime iso={game.commenceTime} /></span>
+                      )}
+                    </div>
+                    <div className="cap-stack cap-mt">
+                      {game.markets.map((mkt) => (
+                        <div key={mkt.id}>
+                          <div className="text-caption">{mkt.market ? MARKET_LABELS[mkt.market] : "Bet"}</div>
+                          <div className="cap-outcomes">
+                            {mkt.outcomes.map((o) => (
+                              <OutcomeForm key={o.id} event={mkt} outcome={o} />
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
 
-            {showManual && (
-              <section>
-                {sports.length > 0 && (
-                  <h2 className="font-display text-xl font-black tracking-tight text-ink">
-                    More events
-                  </h2>
-                )}
-                <ul className="mt-4 space-y-6">
-                  {manual.map((e) => (
-                    <li
-                      key={e.id}
-                      className="rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-ink sm:p-8"
-                    >
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <h3 className="font-display text-2xl font-black tracking-tight">
-                          {e.title}
-                        </h3>
-                        <span
-                          className={`rounded-full border-theme border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
-                            e.status === "open"
-                              ? "bg-pigment-green text-white-smoke"
-                              : "bg-surface text-ink"
-                          }`}
-                        >
-                          {e.status}
-                        </span>
-                      </div>
-                      {e.description && (
-                        <p className="mt-2 text-sm font-medium text-ink/80">{e.description}</p>
-                      )}
-                      {e.closesAt && (
-                        <p className="mt-2 text-xs font-bold uppercase tracking-wider text-ink/60">
-                          <LocalTime iso={e.closesAt} prefix="Closes " />
-                        </p>
-                      )}
-                      <ul className="mt-5 space-y-3">
-                        {e.outcomes.map((o) => (
-                          <li key={o.id}>
-                            <OutcomeForm event={e} outcome={o} />
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-          </div>
-        )}
+          {showManual && (
+            <section>
+              {sports.length > 0 && <h2 className="text-h2 cap-section-title">More events</h2>}
+              <div className="cap-stack">
+                {manual.map((e) => (
+                  <div key={e.id} className="card">
+                    <div className="cap-card-head">
+                      <h3 className="text-h3">{e.title}</h3>
+                      <span className={`badge ${e.status === "open" ? "badge-positive" : "badge-neutral"}`}>
+                        <span className="dot" /> {e.status}
+                      </span>
+                    </div>
+                    {e.description && <p className="text-body-sm cap-mt-1">{e.description}</p>}
+                    {e.closesAt && (
+                      <p className="text-caption cap-mt-1"><LocalTime iso={e.closesAt} prefix="Closes " /></p>
+                    )}
+                    <div className="cap-outcomes cap-mt">
+                      {e.outcomes.map((o) => (
+                        <OutcomeForm key={o.id} event={e} outcome={o} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      )}
 
-        {recent.length > 0 && (
-          <section className="mt-12">
-            <h2 className="font-display text-xl font-bold text-ink">Recently settled</h2>
-            <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
+      {recent.length > 0 && (
+        <section className="cap-mt-lg">
+          <h2 className="text-h2 cap-section-title">Recently settled</h2>
+          <table className="tbl">
+            <thead>
+              <tr><th>Event</th><th>Result</th><th className="num">Status</th></tr>
+            </thead>
+            <tbody>
               {recent.map((e) => {
-                const winner =
-                  e.settledOutcomeId != null
-                    ? e.outcomes.find((o) => o.id === e.settledOutcomeId)
-                    : null;
+                const winner = e.settledOutcomeId != null ? e.outcomes.find((o) => o.id === e.settledOutcomeId) : null;
                 const marketSuffix = e.market ? ` · ${MARKET_LABELS[e.market]}` : "";
                 return (
-                  <li
-                    key={e.id}
-                    className="grid grid-cols-[1fr_auto] items-center gap-4 py-3 text-sm"
-                  >
-                    <div>
-                      <div className="font-display font-bold text-ink">
-                        {e.title}
-                        {marketSuffix}
-                      </div>
-                      <div className="text-xs text-ink/60">
-                        {e.status === "cancelled"
-                          ? "Cancelled · stakes refunded"
-                          : winner
-                            ? `Winner: ${winner.label} (×${winner.oddsDecimal.toFixed(2)})`
-                            : "Settled"}
-                      </div>
-                    </div>
-                    <span
-                      className={`rounded-full border-theme border-ink px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
-                        e.status === "cancelled"
-                          ? "bg-surface text-ink"
-                          : "bg-ink text-white-smoke"
-                      }`}
-                    >
-                      {e.status}
-                    </span>
-                  </li>
+                  <tr key={e.id}>
+                    <td>{e.title}{marketSuffix}</td>
+                    <td className="text-body-sm">
+                      {e.status === "cancelled"
+                        ? "Cancelled · stakes refunded"
+                        : winner
+                          ? `Winner: ${winner.label} (×${winner.oddsDecimal.toFixed(2)})`
+                          : "Settled"}
+                    </td>
+                    <td className="num">
+                      <span className={`badge ${e.status === "cancelled" ? "badge-neutral" : "badge-info"}`}>{e.status}</span>
+                    </td>
+                  </tr>
                 );
               })}
-            </ul>
-          </section>
-        )}
+            </tbody>
+          </table>
+        </section>
+      )}
 
-        <Disclaimer />
-      </main>
-    </>
+      <Disclaimer />
+    </main>
   );
 }

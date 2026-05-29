@@ -9,6 +9,7 @@ type Suggestion = {
   kind: "stock" | "crypto";
 };
 
+/** Symbol search with autocomplete — Capital design system. */
 export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
   const router = useRouter();
   const [value, setValue] = useState(defaultValue);
@@ -32,8 +33,6 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
     if (debounceRef.current != null) window.clearTimeout(debounceRef.current);
     const q = value.trim();
     if (!q) {
-      // Clear results in the next microtask so setState doesn't fire
-      // synchronously inside the effect body.
       const t = window.setTimeout(() => setResults([]), 0);
       return () => window.clearTimeout(t);
     }
@@ -45,7 +44,7 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
         setResults(j.results);
         setHighlight(0);
       } catch {
-        // ignore network errors — fall back to form submit
+        // ignore — fall back to form submit
       }
     }, 120);
     return () => {
@@ -78,14 +77,10 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
   }
 
   return (
-    <div ref={wrapRef} className="relative flex flex-1 flex-wrap gap-3 min-w-[180px]">
-      <form
-        action="/capital/invest"
-        method="GET"
-        className="flex flex-1 flex-wrap gap-3"
-        onSubmit={() => setOpen(false)}
-      >
+    <div ref={wrapRef} className="cap-search">
+      <form action="/capital/invest" method="GET" className="cap-search__form" onSubmit={() => setOpen(false)}>
         <input
+          className="input"
           type="text"
           name="symbol"
           value={value}
@@ -103,51 +98,26 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
           aria-label="Symbol"
           aria-autocomplete="list"
           aria-expanded={open && results.length > 0}
-          className="flex-1 min-w-[180px] rounded-full border-theme border-ink bg-surface px-4 py-3 font-display font-bold uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-ink"
+          style={{ textTransform: "uppercase" }}
         />
-        <button
-          type="submit"
-          className="tap-press cursor-pointer rounded-full border-theme border-ink bg-ink px-5 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
-        >
-          Look up
-        </button>
+        <button type="submit" className="btn btn-primary">Look up</button>
       </form>
 
       {open && results.length > 0 && (
-        <ul
-          id="symbol-search-listbox"
-          role="listbox"
-          className="absolute left-0 right-0 top-full z-20 mt-2 max-h-80 overflow-y-auto rounded-2xl border-theme border-ink bg-surface shadow-xl"
-        >
+        <ul id="symbol-search-listbox" role="listbox" className="cap-search__menu">
           {results.map((r, i) => (
             <li key={`${r.kind}:${r.symbol}`} role="option" aria-selected={i === highlight}>
               <button
                 type="button"
                 onMouseEnter={() => setHighlight(i)}
                 onClick={() => go(r.symbol)}
-                className={`tap-press flex w-full min-h-[52px] items-center justify-between gap-3 px-4 py-3 text-left text-base sm:min-h-[44px] sm:text-sm ${
-                  i === highlight ? "bg-ink text-white-smoke" : "bg-surface text-ink"
-                }`}
+                className={`cap-search__opt ${i === highlight ? "is-active" : ""}`}
               >
-                <span className="flex min-w-0 items-center gap-3">
-                  <span className="font-display font-black tabular-nums">
-                    {r.symbol}
-                  </span>
-                  <span
-                    className={`truncate ${i === highlight ? "text-white-smoke/70" : "text-ink/60"}`}
-                  >
-                    {r.name}
-                  </span>
+                <span className="cap-search__optmain">
+                  <span className="num">{r.symbol}</span>
+                  <span className="cap-search__optname">{r.name}</span>
                 </span>
-                <span
-                  className={`rounded-full border-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                    r.kind === "crypto"
-                      ? "border-current"
-                      : "border-current"
-                  }`}
-                >
-                  {r.kind}
-                </span>
+                <span className="badge badge-neutral badge-sm">{r.kind}</span>
               </button>
             </li>
           ))}

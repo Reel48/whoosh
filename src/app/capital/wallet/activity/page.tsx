@@ -76,164 +76,102 @@ export default async function ActivityPage({
   }).toString()}`;
 
   return (
-    <>
-      <main className="mx-auto w-full max-w-4xl px-6 py-16 sm:py-24">
-        <Link href="/capital/wallet" className="text-xs font-bold text-ink/60 underline-offset-2 hover:underline">
-          ← Back to wallet
-        </Link>
-        <h1 className="mt-2 font-display text-4xl font-black tracking-tight sm:text-5xl">
-          Activity
-        </h1>
-        <p className="mt-2 text-sm text-ink/70">
-          Every ledger entry on your account. Filter, sort by date, export.
-        </p>
+    <main className="cap-page cap-page--wide">
+      <Link href="/capital/wallet" className="cap-link">← Back to wallet</Link>
+      <h1 className="text-h1 cap-mt-1">Activity</h1>
+      <p className="text-body-sm cap-mt-1">Every ledger entry on your account. Filter, sort by date, export.</p>
 
-        {/* Filter chips */}
-        <div className="mt-6 flex flex-wrap gap-1.5">
-          <FilterChip href="/capital/wallet/activity" label="All" active={!group} />
-          {KIND_GROUPS.map((g) => {
-            const params = new URLSearchParams();
-            params.set("group", g.label);
-            if (sp.since) params.set("since", sp.since);
-            if (sp.until) params.set("until", sp.until);
-            return (
-              <FilterChip
-                key={g.label}
-                href={`/capital/wallet/activity?${params.toString()}`}
-                label={g.label}
-                active={activeGroupLabel === g.label}
-              />
-            );
-          })}
+      {/* Filter chips */}
+      <div className="cap-tabs">
+        <Link href="/capital/wallet/activity" className={`cap-tab ${!group ? "is-active" : ""}`}>All</Link>
+        {KIND_GROUPS.map((g) => {
+          const params = new URLSearchParams();
+          params.set("group", g.label);
+          if (sp.since) params.set("since", sp.since);
+          if (sp.until) params.set("until", sp.until);
+          return (
+            <Link
+              key={g.label}
+              href={`/capital/wallet/activity?${params.toString()}`}
+              className={`cap-tab ${activeGroupLabel === g.label ? "is-active" : ""}`}
+            >
+              {g.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Date range */}
+      <form action="/capital/wallet/activity" method="GET" className="cap-filterbar cap-mt">
+        {group && <input type="hidden" name="group" value={group.label} />}
+        <div className="field">
+          <label htmlFor="since">From</label>
+          <input id="since" className="input" type="date" name="since" defaultValue={sp.since ?? ""} />
         </div>
+        <div className="field">
+          <label htmlFor="until">To</label>
+          <input id="until" className="input" type="date" name="until" defaultValue={sp.until ?? ""} />
+        </div>
+        <button type="submit" className="btn btn-primary">Apply</button>
+        <a href={csvHref} className="btn btn-secondary">Export CSV</a>
+      </form>
 
-        {/* Date range */}
-        <form
-          action="/capital/wallet/activity"
-          method="GET"
-          className="mt-4 grid gap-3 sm:flex sm:flex-wrap sm:items-end"
-        >
-          {group && <input type="hidden" name="group" value={group.label} />}
-          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-ink/60 sm:flex-row sm:items-center sm:gap-2">
-            From
-            <input
-              type="date"
-              name="since"
-              defaultValue={sp.since ?? ""}
-              className="w-full rounded-full border-theme border-ink bg-surface px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink sm:w-auto"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-ink/60 sm:flex-row sm:items-center sm:gap-2">
-            To
-            <input
-              type="date"
-              name="until"
-              defaultValue={sp.until ?? ""}
-              className="w-full rounded-full border-theme border-ink bg-surface px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink sm:w-auto"
-            />
-          </label>
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
-            <button
-              type="submit"
-              className="tap-press chip-tap cursor-pointer rounded-full border-theme border-ink bg-ink px-4 text-sm font-bold text-white-smoke"
-            >
-              Apply
-            </button>
-            <a
-              href={csvHref}
-              className="chip-tap tap-press text-center cursor-pointer rounded-full border-theme border-ink bg-surface px-4 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke"
-            >
-              Export CSV
-            </a>
+      {/* Summary */}
+      <section className="card-grid cap-mt">
+        <div className="kpi">
+          <div className="kpi__label">Entries</div>
+          <div className="kpi__value">{entries.length}</div>
+        </div>
+        <div className="kpi">
+          <div className="kpi__label">Net</div>
+          <div className="kpi__value" style={{ color: totalCents >= 0 ? "var(--positive-text)" : "var(--negative-text)" }}>
+            {totalCents >= 0 ? "+" : "−"}{formatWb(Math.abs(totalCents))}
           </div>
-        </form>
-
-        {/* Summary */}
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <Tile label="Entries" value={entries.length.toString()} />
-          <Tile label="Net" value={formatWb(totalCents, { signed: true })} />
-          <Tile
-            label="Window"
-            value={
-              sp.since && sp.until
-                ? `${sp.since} → ${sp.until}`
-                : sp.since
-                  ? `from ${sp.since}`
-                  : sp.until
-                    ? `until ${sp.until}`
-                    : "All time"
-            }
-          />
         </div>
+        <div className="kpi">
+          <div className="kpi__label">Window</div>
+          <div className="kpi__value" style={{ fontSize: "var(--fs-h3)" }}>
+            {sp.since && sp.until ? `${sp.since} → ${sp.until}` : sp.since ? `from ${sp.since}` : sp.until ? `until ${sp.until}` : "All time"}
+          </div>
+        </div>
+      </section>
 
-        {/* Table */}
-        {entries.length === 0 ? (
-          <p className="mt-10 rounded-theme shadow-theme border-theme border-ink bg-surface p-8 text-center text-sm text-ink/70">
-            No entries match this filter.
-          </p>
-        ) : (
-          <ul className="mt-8 divide-y-2 divide-ink border-y-2 border-ink">
+      {/* Table */}
+      {entries.length === 0 ? (
+        <div className="card cap-mt-lg cap-empty">No entries match this filter.</div>
+      ) : (
+        <table className="tbl cap-mt-lg">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>When</th>
+              <th className="num">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
             {entries.map((e) => {
               const positive = e.amountCents > 0;
               const negative = e.amountCents < 0;
+              const cls = positive ? "num--positive" : negative ? "num--negative" : "";
               return (
-                <li
-                  key={e.id}
-                  className="grid grid-cols-[1fr_auto] items-center gap-4 py-3 text-sm"
-                >
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-baseline gap-2">
-                      <span className="font-display font-bold text-ink">
-                        {KIND_LABEL[e.kind] ?? e.kind}
-                      </span>
-                      <span className="text-xs text-ink/60">{fmtDate(e.createdAt)}</span>
-                    </div>
-                    {e.memo && (
-                      <p className="mt-0.5 truncate text-xs text-ink/70">{e.memo}</p>
-                    )}
-                  </div>
-                  <div
-                    className={`font-display text-lg font-black tabular-nums ${
-                      positive
-                        ? "text-pigment-green"
-                        : negative
-                          ? "text-imperial-red"
-                          : "text-ink"
-                    }`}
-                  >
-                    {positive ? "▲ " : negative ? "▼ " : ""}
-                    {formatWb(e.amountCents, { signed: true })}
-                  </div>
-                </li>
+                <tr key={e.id}>
+                  <td>
+                    <div className="cap-row__main">{KIND_LABEL[e.kind] ?? e.kind}</div>
+                    {e.memo && <div className="text-caption">{e.memo}</div>}
+                  </td>
+                  <td className="text-body-sm">{fmtDate(e.createdAt)}</td>
+                  <td className={`num ${cls}`}>
+                    {positive ? "▲ +" : negative ? "▼ −" : ""}
+                    {formatWb(Math.abs(e.amountCents))}
+                  </td>
+                </tr>
               );
             })}
-          </ul>
-        )}
+          </tbody>
+        </table>
+      )}
 
-        <Disclaimer />
-      </main>
-    </>
-  );
-}
-
-function FilterChip({ href, label, active }: { href: string; label: string; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={`chip-tap tap-press rounded-full border-theme border-ink px-4 text-sm font-bold transition-colors ${
-        active ? "bg-ink text-white-smoke" : "bg-surface text-ink hover:bg-ink hover:text-white-smoke"
-      }`}
-    >
-      {label}
-    </Link>
-  );
-}
-
-function Tile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border-theme border-ink bg-surface p-4">
-      <p className="text-xs font-bold uppercase tracking-wider text-ink/60">{label}</p>
-      <p className="mt-2 font-display text-2xl font-black tabular-nums">{value}</p>
-    </div>
+      <Disclaimer />
+    </main>
   );
 }

@@ -15,36 +15,6 @@
   --pigment-green: #009640;
   --lavender: #ae78d2;
 
-  /* ---------------------------------------------------------------------
-   * Whoosh Capital design-system scale tokens.
-   * The brand anchors above ARE the design system's 500s (Sky = blue,
-   * Forest = pigment-green, Crimson = imperial-red, …). What the finance
-   * section needs on top of those is a cool SLATE neutral ramp plus the
-   * AA-safe darker value shades. Defined globally (namespaced, harmless)
-   * and consumed only inside the [data-theme="capital"] scope below.
-   * ------------------------------------------------------------------- */
-  --color-slate-0: #ffffff;
-  --color-slate-50: #f7f8fa;
-  --color-slate-100: #eef0f4;
-  --color-slate-200: #dde1e8;
-  --color-slate-300: #c3cad4;
-  --color-slate-400: #97a1b0;
-  --color-slate-500: #6b7787;
-  --color-slate-600: #4d5666;
-  --color-slate-700: #353c49;
-  --color-slate-800: #1f242e;
-  --color-slate-900: #0e1118;
-  --color-slate-950: #060810;
-  --color-forest-50: #d6f4e2;
-  --color-forest-600: #007832;
-  --color-forest-700: #005a25;
-  --color-crimson-50: #ffd8df;
-  --color-crimson-600: #cc0826;
-  --color-crimson-700: #99061c;
-  --color-sky-50: #e6f2fe;
-  --color-sky-600: #0269c2;
-  --color-sky-700: #014e91;
-
   --background: var(--white-smoke);
   --foreground: var(--ink);
 
@@ -65,44 +35,11 @@
   --theme-surface: var(--white-smoke);
 }
 
-/* Capital — the Whoosh Capital design system. Because the section's markup
- * already uses semantic-ish utilities (text-ink, bg-surface, border-ink,
- * text-pigment-green/-imperial-red, font-display, rounded/border/shadow-theme),
- * remapping the palette + structural tokens inside this scope re-skins the
- * whole finance section onto the design system with no markup changes — and
- * leaves every other section untouched.
- *
- * Neutrals shift from pure black/off-white to the cool slate ramp; gains and
- * losses use the AA-safe forest-700 / crimson-700 value shades; the display
- * face becomes Inter Tight and numbers JetBrains Mono (see the .tabular-nums
- * rule below). Radius/shadow follow the design system's 4px-grid scale. */
-[data-theme="capital"] {
-  /* Neutrals → slate ramp. These drive text-ink, border-ink (+ /alpha),
-   * bg-ink, text-white-smoke, bg-white-smoke, etc. via the @theme mapping. */
-  --ink: var(--color-slate-900);
-  --white: var(--color-slate-0);
-  --white-smoke: var(--color-slate-50);
-  --cream: var(--color-slate-100);
-
-  /* Financial value colors → AA-safe darker shades on light surfaces. */
-  --pigment-green: var(--color-forest-700);
-  --imperial-red: var(--color-crimson-700);
-  /* Primary blue → the 600 that passes AA for white text. */
-  --blue: var(--color-sky-600);
-
-  /* Typography: Inter Tight display, JetBrains Mono for numbers. */
-  --font-display: var(--font-capital);
-  --font-ui: var(--font-body);
-
-  /* Structure: design-system radius + elevation. */
-  --theme-border-width: 1px;
-  --theme-radius: 16px; /* radius-lg — cards & panels */
-  --theme-card-shadow: 0 2px 4px rgba(14, 17, 24, 0.06), 0 1px 2px rgba(14, 17, 24, 0.04);
-  --theme-surface: var(--color-slate-0);
-
-  /* Design-system focus glow, reused by the enhancement rules below. */
-  --ds-focus-glow: 0 0 0 4px rgba(3, 129, 237, 0.25);
-}
+/* Capital — owns its design system in a dedicated, scoped stylesheet
+ * (src/styles/capital/index.css, imported by src/app/capital/layout.tsx). All
+ * Capital tokens, component classes, and the shared-shell palette/structural
+ * remap live there, scoped to [data-theme="capital"]. Nothing for Capital is
+ * defined here. */
 
 /* Fantasy Football — bold, sporty: condensed display, chunky radius. */
 [data-theme="fantasy"] {
@@ -237,44 +174,4 @@ h6,
     transparent 2px,
     transparent 12px
   );
-}
-
-/* ============================================================
-   Whoosh Capital — design-system enhancements
-   Scoped polish the token remap can't express on its own. Everything here is
-   confined to [data-theme="capital"], so no other section is affected. These
-   are unlayered rules, so they win over Tailwind utilities in the cascade.
-   ============================================================ */
-
-/* Rule #1: numbers always render in the mono face with tabular figures. Every
- * numeric value in the section already carries `tabular-nums`, so this targets
- * money/percentages/counts precisely without touching headings or labels. */
-[data-theme="capital"] .tabular-nums {
-  font-family: var(--font-capital-num), ui-monospace, "SFMono-Regular", Menlo, monospace;
-  font-feature-settings: "tnum";
-  letter-spacing: 0;
-}
-
-/* Form controls: soft slate border + design-system sky focus glow. */
-[data-theme="capital"] input,
-[data-theme="capital"] select,
-[data-theme="capital"] textarea {
-  border-color: var(--color-slate-300);
-}
-[data-theme="capital"] input:focus,
-[data-theme="capital"] input:focus-visible,
-[data-theme="capital"] select:focus,
-[data-theme="capital"] select:focus-visible,
-[data-theme="capital"] textarea:focus,
-[data-theme="capital"] textarea:focus-visible {
-  outline: none;
-  border-color: var(--color-sky-500, #0381ed);
-  box-shadow: var(--ds-focus-glow);
-}
-
-/* Visible keyboard focus ring on interactive controls (a11y rule). */
-[data-theme="capital"] button:focus-visible,
-[data-theme="capital"] a:focus-visible {
-  outline: none;
-  box-shadow: var(--ds-focus-glow);
 }

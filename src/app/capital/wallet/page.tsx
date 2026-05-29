@@ -11,7 +11,7 @@ import {
 } from "@/lib/wb/leaderboard";
 import { BalanceChart } from "@/components/wb/BalanceChart";
 import { AllocationBar } from "@/components/wb/AllocationBar";
-import { LeaderboardTabs } from "@/components/wb/LeaderboardTabs";
+import { LeaderboardTabs } from "@/components/capital/LeaderboardTabs";
 import { Disclaimer } from "@/components/Disclaimer";
 import { BuyWbForm } from "@/components/wb/BuyWbForm";
 import { hasClaimedToday, getUserStreak } from "@/lib/wb/bonus";
@@ -100,6 +100,7 @@ export default async function WalletPage({
   ]);
 
   const { allocation, returns, positions } = dashboard;
+  const returnPos = returns.totalReturnCents >= 0;
 
   const sp = await searchParams;
   const banner =
@@ -112,7 +113,7 @@ export default async function WalletPage({
           : sp.bonus === "ok"
             ? {
                 tone: "good",
-                text: `Daily bonus claimed — ${formatWb(Number(sp.amount ?? 0))} added (${sp.streak}-day streak 🔥).`,
+                text: `Daily bonus claimed — ${formatWb(Number(sp.amount ?? 0))} added (${sp.streak}-day streak).`,
               }
             : sp.bonus === "already"
               ? { tone: "warn", text: "You've already claimed today's bonus." }
@@ -124,382 +125,259 @@ export default async function WalletPage({
     ? `Earning ${(rate.apyBps / 100).toFixed(2)}% APY · ${rate.source.startsWith("fred") ? "SPAXX-tied" : rate.source}`
     : undefined;
 
-  return (
-    <>
-      <main className="mx-auto w-full max-w-3xl px-6 py-16 sm:py-24">
-        <span className="text-xs font-display font-bold uppercase tracking-[0.22em] text-ink">
-          Your portfolio
-        </span>
+  const lifetime: { label: string; cents: number; signed?: boolean }[] = [
+    { label: "Money in (purchases)", cents: returns.realDollarsInCents },
+    { label: "Premium match", cents: returns.premiumMatchCents, signed: true },
+    { label: "Interest earned", cents: returns.interestEarnedCents, signed: true },
+    { label: "Wager P/L", cents: returns.wagerPlCents, signed: true },
+    { label: "Investing P/L", cents: returns.investingPlCents, signed: true },
+    { label: "Dividends received", cents: returns.dividendsCents, signed: true },
+    { label: "Net transfers", cents: returns.netTransfersCents, signed: true },
+  ];
 
-        {/* Hero: total equity */}
-        <div className="mt-6 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 text-ink sm:p-8">
-          <p className="text-xs font-bold uppercase tracking-wider text-ink/70">
-            Total equity
-          </p>
-          <p className="mt-2 font-display text-5xl font-black tracking-tight sm:text-6xl tabular-nums">
-            {formatMoney(allocation.totalEquityCents)}
-          </p>
-          <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm font-medium">
-            <span className="text-ink/80">
-              <span className="font-display font-black">
-                {formatMoney(returns.totalReturnCents, { signed: true })}
-              </span>{" "}
-              <span className="text-ink/60">total return</span>
-            </span>
-            <span className="text-ink/80">
-              <span className="font-display font-black text-ink">
-                {formatPct(returns.totalReturnFraction)}
-              </span>{" "}
-              <span className="text-ink/60">vs. money in</span>
-            </span>
+  return (
+    <main className="cap-page">
+      <p className="text-eyebrow">Capital · Wallet</p>
+      <h1 className="text-h1 cap-mt-1">Your portfolio</h1>
+
+      {banner && (
+        <div className={`alert ${banner.tone === "good" ? "alert-positive" : "alert-warning"} cap-mt`}>
+          <div className="body">{banner.text}</div>
+        </div>
+      )}
+
+      {/* KPI row */}
+      <section className="card-grid cap-mt">
+        <div className="kpi">
+          <div className="kpi__label">Total equity</div>
+          <div className="kpi__value">{formatMoney(allocation.totalEquityCents)}</div>
+          <div className={`kpi__delta ${returnPos ? "kpi__delta--positive" : "kpi__delta--negative"}`}>
+            {returnPos ? "▲" : "▼"} {formatMoney(returns.totalReturnCents, { signed: true })} · {formatPct(returns.totalReturnFraction)}
           </div>
         </div>
-
-        {banner && (
-          <div
-            className={`mt-6 rounded-xl border-theme border-ink px-4 py-3 text-sm font-medium ${
-              banner.tone === "good"
-                ? "bg-pigment-green text-white-smoke"
-                : "bg-imperial-red text-white-smoke"
-            }`}
-          >
-            {banner.text}
+        <div className="kpi">
+          <div className="kpi__label">Cash · earning yield</div>
+          <div className="kpi__value">{formatMoney(allocation.cashCents)}</div>
+          <div className="kpi__delta">{apyHint ?? "SPAXX-tied yield"}</div>
+        </div>
+        <div className="kpi">
+          <div className="kpi__label">Invested</div>
+          <div className="kpi__value">{formatMoney(allocation.investedValueCents)}</div>
+          <div className="kpi__delta">
+            {positions.length > 0 ? `${positions.length} ${positions.length === 1 ? "position" : "positions"}` : "no positions"}
           </div>
-        )}
+        </div>
+      </section>
 
-        {/* Daily check-in */}
-        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-mango p-6 text-ink sm:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="font-display text-xl font-bold">
-                Daily check-in
-                {streakDays > 0 && (
-                  <span className="ml-2 text-base font-medium text-ink/70">
-                    🔥 {streakDays}-day streak
-                  </span>
-                )}
-              </h2>
-              <p className="mt-1 text-sm font-medium text-ink/70">
-                {claimedToday
-                  ? "Already claimed today. Come back tomorrow to extend your streak."
-                  : "Drop in daily to claim your bonus. Streak grows the reward."}
-              </p>
-            </div>
-            <form action="/api/wb/bonus" method="POST">
-              <button
-                type="submit"
-                disabled={claimedToday}
-                className="tap-press cursor-pointer rounded-full border-theme border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {claimedToday ? "Claimed ✓" : "Claim today's bonus"}
-              </button>
-            </form>
-          </div>
-        </section>
-
-        {/* Allocation */}
-        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
-          <h2 className="font-display text-xl font-bold text-ink">Where your WB lives</h2>
-          <p className="mt-1 text-sm text-ink/60">
-            Cash sits in your Whoosh wallet earning the SPAXX-tied yield.
-            Investing and open bets each lock up part of your equity.
+      {/* Daily check-in */}
+      <section className="card cap-mt cap-checkin">
+        <div>
+          <h2 className="text-h3">
+            Daily check-in{streakDays > 0 ? ` · ${streakDays}-day streak` : ""}
+          </h2>
+          <p className="text-body-sm cap-mt-1">
+            {claimedToday
+              ? "Already claimed today. Come back tomorrow to extend your streak."
+              : "Drop in daily to claim your bonus. Your streak grows the reward."}
           </p>
-          <div className="mt-5">
-            <AllocationBar
-              slices={[
-                {
-                  label: "Earning yield",
-                  cents: allocation.cashCents,
-                  className: "bg-pigment-green",
-                  hint: apyHint,
-                },
-                {
-                  label: "Invested",
-                  cents: allocation.investedValueCents,
-                  className: "bg-surface",
-                  hint:
-                    positions.length > 0
-                      ? `${positions.length} ${positions.length === 1 ? "position" : "positions"}`
-                      : "no positions",
-                },
-                {
-                  label: "Locked in wagers",
-                  cents: allocation.openWagersCents,
-                  className: "bg-imperial-red",
-                  hint:
-                    allocation.openWagersCents > 0
-                      ? "settling soon"
-                      : "no open bets",
-                },
-              ]}
-            />
-          </div>
-        </section>
+        </div>
+        <form action="/api/wb/bonus" method="POST">
+          <button type="submit" disabled={claimedToday} className="btn btn-volt">
+            {claimedToday ? "Claimed ✓" : "Claim bonus"}
+          </button>
+        </form>
+      </section>
 
-        {/* Lifetime breakdown */}
-        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
-          <h2 className="font-display text-xl font-bold text-ink">Lifetime returns</h2>
-          <p className="mt-1 text-sm text-ink/60">
-            What&rsquo;s contributed to (or taken from) your stack since you joined.
-          </p>
-          <dl className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2">
-            <Stat label="Money in (purchases)" value={formatMoney(returns.realDollarsInCents)} />
-            <Stat
-              label="Premium match"
-              value={formatMoney(returns.premiumMatchCents, { signed: true })}
-              tone={returns.premiumMatchCents > 0 ? "good" : "neutral"}
-            />
-            <Stat
-              label="Interest earned"
-              value={formatMoney(returns.interestEarnedCents, { signed: true })}
-              tone={returns.interestEarnedCents > 0 ? "good" : "neutral"}
-            />
-            <Stat
-              label="Wager P/L"
-              value={formatMoney(returns.wagerPlCents, { signed: true })}
-              tone={returns.wagerPlCents > 0 ? "good" : returns.wagerPlCents < 0 ? "warn" : "neutral"}
-            />
-            <Stat
-              label="Investing P/L (realized + unrealized)"
-              value={formatMoney(returns.investingPlCents, { signed: true })}
-              tone={returns.investingPlCents > 0 ? "good" : returns.investingPlCents < 0 ? "warn" : "neutral"}
-            />
-            <Stat
-              label="Dividends received"
-              value={formatMoney(returns.dividendsCents, { signed: true })}
-              tone={returns.dividendsCents > 0 ? "good" : "neutral"}
-            />
-            <Stat
-              label="Net transfers"
-              value={formatMoney(returns.netTransfersCents, { signed: true })}
-              tone="neutral"
-            />
-          </dl>
-        </section>
-
-        {/* Leaderboard */}
-        <section className="mt-8">
-          <LeaderboardTabs
-            holders={holders}
-            traders={traders}
-            wins={wins}
-            streaks={streaks}
-            highlightUserId={session.id}
+      {/* Allocation */}
+      <section className="card cap-mt-lg">
+        <h2 className="text-h3">Where your WB lives</h2>
+        <p className="text-body-sm cap-mt-1">
+          Cash earns the SPAXX-tied yield; investing and open bets each lock up part of your equity.
+        </p>
+        <div className="cap-mt">
+          <AllocationBar
+            slices={[
+              { label: "Earning yield", cents: allocation.cashCents, tone: "positive", hint: apyHint },
+              {
+                label: "Invested",
+                cents: allocation.investedValueCents,
+                tone: "primary",
+                hint: positions.length > 0 ? `${positions.length} ${positions.length === 1 ? "position" : "positions"}` : "no positions",
+              },
+              {
+                label: "Locked in wagers",
+                cents: allocation.openWagersCents,
+                tone: "negative",
+                hint: allocation.openWagersCents > 0 ? "settling soon" : "no open bets",
+              },
+            ]}
           />
-        </section>
+        </div>
+      </section>
 
-        {/* Balance chart */}
-        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
-          <h2 className="font-display text-xl font-bold text-ink">Cash balance · last 90 days</h2>
-          <p className="mt-1 text-sm text-ink/60">
-            End-of-day cash balance — not including the value of open positions
-            or open wagers.
-          </p>
-          <div className="mt-5">
-            <BalanceChart data={dashboard.balanceSeries} />
+      {/* Lifetime returns */}
+      <section className="card cap-mt-lg">
+        <h2 className="text-h3">Lifetime returns</h2>
+        <p className="text-body-sm cap-mt-1">
+          What&rsquo;s contributed to (or taken from) your stack since you joined.
+        </p>
+        <table className="tbl cap-bare">
+          <tbody>
+            {lifetime.map((r) => {
+              const cls = !r.signed ? "" : r.cents > 0 ? "num--positive" : r.cents < 0 ? "num--negative" : "";
+              return (
+                <tr key={r.label}>
+                  <td>{r.label}</td>
+                  <td className={`num ${cls}`}>
+                    {r.signed
+                      ? `${r.cents > 0 ? "+" : r.cents < 0 ? "−" : ""}${formatMoney(Math.abs(r.cents))}`
+                      : formatMoney(r.cents)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </section>
+
+      {/* Leaderboard */}
+      <section className="cap-mt-lg" id="leaderboard">
+        <LeaderboardTabs
+          holders={holders}
+          traders={traders}
+          wins={wins}
+          streaks={streaks}
+          highlightUserId={session.id}
+        />
+      </section>
+
+      {/* Balance chart */}
+      <section className="chart-card cap-mt-lg">
+        <div className="chart-card__head">
+          <div>
+            <h2 className="text-h3">Cash balance</h2>
+            <p className="text-body-sm">End-of-day cash · last 90 days</p>
           </div>
-        </section>
+        </div>
+        <BalanceChart data={dashboard.balanceSeries} />
+      </section>
 
-        {/* Positions detail (only if there are any) */}
-        {positions.length > 0 && (
-          <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
-            <h2 className="font-display text-xl font-bold text-ink">Open positions</h2>
-            <ul className="mt-5 divide-y-2 divide-ink border-y-2 border-ink">
-              {positions.map((p) => (
-                <li
-                  key={p.symbol}
-                  className="flex flex-col gap-2 py-3 text-sm sm:grid sm:grid-cols-[1fr_1fr_1fr] sm:items-center sm:gap-4"
-                >
-                  <div className="flex items-baseline justify-between gap-3 sm:block">
-                    <div className="font-display text-lg font-black sm:text-base">{p.symbol}</div>
-                    <div className="text-xs text-ink/60">{formatShares(p.shares)} shares</div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 sm:contents">
-                    <div className="text-left sm:text-right">
-                      <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
-                        Market
-                      </div>
-                      <div className="font-display font-bold tabular-nums">
-                        {p.marketValueCents !== null ? formatMoney(p.marketValueCents) : "—"}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs font-bold uppercase tracking-wider text-ink/60">
-                        P/L
-                      </div>
-                      <div
-                        className={`font-display font-black tabular-nums ${
-                          p.unrealizedCents === null
-                            ? "text-ink/60"
-                            : p.unrealizedCents > 0
-                              ? "text-pigment-green"
-                              : p.unrealizedCents < 0
-                                ? "text-imperial-red"
-                                : "text-ink"
-                        }`}
-                        aria-label={
-                          p.unrealizedCents == null
-                            ? "P/L unavailable"
-                            : `${p.unrealizedCents > 0 ? "up" : p.unrealizedCents < 0 ? "down" : "flat"} ${formatMoney(p.unrealizedCents, { signed: true })}`
-                        }
-                      >
-                        {p.unrealizedCents == null
-                          ? "—"
-                          : `${p.unrealizedCents > 0 ? "▲ " : p.unrealizedCents < 0 ? "▼ " : ""}${formatMoney(p.unrealizedCents, { signed: true })}`}
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 text-xs text-ink/60">
-              Live quotes via Yahoo (delayed ~15 min). See <a href="/capital/invest" className="font-bold underline">/invest</a> to buy or sell.
-            </p>
-          </section>
-        )}
-
-        {/* Buy WB */}
-        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
-          <h2 className="font-display text-xl font-bold text-ink">Buy Whoosh Bucks</h2>
-          <p className="mt-2 text-sm font-medium text-ink/70">
-            Every $1 paid via Stripe = $10 of Whoosh Bucks. Bucks appear here
-            when the charge clears.
+      {/* Positions */}
+      {positions.length > 0 && (
+        <section className="cap-mt-lg">
+          <h2 className="text-h2 cap-section-title">Open positions</h2>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th className="num">Shares</th>
+                <th className="num">Market value</th>
+                <th className="num">P/L</th>
+              </tr>
+            </thead>
+            <tbody>
+              {positions.map((p) => {
+                const u = p.unrealizedCents;
+                const cls = u == null ? "" : u > 0 ? "num--positive" : u < 0 ? "num--negative" : "";
+                return (
+                  <tr key={p.symbol}>
+                    <td>{p.symbol}</td>
+                    <td className="num">{formatShares(p.shares)}</td>
+                    <td className="num">{p.marketValueCents !== null ? formatMoney(p.marketValueCents) : "—"}</td>
+                    <td className={`num ${cls}`}>
+                      {u == null ? "—" : `${u > 0 ? "▲ " : u < 0 ? "▼ " : ""}${formatMoney(u, { signed: true })}`}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <p className="text-body-sm cap-mt-1">
+            Live quotes via Yahoo (delayed ~15 min). Go to{" "}
+            <a href="/capital/invest" className="cap-link">Invest</a> to buy or sell.
           </p>
-          <BuyWbForm />
         </section>
+      )}
 
-        {/* Send WB */}
-        <section className="mt-8 rounded-theme shadow-theme border-theme border-ink bg-surface p-6 sm:p-8">
-          <h2 className="font-display text-xl font-bold text-ink">Send Whoosh Bucks</h2>
-          <p className="mt-2 text-sm font-medium text-ink/70">
-            Send to any Whoosh user by their Discord username. They must have
-            signed in to the site at least once.
-          </p>
-          <form
-            action="/api/wb/transfer"
-            method="POST"
-            className="mt-5 grid gap-3 sm:grid-cols-[1fr_140px_auto]"
-          >
-            <div className="relative">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-bold text-ink/60">
-                @
-              </span>
-              <input
-                type="text"
-                name="recipient"
-                placeholder="username"
-                required
-                autoComplete="off"
-                aria-label="Recipient username"
-                className="w-full rounded-full border-theme border-ink bg-surface px-4 py-3 pl-8 font-medium focus:outline-none focus:ring-2 focus:ring-ink"
-              />
-            </div>
-            <div className="relative">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-display font-bold text-ink/60">
-                $
-              </span>
-              <input
-                type="number"
-                name="amount"
-                min="0.01"
-                step="0.01"
-                placeholder="0.00"
-                required
-                inputMode="decimal"
-                aria-label="USD amount"
-                className="w-full rounded-full border-theme border-ink bg-surface px-4 py-3 pl-8 font-display text-lg font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-ink"
-              />
-            </div>
-            <button
-              type="submit"
-              className="tap-press cursor-pointer rounded-full border-theme border-ink bg-ink px-6 py-3 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
-            >
-              Send
-            </button>
-            <input
-              type="text"
-              name="memo"
-              placeholder="Memo (optional)"
-              aria-label="Memo (optional)"
-              className="sm:col-span-3 rounded-full border-theme border-ink bg-surface px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-ink"
-            />
-          </form>
-        </section>
+      {/* Buy WB */}
+      <section className="card cap-mt-lg">
+        <h2 className="text-h3">Buy Whoosh Bucks</h2>
+        <p className="text-body-sm cap-mt-1">
+          Every $1 paid via Stripe = $10 of Whoosh Bucks. Bucks appear here when the charge clears.
+        </p>
+        <BuyWbForm />
+      </section>
 
-        {/* Activity ledger */}
-        <div className="mt-12 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-xl font-bold text-ink">Activity</h2>
+      {/* Send WB */}
+      <section className="card cap-mt-lg">
+        <h2 className="text-h3">Send Whoosh Bucks</h2>
+        <p className="text-body-sm cap-mt-1">
+          Send to any Whoosh user by their Discord username. They must have signed in at least once.
+        </p>
+        <form action="/api/wb/transfer" method="POST" className="cap-send cap-mt">
+          <div className="field">
+            <label htmlFor="recipient">Recipient</label>
+            <div className="input-group">
+              <span className="addon">@</span>
+              <input id="recipient" className="input" type="text" name="recipient" placeholder="username" required autoComplete="off" />
+            </div>
+          </div>
+          <div className="field">
+            <label htmlFor="send-amount">Amount</label>
+            <div className="input-group">
+              <span className="addon">$</span>
+              <input id="send-amount" className="input input-num" type="number" name="amount" min="0.01" step="0.01" placeholder="0.00" required inputMode="decimal" />
+            </div>
+          </div>
+          <div className="field cap-send__memo">
+            <label htmlFor="memo">Memo (optional)</label>
+            <input id="memo" className="input" type="text" name="memo" placeholder="What's it for?" />
+          </div>
+          <button type="submit" className="btn btn-primary cap-send__submit">Send</button>
+        </form>
+      </section>
+
+      {/* Activity */}
+      <section className="cap-mt-lg">
+        <div className="cap-card-head">
+          <h2 className="text-h2">Activity</h2>
           {ledger.length > 0 && (
-            <a
-              href="/capital/wallet/activity"
-              className="text-sm font-bold text-ink/70 underline-offset-2 hover:underline"
-            >
-              See all →
-            </a>
+            <a href="/capital/wallet/activity" className="cap-link">See all →</a>
           )}
         </div>
         {ledger.length === 0 ? (
-          <div className="mt-4 rounded-theme shadow-theme border-theme border-ink bg-surface p-8 text-center">
-            <p className="font-display text-lg font-bold text-ink">
-              No activity yet.
-            </p>
-            <p className="mt-2 text-sm text-ink/60">
-              Buy some Whoosh Bucks above to get started. Every $1 = $10 WB.
-            </p>
+          <div className="card cap-mt cap-empty">
+            No activity yet. Buy some Whoosh Bucks above to get started — every $1 = $10 WB.
           </div>
         ) : (
-          <ul className="mt-4 divide-y-2 divide-ink border-y-2 border-ink">
-            {ledger.map((entry) => {
-              const positive = entry.amountCents >= 0;
-              return (
-                <li
-                  key={entry.id}
-                  className="grid grid-cols-[1fr_auto] items-center gap-4 py-3 text-sm"
-                >
-                  <div className="min-w-0">
-                    <div className="font-bold">{KIND_LABEL[entry.kind] ?? entry.kind}</div>
-                    <div className="truncate text-xs text-ink/60">
-                      {entry.memo ?? formatDateTime(entry.createdAt)}
-                    </div>
-                  </div>
-                  <div
-                    className={`font-display text-lg font-black tabular-nums ${
-                      positive ? "text-pigment-green" : "text-imperial-red"
-                    }`}
-                  >
-                    {formatMoney(entry.amountCents, { signed: true })}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <table className="tbl cap-mt">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>When</th>
+                <th className="num">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ledger.map((entry) => {
+                const positive = entry.amountCents >= 0;
+                return (
+                  <tr key={entry.id}>
+                    <td>{KIND_LABEL[entry.kind] ?? entry.kind}</td>
+                    <td className="text-body-sm">{entry.memo ?? formatDateTime(entry.createdAt)}</td>
+                    <td className={`num ${positive ? "num--positive" : "num--negative"}`}>
+                      {positive ? "+" : "−"}
+                      {formatMoney(Math.abs(entry.amountCents))}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
+      </section>
 
-        <Disclaimer />
-      </main>
-    </>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  tone = "neutral",
-}: {
-  label: string;
-  value: string;
-  tone?: "good" | "warn" | "neutral";
-}) {
-  const cls =
-    tone === "good"
-      ? "text-pigment-green"
-      : tone === "warn"
-        ? "text-imperial-red"
-        : "text-ink";
-  return (
-    <div>
-      <dt className="text-xs font-bold uppercase tracking-wider text-ink/60">{label}</dt>
-      <dd className={`mt-1 font-display text-2xl font-black tabular-nums ${cls}`}>{value}</dd>
-    </div>
+      <Disclaimer />
+    </main>
   );
 }

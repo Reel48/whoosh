@@ -1,13 +1,17 @@
 import { requirePremiumSession } from "@/lib/membership";
 import { AppShell } from "@/components/AppShell";
+import "@/styles/capital/index.css";
+import "@/styles/capital/app.css";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Capital section shell. Gates on premium once for every page below, sets the
- * `capital` theme scope (clean finance: white surfaces, hairline borders, soft
- * shadows, tabular display font — see globals.css), and renders the section
- * chrome. The WB feature pages live underneath and inherit all of this.
+ * Capital section shell. Gates on premium once for every page below and sets
+ * the `capital` theme scope. The section's entire visual identity comes from
+ * its own vendored design system (src/styles/capital/index.css) — scoped to
+ * [data-theme="capital"] so it shares no styling with the marketing site or
+ * the other sections. The canvas background/text/font are painted by that
+ * stylesheet, so the wrapper carries no color utilities.
  */
 export default async function CapitalLayout({
   children,
@@ -16,7 +20,7 @@ export default async function CapitalLayout({
 }) {
   await requirePremiumSession();
   return (
-    <div data-theme="capital" className="flex flex-1 flex-col bg-white-smoke text-ink">
+    <div data-theme="capital" className="flex flex-1 flex-col">
       <AppShell section="capital">{children}</AppShell>
     </div>
   );

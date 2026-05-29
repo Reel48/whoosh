@@ -8,29 +8,19 @@ type Props = {
 };
 
 /**
- * Polished SSR-only SVG line chart of close prices over time.
- * - Y-axis: 5 ticks, drawn on the right.
- * - X-axis: start/middle/end date labels along the bottom.
- * - Line color: pigment-green if final ≥ first, imperial-red otherwise.
- * - Area fill under the line at low opacity.
- * - Optional reference horizontal line (cost basis, IPO price, etc.).
- *
- * No client JS — fine for a daily-resolution chart; hover tooltips can be
- * layered on later as a "use client" enhancement if/when we want them.
+ * SSR-only SVG line chart of close prices — Capital design system.
+ * Gain/loss uses the design-system P&L series colors; gridlines and axis
+ * labels use design-system chart tokens. Optional cost-basis reference line.
  */
 export function StockPriceChart({ candles, refLineCents, refLineLabel }: Props) {
   if (candles.length < 2) {
-    return (
-      <p className="text-sm text-ink/60">
-        Not enough price history to chart yet.
-      </p>
-    );
+    return <p className="text-body-sm">Not enough price history to chart yet.</p>;
   }
 
   const W = 800;
   const H = 320;
   const PAD_LEFT = 8;
-  const PAD_RIGHT = 64; // room for y-axis labels on the right
+  const PAD_RIGHT = 64;
   const PAD_TOP = 16;
   const PAD_BOTTOM = 32;
   const plotW = W - PAD_LEFT - PAD_RIGHT;
@@ -41,12 +31,10 @@ export function StockPriceChart({ candles, refLineCents, refLineLabel }: Props) 
 
   const lo = Math.min(...closes, includeRef ? refLineCents! : Infinity);
   const hi = Math.max(...closes, includeRef ? refLineCents! : -Infinity);
-  // Add 5% padding above and below so the line doesn't kiss the edges.
   const pad = (hi - lo) * 0.05 || hi * 0.01 || 1;
   const yMin = lo - pad;
   const yMax = hi + pad;
   const yRange = Math.max(yMax - yMin, 1);
-
   const xStep = plotW / (candles.length - 1);
 
   function x(i: number): number {
@@ -56,18 +44,14 @@ export function StockPriceChart({ candles, refLineCents, refLineLabel }: Props) 
     return PAD_TOP + plotH - ((cents - yMin) / yRange) * plotH;
   }
 
-  const pathD = candles
-    .map((c, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(c.closeCents).toFixed(1)}`)
-    .join(" ");
-
+  const pathD = candles.map((c, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(c.closeCents).toFixed(1)}`).join(" ");
   const areaD = `${pathD} L${x(candles.length - 1).toFixed(1)},${PAD_TOP + plotH} L${PAD_LEFT},${PAD_TOP + plotH} Z`;
 
   const first = candles[0];
   const last = candles[candles.length - 1];
   const positive = last.closeCents >= first.closeCents;
+  const lineColor = positive ? "var(--chart-gain)" : "var(--chart-loss)";
 
-  // Y-axis ticks — 5 evenly spaced between yMin and yMax, but labeled as
-  // rounded dollar amounts for readability.
   const tickCount = 5;
   const ticks: { cents: number; yPx: number }[] = [];
   for (let i = 0; i < tickCount; i++) {
@@ -76,38 +60,24 @@ export function StockPriceChart({ candles, refLineCents, refLineLabel }: Props) 
     ticks.push({ cents, yPx: y(cents) });
   }
 
-  // X-axis date labels — first, middle, last.
   const dateLabels: { i: number; label: string }[] = [
     { i: 0, label: formatDate(first.time) },
     { i: Math.floor((candles.length - 1) / 2), label: formatDate(candles[Math.floor((candles.length - 1) / 2)].time) },
     { i: candles.length - 1, label: formatDate(last.time) },
   ];
 
-  const lineColorClass = positive ? "text-pigment-green" : "text-imperial-red";
-
   return (
-    <div className="w-full">
+    <div className="cap-mt" style={{ width: "100%" }}>
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        className="block h-auto w-full"
+        style={{ display: "block", width: "100%", height: "auto" }}
         role="img"
         aria-label={`Price chart from ${formatDate(first.time)} to ${formatDate(last.time)}`}
       >
-        {/* Horizontal gridlines */}
         {ticks.map((t, i) => (
-          <line
-            key={`grid-${i}`}
-            x1={PAD_LEFT}
-            x2={W - PAD_RIGHT}
-            y1={t.yPx}
-            y2={t.yPx}
-            stroke="currentColor"
-            strokeWidth="1"
-            className="text-ink/10"
-          />
+          <line key={`grid-${i}`} className="chart-grid" x1={PAD_LEFT} x2={W - PAD_RIGHT} y1={t.yPx} y2={t.yPx} />
         ))}
 
-        {/* Reference line (cost basis etc.) */}
         {includeRef && refLineCents! >= yMin && refLineCents! <= yMax && (
           <>
             <line
@@ -115,72 +85,35 @@ export function StockPriceChart({ candles, refLineCents, refLineLabel }: Props) 
               x2={W - PAD_RIGHT}
               y1={y(refLineCents!)}
               y2={y(refLineCents!)}
-              stroke="currentColor"
+              stroke="var(--text-subtle)"
               strokeWidth="1.5"
               strokeDasharray="4 4"
-              className="text-ink/50"
             />
             {refLineLabel && (
-              <text
-                x={PAD_LEFT + 6}
-                y={y(refLineCents!) - 6}
-                fontSize="11"
-                fontWeight="700"
-                className="fill-ink/70"
-              >
+              <text x={PAD_LEFT + 6} y={y(refLineCents!) - 6} fontSize="11" fontWeight="700" fill="var(--text-muted)" fontFamily="var(--font-mono)">
                 {refLineLabel}
               </text>
             )}
           </>
         )}
 
-        {/* Area fill */}
-        <path d={areaD} fill="currentColor" className={`${lineColorClass} opacity-15`} />
+        <path d={areaD} fill={lineColor} opacity="0.12" />
+        <path d={pathD} fill="none" stroke={lineColor} strokeWidth="2.5" />
+        <circle cx={x(candles.length - 1)} cy={y(last.closeCents)} r="4" fill={lineColor} />
 
-        {/* Line */}
-        <path
-          d={pathD}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          className={lineColorClass}
-        />
-
-        {/* End-point dot */}
-        <circle
-          cx={x(candles.length - 1)}
-          cy={y(last.closeCents)}
-          r="4"
-          className={`${lineColorClass} fill-current`}
-        />
-
-        {/* Y-axis tick labels */}
         {ticks.map((t, i) => (
-          <text
-            key={`yt-${i}`}
-            x={W - PAD_RIGHT + 8}
-            y={t.yPx + 4}
-            fontSize="11"
-            fontWeight="600"
-            className="fill-ink/60"
-          >
-            ${(t.cents / 100).toLocaleString("en-US", {
-              minimumFractionDigits: t.cents < 100_00 ? 2 : 0,
-              maximumFractionDigits: 2,
-            })}
+          <text key={`yt-${i}`} className="chart-axis-label" x={W - PAD_RIGHT + 8} y={t.yPx + 4}>
+            ${(t.cents / 100).toLocaleString("en-US", { minimumFractionDigits: t.cents < 100_00 ? 2 : 0, maximumFractionDigits: 2 })}
           </text>
         ))}
 
-        {/* X-axis date labels */}
         {dateLabels.map((d, i) => (
           <text
             key={`xd-${i}`}
+            className="chart-axis-label"
             x={x(d.i)}
             y={H - 10}
-            fontSize="11"
-            fontWeight="600"
             textAnchor={i === 0 ? "start" : i === dateLabels.length - 1 ? "end" : "middle"}
-            className="fill-ink/60"
           >
             {d.label}
           </text>
