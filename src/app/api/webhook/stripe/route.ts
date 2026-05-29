@@ -12,10 +12,46 @@ const REFERRAL_REWARD_WB_CENTS = 5000; // $50 WB
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/** Split a comma-separated STRIPE_WEBHOOK_SECRET into individual secrets. */
+function parseSecrets(raw: string | undefined): string[] {
+  return (raw ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/** Non-reversible hint for logs — enough to tell endpoints apart, never the value. */
+function maskSecret(s: string): string {
+  return `${s.slice(0, 9)}…(len=${s.length},whsec=${s.startsWith("whsec_")})`;
+}
+
+/**
+ * Verify the payload against each configured signing secret, returning the
+ * first that validates. Supporting a comma-separated STRIPE_WEBHOOK_SECRET
+ * means a rotated or duplicate (live + test) endpoint keeps working during a
+ * transition instead of silently 400-ing every event.
+ */
+function constructEventFromAnySecret(
+  stripe: Stripe,
+  raw: string,
+  sig: string,
+  secrets: string[],
+): Stripe.Event {
+  let lastErr: unknown;
+  for (const secret of secrets) {
+    try {
+      return stripe.webhooks.constructEvent(raw, sig, secret);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr ?? new Error("No webhook signing secret configured");
+}
+
 export async function POST(req: Request) {
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secrets = parseSecrets(process.env.STRIPE_WEBHOOK_SECRET);
   const stripeKey = process.env.STRIPE_SECRET_KEY;
-  if (!webhookSecret || !stripeKey) {
+  if (secrets.length === 0 || !stripeKey) {
     return new NextResponse("Server not configured for Stripe webhooks.", { status: 500 });
   }
 
@@ -25,10 +61,19 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(raw, sig ?? "", webhookSecret);
+    event = constructEventFromAnySecret(stripe, raw, sig ?? "", secrets);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "invalid";
-    console.error("Stripe signature verification failed:", msg);
+    console.error(
+      "Stripe signature verification failed:",
+      JSON.stringify({
+        msg,
+        secrets_tried: secrets.length,
+        secret_hints: secrets.map(maskSecret),
+        has_signature_header: Boolean(sig),
+        raw_body_len: raw.length,
+      }),
+    );
     return new NextResponse(`Bad signature: ${msg}`, { status: 400 });
   }
 
