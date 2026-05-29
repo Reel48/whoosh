@@ -287,6 +287,7 @@ export default async function InvestPage({
             </div>
           </div>
         ) : (
+          <div className="cap-tbl-scroll">
           <table className="tbl">
             <thead>
               <tr><th>Symbol</th><th className="num">Shares</th><th className="num">Market value</th><th className="num">P/L</th></tr>
@@ -308,6 +309,7 @@ export default async function InvestPage({
               })}
             </tbody>
           </table>
+          </div>
         )}
       </section>
 

@@ -266,6 +266,7 @@ export default async function WalletPage({
       {positions.length > 0 && (
         <section className="cap-mt-lg">
           <h2 className="text-h2 cap-section-title">Open positions</h2>
+          <div className="cap-tbl-scroll">
           <table className="tbl">
             <thead>
               <tr>
@@ -292,6 +293,7 @@ export default async function WalletPage({
               })}
             </tbody>
           </table>
+          </div>
           <p className="text-body-sm cap-mt-1">
             Live quotes via Yahoo (delayed ~15 min). Go to{" "}
             <a href="/capital/invest" className="cap-link">Invest</a> to buy or sell.

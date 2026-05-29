@@ -78,9 +78,10 @@
   /* card header (title + link) */
   .cap-card-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: var(--space-3);
+    gap: var(--space-2) var(--space-3);
   }
   .cap-link {
     font-size: var(--fs-body-sm);
@@ -187,6 +188,18 @@
   .cap-send .field { margin-bottom: 0; }
   .cap-send__memo { grid-column: 1 / -1; }
   .cap-send__submit { grid-column: 1 / -1; justify-self: start; }
+
+  /* tables: keep numeric cells on one line; horizontal-scroll safety on
+   * narrow screens so a wide table scrolls instead of breaking the page. */
+  .cap-tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .cap-tbl-scroll .tbl { min-width: 460px; }
+  .tbl td.num { white-space: nowrap; }
+
+  @media (max-width: 639px) {
+    .tbl { font-size: 13px; }
+    .tbl th, .tbl td { padding: 12px 10px; }
+    .tbl th { font-size: 10px; }
+  }
 
   /* filter bar (date range + actions) */
   .cap-filterbar { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: end; }
