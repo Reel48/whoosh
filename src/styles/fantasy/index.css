@@ -357,6 +357,14 @@
   .standings .team-cell .name { font-family: var(--font-text); font-weight: 700; display: block; }
   .standings .team-cell .owner { display: block; font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
   .standings .record { font-family: var(--font-mono); font-weight: 700; }
+  /* On phones the wide multi-column tables overflow; tighten padding and drop
+     secondary columns (tagged .hide-sm) so the essentials fit without a
+     horizontal scroll. */
+  @media (max-width: 640px) {
+    .standings th,
+    .standings td { padding: 12px 10px; }
+    .standings .hide-sm { display: none; }
+  }
 
   /* ===== stat cards ===== */
   .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 6px; }

@@ -28,7 +28,7 @@ export function StandingsTable({
             <th>Team</th>
             <th className="num">W-L-T</th>
             <th className="num">PF</th>
-            <th className="num">PA</th>
+            <th className="num hide-sm">PA</th>
           </tr>
         </thead>
         <tbody>
@@ -53,7 +53,7 @@ export function StandingsTable({
                   {r.ties > 0 ? `-${r.ties}` : ""}
                 </td>
                 <td className="num">{fmtPts(r.pointsFor)}</td>
-                <td className="num">{fmtPts(r.pointsAgainst)}</td>
+                <td className="num hide-sm">{fmtPts(r.pointsAgainst)}</td>
               </tr>
             );
           })}

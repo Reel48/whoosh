@@ -36,10 +36,10 @@ export function CrossLeagueTable({
             <th className="rank">#</th>
             <th>Team</th>
             <th>League</th>
-            {!compact && <th className="num">Pos</th>}
-            {!compact && <th className="num">Record</th>}
-            {!compact && <th className="num">Win%</th>}
-            <th className="num">PF</th>
+            {!compact && <th className="num hide-sm">Pos</th>}
+            {!compact && <th className="num hide-sm">Record</th>}
+            {!compact && <th className="num hide-sm">Win%</th>}
+            <th className="num hide-sm">PF</th>
             <th className="num">Power</th>
           </tr>
         </thead>
@@ -61,15 +61,15 @@ export function CrossLeagueTable({
                   </span>
                 </td>
                 <td className="text-body-sm">{r.leagueName}</td>
-                {!compact && <td className="num">{r.leaguePosition}</td>}
+                {!compact && <td className="num hide-sm">{r.leaguePosition}</td>}
                 {!compact && (
-                  <td className="num record">
+                  <td className="num record hide-sm">
                     {r.wins}-{r.losses}
                     {r.ties > 0 ? `-${r.ties}` : ""}
                   </td>
                 )}
-                {!compact && <td className="num">{fmtPct(r.winPct)}</td>}
-                <td className="num">{fmtPts(r.pointsFor)}</td>
+                {!compact && <td className="num hide-sm">{fmtPct(r.winPct)}</td>}
+                <td className="num hide-sm">{fmtPts(r.pointsFor)}</td>
                 <td className="num num-display">{r.powerScore.toFixed(1)}</td>
               </tr>
             );
