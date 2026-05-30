@@ -20,9 +20,12 @@ export type SleeperLeague = {
   season: string;
   /** "pre_draft" | "drafting" | "in_season" | "complete" */
   status: string;
+  /** "nfl" for standard H2H leagues; "pickem:nfl" for pick'em / survivor pools. */
+  sport: string;
   avatar: string | null;
   total_rosters: number;
-  roster_positions: string[];
+  roster_positions: string[] | null;
+  /** For pick'em pools, `pickem_type` is 0 (pick 'em) or 1 (survivor). */
   settings: Record<string, number>;
   scoring_settings: Record<string, number>;
 };
@@ -42,7 +45,10 @@ export type SleeperRoster = {
   owner_id: string | null;
   players: string[] | null;
   starters: string[] | null;
-  settings: RosterSettings;
+  /** null for pick'em/survivor pools (no win/loss/points). */
+  settings: RosterSettings | null;
+  /** Survivor pools carry is_eliminated ("true"/"false") here. */
+  metadata?: { is_eliminated?: string } | null;
 };
 
 export type SleeperLeagueUser = {

@@ -5,7 +5,7 @@ import { getSession } from "@/lib/session";
 import { hasAdminRole } from "@/lib/discord";
 import { supabase } from "@/lib/supabase";
 import { getLeague, getNflState } from "@/lib/sleeper/client";
-import { listActiveLeagues } from "@/lib/fantasy/leagues";
+import { listActiveLeagues, detectLeagueKind } from "@/lib/fantasy/leagues";
 import { currentScoringWeek } from "@/lib/fantasy/format";
 import { ensureMatchupEvents, settleFinishedWeeks } from "@/lib/fantasy/wagers";
 
@@ -43,6 +43,8 @@ export async function addLeagueAction(formData: FormData): Promise<void> {
       name: nameOverride,
       sort,
       active: true,
+      // Auto-classify: standard H2H vs a pick'em / survivor pool.
+      kind: detectLeagueKind(league),
     },
     { onConflict: "sleeper_league_id" },
   );

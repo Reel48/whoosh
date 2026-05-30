@@ -5,8 +5,20 @@ import {
   getRosters,
   avatarThumbUrl,
 } from "@/lib/sleeper/client";
-import type { SleeperLeagueUser, SleeperRoster } from "@/lib/sleeper/types";
+import type { SleeperLeague, SleeperLeagueUser, SleeperRoster, RosterSettings } from "@/lib/sleeper/types";
 import { resolveOwnerAvatars } from "./avatars";
+
+/** Game type of a curated league. Standard = H2H fantasy; the rest are Sleeper
+ *  pick'em pools that don't have rosters/points/records/matchups. */
+export type LeagueKind = "standard" | "pickem" | "survivor";
+
+/** Derive a league's kind from the Sleeper league object (sport + pickem_type). */
+export function detectLeagueKind(league: SleeperLeague | null): LeagueKind {
+  if (league?.sport === "pickem:nfl") {
+    return league.settings?.pickem_type === 1 ? "survivor" : "pickem";
+  }
+  return "standard";
+}
 
 /** A curated Whoosh league row from `fantasy_league`. */
 export type FantasyLeagueConfig = {
@@ -18,6 +30,8 @@ export type FantasyLeagueConfig = {
   active: boolean;
   /** Custom uploaded logo; null falls back to the Sleeper league avatar. */
   logoUrl: string | null;
+  /** Game type — standard H2H, or a pick'em / survivor pool. */
+  kind: LeagueKind;
 };
 
 export type StandingRow = {
@@ -56,7 +70,7 @@ export function teamNameFor(user: SleeperLeagueUser | undefined, rosterId: numbe
 export async function listActiveLeagues(): Promise<FantasyLeagueConfig[]> {
   const { data, error } = await supabase()
     .from("fantasy_league")
-    .select("sleeper_league_id, season, name, sort, active, logo_url")
+    .select("sleeper_league_id, season, name, sort, active, logo_url, kind")
     .eq("active", true)
     .order("sort", { ascending: true })
     .order("created_at", { ascending: true });
@@ -67,7 +81,7 @@ export async function listActiveLeagues(): Promise<FantasyLeagueConfig[]> {
 export async function listAllLeagues(): Promise<FantasyLeagueConfig[]> {
   const { data, error } = await supabase()
     .from("fantasy_league")
-    .select("sleeper_league_id, season, name, sort, active, logo_url")
+    .select("sleeper_league_id, season, name, sort, active, logo_url, kind")
     .order("sort", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) throw new Error(`listAllLeagues failed: ${error.message}`);
@@ -77,7 +91,7 @@ export async function listAllLeagues(): Promise<FantasyLeagueConfig[]> {
 export async function getLeagueConfig(sleeperLeagueId: string): Promise<FantasyLeagueConfig | null> {
   const { data, error } = await supabase()
     .from("fantasy_league")
-    .select("sleeper_league_id, season, name, sort, active, logo_url")
+    .select("sleeper_league_id, season, name, sort, active, logo_url, kind")
     .eq("sleeper_league_id", sleeperLeagueId)
     .maybeSingle();
   if (error) throw new Error(`getLeagueConfig failed: ${error.message}`);
@@ -92,6 +106,7 @@ function shapeConfig(r: Record<string, unknown>): FantasyLeagueConfig {
     sort: Number(r.sort ?? 0),
     active: Boolean(r.active),
     logoUrl: (r.logo_url as string | null) ?? null,
+    kind: ((r.kind as string) ?? "standard") as LeagueKind,
   };
 }
 
@@ -106,7 +121,7 @@ function buildStandings(
 ): StandingRow[] {
   const rows: StandingRow[] = rosters.map((r) => {
     const user = r.owner_id ? byUser.get(r.owner_id) : undefined;
-    const s = r.settings ?? ({} as SleeperRoster["settings"]);
+    const s: Partial<RosterSettings> = r.settings ?? {};
     return {
       rosterId: r.roster_id,
       ownerId: r.owner_id,

@@ -21,7 +21,8 @@ export async function GET(req: Request) {
   try {
     const state = await getNflState();
     const week = currentScoringWeek(state);
-    const leagues = await listActiveLeagues();
+    // WB matchup wagers only apply to H2H leagues, not pick'em/survivor pools.
+    const leagues = (await listActiveLeagues()).filter((l) => l.kind === "standard");
 
     const results = [];
     for (const league of leagues) {

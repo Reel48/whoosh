@@ -45,7 +45,10 @@ export default async function MatchupsPage({
 
   const blocks: LeagueWeek[] = (
     await Promise.all(
-      configs.map(async (c) => {
+      // Pools (pick'em/survivor) have no matchups — skip them.
+      configs
+        .filter((c) => c.kind === "standard")
+        .map(async (c) => {
         const season = state?.season ?? c.season;
         const [league, matchups, wagers] = await Promise.all([
           getLeague(c.sleeperLeagueId).catch(() => null),

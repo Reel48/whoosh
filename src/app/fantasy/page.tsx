@@ -4,9 +4,11 @@ import { getSession } from "@/lib/session";
 import { getNflState } from "@/lib/sleeper/client";
 import { listActiveLeagues, getLeagueOverview, type LeagueOverview } from "@/lib/fantasy/leagues";
 import { getCrossLeagueScoreboard } from "@/lib/fantasy/rankings";
+import { listPoolSummaries } from "@/lib/fantasy/pools";
 import { getLink } from "@/lib/fantasy/link";
 import { LeagueCard } from "@/components/fantasy/LeagueCard";
 import { CrossLeagueTable } from "@/components/fantasy/CrossLeagueTable";
+import { PoolCard } from "@/components/fantasy/PoolCard";
 import { LinkSleeperForm } from "@/components/fantasy/LinkSleeperForm";
 import { weekLabel } from "@/lib/fantasy/format";
 
@@ -31,16 +33,20 @@ export default async function FantasyHome({
           ? { tone: "warning", text: sp.fmsg || "Could not link that account." }
           : null;
 
-  const [state, leagueConfigs, link, board] = await Promise.all([
+  const [state, leagueConfigs, link, board, pools] = await Promise.all([
     getNflState().catch(() => null),
     listActiveLeagues(),
     getLink(session.id).catch(() => null),
     getCrossLeagueScoreboard().catch(() => ({ rows: [], leagues: [] })),
+    listPoolSummaries().catch(() => []),
   ]);
 
+  // H2H leagues drive "who's leading" + rankings; pools render separately.
   const overviews = (
     await Promise.all(
-      leagueConfigs.map((c) => getLeagueOverview(c.sleeperLeagueId).catch(() => null)),
+      leagueConfigs
+        .filter((c) => c.kind === "standard")
+        .map((c) => getLeagueOverview(c.sleeperLeagueId).catch(() => null)),
     )
   ).filter((o): o is LeagueOverview => o !== null);
 
@@ -109,6 +115,18 @@ export default async function FantasyHome({
           </div>
         )}
       </section>
+
+      {/* Pools — Pick 'Em & Survivor */}
+      {pools.length > 0 && (
+        <section className="ftb-mt-lg">
+          <h2 className="text-h2 ftb-section-title">Pools</h2>
+          <div className="ftb-league-grid">
+            {pools.map((p) => (
+              <PoolCard key={p.config.sleeperLeagueId} pool={p} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Cross-league power rankings preview */}
       {board.rows.length > 0 && (

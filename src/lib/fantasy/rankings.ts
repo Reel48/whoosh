@@ -48,7 +48,8 @@ function winPct(wins: number, losses: number, ties: number): number {
  * getLeagueOverview (no extra Sleeper calls beyond the per-league fetches).
  */
 export async function getCrossLeagueScoreboard(): Promise<CrossLeagueScoreboard> {
-  const configs = await listActiveLeagues();
+  // H2H leagues only — pick'em / survivor pools have no points or records.
+  const configs = (await listActiveLeagues()).filter((c) => c.kind === "standard");
   const overviews = (
     await Promise.all(configs.map((c) => getLeagueOverview(c.sleeperLeagueId).catch(() => null)))
   ).filter((o): o is LeagueOverview => o !== null);
