@@ -55,7 +55,7 @@ export function Leaderboard({ entries, highlightUserId, subtitle }: Props) {
                   isMe ? "bg-blue/30 -mx-3 px-3 rounded-xl" : ""
                 }`}
               >
-                <span className="font-display text-xl font-black text-ink/70 tabular-nums">
+                <span className="text-xl font-black text-ink/70 tabular-nums">
                   {e.rank}
                 </span>
                 <div className="flex items-center gap-3 min-w-0">
@@ -66,7 +66,7 @@ export function Leaderboard({ entries, highlightUserId, subtitle }: Props) {
                     size={32}
                     className="border-theme border-ink flex-none"
                   />
-                  <span className="truncate font-display font-black text-ink">
+                  <span className="truncate font-black text-ink">
                     @{e.discordUsername}
                     {isMe && (
                       <span className="ml-2 rounded-full border-theme border-ink bg-blue px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-ink">
@@ -75,7 +75,7 @@ export function Leaderboard({ entries, highlightUserId, subtitle }: Props) {
                     )}
                   </span>
                 </div>
-                <span className="font-display text-lg font-black tabular-nums">
+                <span className="text-lg font-black tabular-nums">
                   {fmtMoney(e.totalWbCents)}
                 </span>
               </li>

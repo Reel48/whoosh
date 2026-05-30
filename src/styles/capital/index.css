@@ -289,7 +289,7 @@
 }
 
 .text-eyebrow {
-  font-family: var(--font-display);
+  font-family: var(--font-text);
   font-size: var(--fs-caption);
   font-weight: var(--fw-bold);
   letter-spacing: var(--ls-eyebrow);
@@ -309,7 +309,7 @@
 }
 
 .text-num-display {
-  font-family: var(--font-display);
+  font-family: var(--font-text);
   font-weight: var(--fw-extra);
   font-size: 32px;
   letter-spacing: -0.02em;
@@ -416,7 +416,7 @@
    ============================================================ */
 
 .btn {
-  font-family: var(--font-display);
+  font-family: var(--font-text);
   font-weight: var(--fw-semi);
   font-size: var(--fs-body-sm);
   line-height: 1;
@@ -594,7 +594,7 @@
   gap: 6px;
   padding: 4px 10px;
   border-radius: var(--radius-full);
-  font-family: var(--font-display);
+  font-family: var(--font-text);
   font-size: 12px;
   font-weight: var(--fw-semi);
   white-space: nowrap;
@@ -646,7 +646,7 @@
   display: block;
   margin-bottom: 2px;
   font-weight: var(--fw-bold);
-  font-family: var(--font-display);
+  font-family: var(--font-text);
 }
 .alert .actions {
   margin-top: 10px;
@@ -694,7 +694,7 @@
   font-weight: var(--fw-medium);
 }
 .kpi__value {
-  font-family: var(--font-display);
+  font-family: var(--font-text);
   font-weight: var(--fw-extra);
   font-size: 32px;
   letter-spacing: -0.02em;
@@ -780,7 +780,7 @@
   border-radius: var(--radius-sm);
   display: grid;
   place-items: center;
-  font-family: var(--font-display);
+  font-family: var(--font-text);
   font-weight: var(--fw-extra);
   font-size: 13px;
   color: var(--color-slate-0);
@@ -808,7 +808,7 @@
   margin-bottom: var(--space-5);
 }
 .chart-card__total {
-  font-family: var(--font-display);
+  font-family: var(--font-text);
   font-weight: var(--fw-extra);
   font-size: 32px;
   letter-spacing: -0.02em;
@@ -858,7 +858,10 @@
   /* Typefaces via next/font instead of the DS's Google @import. */
   --font-display: var(--font-capital), "Inter Tight", system-ui, sans-serif;
   --font-text: var(--font-capital-body, var(--font-body)), Inter, system-ui, sans-serif;
-  --font-mono: var(--font-capital-num), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  /* Per request: only titles use the display font; all other text — including
+     the numerals that were JetBrains Mono — is Inter. tabular-nums on numeric
+     elements keeps columns aligned. */
+  --font-mono: var(--font-text);
 
   /* Remap the shared global palette + structural tokens that the shared
      AppShell chrome consumes, so the header/back-button/bottom-bar match the

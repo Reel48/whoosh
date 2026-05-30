@@ -185,7 +185,7 @@ function RankList<T extends Entry>({
               isMe ? "bg-blue/30 -mx-2 px-2 rounded-xl sm:-mx-3 sm:px-3" : ""
             }`}
           >
-            <span className="font-display text-base font-black text-ink/70 tabular-nums sm:text-xl">
+            <span className="text-base font-black text-ink/70 tabular-nums sm:text-xl">
               {e.rank}
             </span>
             <div className="flex items-center gap-2 min-w-0 sm:gap-3">
@@ -208,7 +208,7 @@ function RankList<T extends Entry>({
                  *  sat *inside* the .truncate span, its border/padding would
                  *  be clipped by `overflow: hidden`. */}
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <span className="truncate font-display text-sm font-black text-ink sm:text-base">
+                  <span className="truncate text-sm font-black text-ink sm:text-base">
                     @{e.discordUsername}
                   </span>
                   {isMe && (
@@ -222,7 +222,7 @@ function RankList<T extends Entry>({
                 )}
               </div>
             </div>
-            <span className="font-display text-sm font-black tabular-nums sm:text-lg">
+            <span className="text-sm font-black tabular-nums sm:text-lg">
               {renderRight(e)}
             </span>
           </li>

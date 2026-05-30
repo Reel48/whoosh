@@ -28,7 +28,7 @@ export function ReferralCard({ stats }: { stats: ReferralStats }) {
         <div className="rounded-2xl border-theme border-ink bg-surface p-4">
           <p className="text-xs font-bold uppercase tracking-wider text-ink/60">Your code</p>
           <div className="mt-2 flex items-center gap-2">
-            <span className="font-display text-2xl font-black tabular-nums">
+            <span className="text-2xl font-black tabular-nums">
               {stats.code}
             </span>
             <button
@@ -74,7 +74,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border-theme border-ink bg-surface p-3 text-center">
       <dt className="text-xs font-bold uppercase tracking-wider text-ink/60">{label}</dt>
-      <dd className="mt-1 font-display text-2xl font-black tabular-nums">{value}</dd>
+      <dd className="mt-1 text-2xl font-black tabular-nums">{value}</dd>
     </div>
   );
 }
