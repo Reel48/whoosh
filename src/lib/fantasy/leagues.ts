@@ -141,11 +141,11 @@ export async function getLeagueOverview(sleeperLeagueId: string): Promise<League
   ]);
 
   const byUser = usersById(users);
-  // Team avatars use the linked member's Discord PFP (monogram fallback).
+  // Team avatars: linked member's Discord PFP → Sleeper avatar → monogram.
   const ownerAvatars = await resolveOwnerAvatars(rosters.map((r) => r.owner_id)).catch(() => new Map());
   const standings = buildStandings(rosters, byUser).map((s) => ({
     ...s,
-    avatarUrl: s.ownerId ? ownerAvatars.get(s.ownerId) ?? null : null,
+    avatarUrl: (s.ownerId ? ownerAvatars.get(s.ownerId) : undefined) ?? s.avatarUrl,
   }));
 
   return {
