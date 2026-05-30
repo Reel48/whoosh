@@ -7,6 +7,7 @@ import {
   type LeagueKind,
   type FantasyLeagueConfig,
 } from "./leagues";
+import { resolveOwnerAvatars } from "./avatars";
 
 /**
  * Sleeper "pick'em" pools (Pick 'Em + Survivor). Unlike the H2H leagues these
@@ -91,6 +92,10 @@ export async function getPoolDetail(sleeperLeagueId: string): Promise<PoolDetail
   // config.kind is "pickem" | "survivor" here (standard returned above).
   const kind = config.kind;
   const byUser = usersById(users);
+  // Same as the H2H leagues: linked member's Discord PFP → Sleeper avatar → monogram.
+  const ownerAvatars = await resolveOwnerAvatars(rosters.map((r) => r.owner_id)).catch(
+    () => new Map<string, string>(),
+  );
 
   const entries: PoolEntry[] = rosters.map((r) => {
     const user = r.owner_id ? byUser.get(r.owner_id) : undefined;
@@ -98,7 +103,9 @@ export async function getPoolDetail(sleeperLeagueId: string): Promise<PoolDetail
       rosterId: r.roster_id,
       name: teamNameFor(user, r.roster_id),
       ownerName: user?.display_name ?? "—",
-      avatarUrl: avatarThumbUrl(user?.avatar ?? null),
+      avatarUrl:
+        (r.owner_id ? ownerAvatars.get(r.owner_id) : undefined) ??
+        avatarThumbUrl(user?.avatar ?? null),
       eliminated: kind === "survivor" ? r.metadata?.is_eliminated === "true" : null,
     };
   });
