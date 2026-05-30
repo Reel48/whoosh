@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Allow Fantasy league logo uploads (admin server action) above the 1MB default.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "5mb",
+    },
+  },
   images: {
     remotePatterns: [
       // Finnhub-hosted company logos used on the /capital/invest stock view.
@@ -10,6 +16,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cryptologos.cc" },
       // Sleeper-hosted team/league avatar thumbnails used in the Fantasy section.
       { protocol: "https", hostname: "sleeper.app" },
+      // Supabase Storage — uploaded Fantasy league logos (public bucket).
+      { protocol: "https", hostname: "yjmohosxtemjamwrsffw.supabase.co" },
     ],
   },
   // The Whoosh Bucks pages moved under the Capital section. Keep old bookmarks,

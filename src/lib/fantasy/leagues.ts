@@ -15,6 +15,8 @@ export type FantasyLeagueConfig = {
   name: string | null;
   sort: number;
   active: boolean;
+  /** Custom uploaded logo; null falls back to the Sleeper league avatar. */
+  logoUrl: string | null;
 };
 
 export type StandingRow = {
@@ -53,7 +55,7 @@ export function teamNameFor(user: SleeperLeagueUser | undefined, rosterId: numbe
 export async function listActiveLeagues(): Promise<FantasyLeagueConfig[]> {
   const { data, error } = await supabase()
     .from("fantasy_league")
-    .select("sleeper_league_id, season, name, sort, active")
+    .select("sleeper_league_id, season, name, sort, active, logo_url")
     .eq("active", true)
     .order("sort", { ascending: true })
     .order("created_at", { ascending: true });
@@ -64,7 +66,7 @@ export async function listActiveLeagues(): Promise<FantasyLeagueConfig[]> {
 export async function listAllLeagues(): Promise<FantasyLeagueConfig[]> {
   const { data, error } = await supabase()
     .from("fantasy_league")
-    .select("sleeper_league_id, season, name, sort, active")
+    .select("sleeper_league_id, season, name, sort, active, logo_url")
     .order("sort", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) throw new Error(`listAllLeagues failed: ${error.message}`);
@@ -74,7 +76,7 @@ export async function listAllLeagues(): Promise<FantasyLeagueConfig[]> {
 export async function getLeagueConfig(sleeperLeagueId: string): Promise<FantasyLeagueConfig | null> {
   const { data, error } = await supabase()
     .from("fantasy_league")
-    .select("sleeper_league_id, season, name, sort, active")
+    .select("sleeper_league_id, season, name, sort, active, logo_url")
     .eq("sleeper_league_id", sleeperLeagueId)
     .maybeSingle();
   if (error) throw new Error(`getLeagueConfig failed: ${error.message}`);
@@ -88,6 +90,7 @@ function shapeConfig(r: Record<string, unknown>): FantasyLeagueConfig {
     name: (r.name as string | null) ?? null,
     sort: Number(r.sort ?? 0),
     active: Boolean(r.active),
+    logoUrl: (r.logo_url as string | null) ?? null,
   };
 }
 
@@ -142,7 +145,8 @@ export async function getLeagueOverview(sleeperLeagueId: string): Promise<League
     displayName: config.name?.trim() || league?.name || "League",
     season: league?.season ?? config.season,
     status: league?.status ?? null,
-    avatarUrl: avatarThumbUrl(league?.avatar ?? null),
+    // Custom uploaded logo wins; otherwise fall back to the Sleeper avatar.
+    avatarUrl: config.logoUrl ?? avatarThumbUrl(league?.avatar ?? null),
     totalRosters: league?.total_rosters ?? rosters.length,
     standings: buildStandings(rosters, byUser),
   };

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { listAllLeagues } from "@/lib/fantasy/leagues";
 import { getNflState } from "@/lib/sleeper/client";
 import {
@@ -5,6 +6,8 @@ import {
   updateLeagueAction,
   toggleLeagueAction,
   removeLeagueAction,
+  uploadLeagueLogoAction,
+  clearLeagueLogoAction,
   syncFantasyAction,
 } from "./actions";
 
@@ -98,17 +101,33 @@ export default async function AdminFantasyPage() {
           {leagues.map((l) => (
             <li key={l.sleeperLeagueId} className="py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="font-heading font-bold">
-                    {l.name || "(Sleeper name)"}{" "}
-                    {!l.active && (
-                      <span className="ml-1 rounded-full border-2 border-ink bg-white-smoke px-2 py-0.5 text-xs font-bold uppercase">
-                        Hidden
-                      </span>
-                    )}
-                  </div>
-                  <div className="font-mono text-xs text-ink/60">
-                    {l.sleeperLeagueId} · {l.season} · sort {l.sort}
+                <div className="flex min-w-0 items-center gap-3">
+                  {l.logoUrl ? (
+                    <Image
+                      src={l.logoUrl}
+                      alt=""
+                      width={40}
+                      height={40}
+                      unoptimized
+                      className="h-10 w-10 shrink-0 rounded-lg border-2 border-ink object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-ink/40 text-[10px] font-bold text-ink/40">
+                      No logo
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-heading font-bold">
+                      {l.name || "(Sleeper name)"}{" "}
+                      {!l.active && (
+                        <span className="ml-1 rounded-full border-2 border-ink bg-white-smoke px-2 py-0.5 text-xs font-bold uppercase">
+                          Hidden
+                        </span>
+                      )}
+                    </div>
+                    <div className="font-mono text-xs text-ink/60">
+                      {l.sleeperLeagueId} · {l.season} · sort {l.sort}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -165,6 +184,41 @@ export default async function AdminFantasyPage() {
                   Save
                 </button>
               </form>
+
+              {/* Logo upload */}
+              <form
+                action={uploadLeagueLogoAction}
+                className="mt-3 flex flex-wrap items-center gap-2 text-sm"
+              >
+                <input type="hidden" name="sleeper_league_id" value={l.sleeperLeagueId} />
+                <label className="font-medium">
+                  Logo
+                  <input
+                    name="logo"
+                    type="file"
+                    accept="image/*"
+                    required
+                    className="ml-2 block max-w-xs text-xs file:mr-2 file:rounded-full file:border-2 file:border-ink file:bg-white-smoke file:px-3 file:py-1 file:text-xs file:font-bold"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  className="rounded-full border-2 border-ink bg-blue px-4 py-1.5 text-xs font-bold text-white-smoke hover:opacity-90"
+                >
+                  Upload logo
+                </button>
+              </form>
+              {l.logoUrl && (
+                <form action={clearLeagueLogoAction} className="mt-2">
+                  <input type="hidden" name="sleeper_league_id" value={l.sleeperLeagueId} />
+                  <button
+                    type="submit"
+                    className="rounded-full border-2 border-ink px-3 py-1.5 text-xs font-bold hover:bg-ink hover:text-white-smoke"
+                  >
+                    Remove logo
+                  </button>
+                </form>
+              )}
             </li>
           ))}
         </ul>

@@ -79,6 +79,52 @@ export async function toggleLeagueAction(formData: FormData): Promise<void> {
   refresh();
 }
 
+/** Upload a custom league logo to the public `fantasy-logos` bucket and save
+ *  its URL. Overrides the Sleeper avatar across the section. */
+export async function uploadLeagueLogoAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const sleeperLeagueId = String(formData.get("sleeper_league_id") ?? "").trim();
+  if (!sleeperLeagueId) throw new Error("Missing league ID.");
+
+  const file = formData.get("logo");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Choose an image file.");
+  if (!file.type.startsWith("image/")) throw new Error("File must be an image.");
+  if (file.size > 5_000_000) throw new Error("Image must be under 5 MB.");
+
+  const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
+  // Timestamp suffix busts the CDN cache when a logo is replaced.
+  const path = `${sleeperLeagueId}-${Date.now()}.${ext}`;
+  const bytes = new Uint8Array(await file.arrayBuffer());
+
+  const store = supabase().storage.from("fantasy-logos");
+  const { error: upErr } = await store.upload(path, bytes, {
+    contentType: file.type || "image/png",
+    upsert: true,
+  });
+  if (upErr) throw new Error(`Upload failed: ${upErr.message}`);
+  const { data } = store.getPublicUrl(path);
+
+  const { error } = await supabase()
+    .from("fantasy_league")
+    .update({ logo_url: data.publicUrl })
+    .eq("sleeper_league_id", sleeperLeagueId);
+  if (error) throw new Error(`Could not save logo: ${error.message}`);
+  refresh();
+}
+
+/** Clear a league's custom logo (falls back to the Sleeper avatar). */
+export async function clearLeagueLogoAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const sleeperLeagueId = String(formData.get("sleeper_league_id") ?? "").trim();
+  if (!sleeperLeagueId) throw new Error("Missing league ID.");
+  const { error } = await supabase()
+    .from("fantasy_league")
+    .update({ logo_url: null })
+    .eq("sleeper_league_id", sleeperLeagueId);
+  if (error) throw new Error(`Could not clear logo: ${error.message}`);
+  refresh();
+}
+
 export async function removeLeagueAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const sleeperLeagueId = String(formData.get("sleeper_league_id") ?? "").trim();
