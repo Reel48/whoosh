@@ -75,10 +75,17 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${interTight.variable} ${jetbrainsMono.variable} ${sora.variable} ${quicksand.variable} h-full antialiased`}
+      className={`${inter.variable} ${interTight.variable} ${jetbrainsMono.variable} ${sora.variable} ${quicksand.variable} antialiased`}
       style={{ ["--font-heading" as string]: "var(--font-body)" }}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      {/* min-h-dvh (dynamic viewport height), not the old html.h-full + body
+          min-h-full percentage chain: iOS Chrome computed those 100% heights
+          against a viewport taller than the visible area, so the document
+          overflowed the screen and the fixed bottom tab bar landed mid-screen
+          with empty space below it. dvh tracks the actual visible viewport on
+          every browser (Safari was already correct), so it never overshoots
+          and a short page still fills the screen. */}
+      <body className="min-h-dvh flex flex-col">{children}</body>
     </html>
   );
 }
