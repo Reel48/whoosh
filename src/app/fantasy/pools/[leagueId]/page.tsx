@@ -29,6 +29,7 @@ export default async function PoolDetailPage({
       </Link>
 
       <header className="ftb-welcome ftb-mt-sm">
+        <TeamAvatar url={pool.logoUrl} name={pool.displayName} size={44} />
         <div className="ftb-welcome__name">
           <p className="text-eyebrow">Fantasy · {KIND_LABEL[pool.kind] ?? "Pool"}</p>
           <h1 className="text-h1">{pool.displayName}</h1>

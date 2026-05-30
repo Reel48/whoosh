@@ -30,6 +30,8 @@ export type PoolSummary = {
   config: FantasyLeagueConfig;
   kind: LeagueKind;
   displayName: string;
+  /** Custom uploaded logo (falls back to the Sleeper avatar, then a monogram). */
+  logoUrl: string | null;
   totalEntries: number;
   /** Survivor only — how many are still alive. */
   aliveCount: number | null;
@@ -70,6 +72,7 @@ export async function listPoolSummaries(): Promise<PoolSummary[]> {
         config: c,
         kind: c.kind,
         displayName: c.name?.trim() || league?.name || "Pool",
+        logoUrl: c.logoUrl ?? avatarThumbUrl(league?.avatar ?? null),
         totalEntries: rosters.length || league?.total_rosters || 0,
         aliveCount,
         sleeperUrl: sleeperUrl(c.sleeperLeagueId),
@@ -116,6 +119,7 @@ export async function getPoolDetail(sleeperLeagueId: string): Promise<PoolDetail
     config,
     kind,
     displayName: config.name?.trim() || league?.name || "Pool",
+    logoUrl: config.logoUrl ?? avatarThumbUrl(league?.avatar ?? null),
     season: league?.season ?? config.season,
     status: league?.status ?? null,
     totalEntries: entries.length,
