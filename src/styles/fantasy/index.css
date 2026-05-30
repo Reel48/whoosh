@@ -55,7 +55,10 @@
     /* type — wired to the app's next/font variables */
     --font-display: var(--font-fantasy), "Sora", "Inter Tight", system-ui, sans-serif;
     --font-text: var(--font-body), "Inter", system-ui, sans-serif;
-    --font-mono: var(--font-capital-num), "JetBrains Mono", monospace; /* shared JetBrains Mono face */
+    /* Per request: only titles use the display font. All other text — including
+       numerals that were JetBrains Mono — is Inter. tabular-nums on numeric
+       elements keeps columns aligned. */
+    --font-mono: var(--font-text);
 
     --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
     --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px;
@@ -94,7 +97,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: var(--font-display);
+    font-family: var(--font-text);
     font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
@@ -135,7 +138,7 @@
 
   /* ===== buttons ===== */
   .btn {
-    font-family: var(--font-display);
+    font-family: var(--font-text);
     font-weight: 700;
     font-size: 13px;
     line-height: 1;
@@ -194,7 +197,7 @@
   .segmented button, .ftb-tab {
     border: 0;
     background: transparent;
-    font-family: var(--font-display);
+    font-family: var(--font-text);
     font-weight: 700;
     font-size: 13px;
     padding: 8px 16px;
@@ -218,7 +221,7 @@
     gap: 5px;
     padding: 3px 10px;
     border-radius: 999px;
-    font-family: var(--font-display);
+    font-family: var(--font-text);
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -244,7 +247,7 @@
     border-radius: 999px;
     background: var(--highlight);
     color: var(--color-slate-900);
-    font-family: var(--font-display);
+    font-family: var(--font-text);
     font-weight: 800;
     font-size: 10px;
     text-transform: uppercase;
@@ -288,7 +291,7 @@
   .status-out { background: var(--negative-bg); color: var(--negative-text); }
   .status-bye { background: var(--surface-alt); color: var(--text-muted); }
 
-  .streak { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-family: var(--font-display); font-size: 11px; font-weight: 700; }
+  .streak { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-family: var(--font-text); font-size: 11px; font-weight: 700; }
   .streak-hot { background: var(--color-ember-50); color: var(--color-ember-700); }
   .streak-cold { background: var(--info-bg); color: var(--info-text); }
 
@@ -314,19 +317,19 @@
     border-radius: 14px;
     display: grid;
     place-items: center;
-    font-family: var(--font-display);
+    font-family: var(--font-text);
     font-weight: 800;
     font-size: 16px;
     color: #fff;
     flex-shrink: 0;
     overflow: hidden;
   }
-  .matchup__name { font-family: var(--font-display); font-weight: 700; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .matchup__name { font-family: var(--font-text); font-weight: 700; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .matchup__owner { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
   .matchup__score { font-family: var(--font-mono); font-weight: 800; font-size: 40px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
   .matchup__side--winning .matchup__score { color: var(--positive-text); }
   .matchup__side--losing .matchup__score { color: var(--text-muted); }
-  .matchup__divider { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text-muted); font-family: var(--font-display); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .matchup__divider { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text-muted); font-family: var(--font-text); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
   .matchup__divider .vs { width: 32px; height: 32px; border-radius: 999px; background: var(--surface-alt); display: grid; place-items: center; font-size: 11px; color: var(--text); }
   .matchup.is-mine { box-shadow: 0 0 0 2px var(--primary), var(--shadow-sm); }
 
@@ -342,22 +345,22 @@
     overflow: hidden;
   }
   .standings th, .standings td { padding: 14px 16px; text-align: left; vertical-align: middle; }
-  .standings th { font-family: var(--font-display); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); background: var(--surface-alt); font-weight: 700; border-bottom: 1px solid var(--border); }
+  .standings th { font-family: var(--font-text); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); background: var(--surface-alt); font-weight: 700; border-bottom: 1px solid var(--border); }
   .standings tr + tr td { border-top: 1px solid var(--border); }
   .standings tbody tr:hover td { background: var(--color-slate-50); }
   .standings tbody tr.is-mine td { background: var(--info-bg); }
   .standings td.num, .standings th.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-  .standings .rank { font-family: var(--font-display); font-weight: 800; font-size: 14px; width: 32px; text-align: center; }
+  .standings .rank { font-family: var(--font-text); font-weight: 800; font-size: 14px; width: 32px; text-align: center; }
   .standings .rank--medal-1 { color: #c9a422; } .standings .rank--medal-2 { color: var(--color-slate-500); } .standings .rank--medal-3 { color: var(--color-ember-600); }
   .standings .team-cell { display: flex; align-items: center; gap: 12px; }
-  .standings .team-cell .logo { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 12px; color: #fff; flex-shrink: 0; overflow: hidden; }
-  .standings .team-cell .name { font-family: var(--font-display); font-weight: 700; display: block; }
+  .standings .team-cell .logo { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; font-family: var(--font-text); font-weight: 800; font-size: 12px; color: #fff; flex-shrink: 0; overflow: hidden; }
+  .standings .team-cell .name { font-family: var(--font-text); font-weight: 700; display: block; }
   .standings .team-cell .owner { display: block; font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
   .standings .record { font-family: var(--font-mono); font-weight: 700; }
 
   /* ===== stat cards ===== */
   .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 6px; }
-  .stat-card__label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; font-family: var(--font-display); }
+  .stat-card__label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; font-family: var(--font-text); }
   .stat-card__value { font-family: var(--font-mono); font-weight: 700; font-size: 28px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
   .stat-card__sub { font-size: 12px; color: var(--text-muted); }
   .stat-card--win { background: linear-gradient(135deg, var(--positive-bg), transparent); border-color: var(--color-forest-100); }
@@ -379,7 +382,7 @@
   .toast { display: inline-flex; align-items: center; gap: 12px; background: var(--color-slate-900); color: #fff; padding: 12px 18px; border-radius: 999px; box-shadow: var(--shadow-lg); font-size: 13px; font-weight: 600; }
 
   /* generic link + empty state */
-  .ftb-link { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--primary); text-decoration: none; }
+  .ftb-link { font-family: var(--font-text); font-weight: 700; font-size: 13px; color: var(--primary); text-decoration: none; }
   .ftb-link:hover { text-decoration: underline; }
   .ftb-empty { color: var(--text-muted); text-align: center; padding: var(--space-8) var(--space-4); }
 

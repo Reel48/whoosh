@@ -43,7 +43,7 @@ export function LeagueCard({
             <div className="mt-1 flex items-center justify-between gap-2">
               <span className="flex min-w-0 items-center gap-2">
                 <TeamAvatar url={leader.avatarUrl} name={leader.teamName} size={24} />
-                <span className="truncate font-display font-semibold uppercase tracking-tight">
+                <span className="truncate font-semibold tracking-tight">
                   {leader.teamName}
                 </span>
               </span>

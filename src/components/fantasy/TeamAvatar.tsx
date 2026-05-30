@@ -71,7 +71,7 @@ export function TeamAvatar({
   return (
     <span
       aria-hidden="true"
-      className="inline-grid shrink-0 place-items-center font-display font-extrabold text-white"
+      className="inline-grid shrink-0 place-items-center font-extrabold text-white"
       style={{ width: size, height: size, borderRadius: radius, fontSize: size * 0.42, background: teamAccent(name) }}
     >
       {initial(name)}
