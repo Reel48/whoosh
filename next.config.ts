@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "sleeper.app" },
       // Supabase Storage — uploaded Fantasy league logos (public bucket).
       { protocol: "https", hostname: "yjmohosxtemjamwrsffw.supabase.co" },
+      // Discord CDN — member profile pictures shown as Fantasy team avatars.
+      { protocol: "https", hostname: "cdn.discordapp.com" },
     ],
   },
   // The Whoosh Bucks pages moved under the Capital section. Keep old bookmarks,

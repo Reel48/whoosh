@@ -26,9 +26,19 @@ export function authorizeUrl(redirectUri: string, state: string): string {
  * Bare fetcher — hits Discord every time. Never call this directly; go
  * through `fetchGuildMember` so caching applies.
  */
-async function _fetchGuildMemberFresh(
-  userId: string,
-): Promise<{ roles: string[]; nick?: string | null } | null> {
+type GuildMember = {
+  roles: string[];
+  nick?: string | null;
+  /** The Discord user — carries the avatar hash + username we surface elsewhere. */
+  user?: {
+    id: string;
+    username?: string;
+    global_name?: string | null;
+    avatar?: string | null;
+  };
+};
+
+async function _fetchGuildMemberFresh(userId: string): Promise<GuildMember | null> {
   const guild = process.env.DISCORD_GUILD_ID;
   const botToken = process.env.DISCORD_BOT_TOKEN;
   if (!guild || !botToken) throw new Error("Discord guild/bot env vars not set.");
@@ -37,7 +47,19 @@ async function _fetchGuildMemberFresh(
   });
   if (r.status === 404) return null;
   if (!r.ok) throw new Error(`Discord /guilds/.../members failed: ${r.status} ${await r.text()}`);
-  return (await r.json()) as { roles: string[]; nick?: string | null };
+  return (await r.json()) as GuildMember;
+}
+
+/** Discord CDN avatar URL for a user; falls back to their default embed avatar. */
+export function discordAvatarUrl(id: string, hash: string | null | undefined, size = 64): string {
+  if (hash) return `https://cdn.discordapp.com/avatars/${id}/${hash}.png?size=${size}`;
+  let idx = 0;
+  try {
+    idx = Number((BigInt(id) >> BigInt(22)) % BigInt(6));
+  } catch {
+    /* fall back to 0 */
+  }
+  return `https://cdn.discordapp.com/embed/avatars/${idx}.png`;
 }
 
 /**

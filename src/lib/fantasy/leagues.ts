@@ -6,6 +6,7 @@ import {
   avatarThumbUrl,
 } from "@/lib/sleeper/client";
 import type { SleeperLeagueUser, SleeperRoster } from "@/lib/sleeper/types";
+import { resolveOwnerAvatars } from "./avatars";
 
 /** A curated Whoosh league row from `fantasy_league`. */
 export type FantasyLeagueConfig = {
@@ -140,6 +141,13 @@ export async function getLeagueOverview(sleeperLeagueId: string): Promise<League
   ]);
 
   const byUser = usersById(users);
+  // Team avatars use the linked member's Discord PFP (monogram fallback).
+  const ownerAvatars = await resolveOwnerAvatars(rosters.map((r) => r.owner_id)).catch(() => new Map());
+  const standings = buildStandings(rosters, byUser).map((s) => ({
+    ...s,
+    avatarUrl: s.ownerId ? ownerAvatars.get(s.ownerId) ?? null : null,
+  }));
+
   return {
     config,
     displayName: config.name?.trim() || league?.name || "League",
@@ -148,6 +156,6 @@ export async function getLeagueOverview(sleeperLeagueId: string): Promise<League
     // Custom uploaded logo wins; otherwise fall back to the Sleeper avatar.
     avatarUrl: config.logoUrl ?? avatarThumbUrl(league?.avatar ?? null),
     totalRosters: league?.total_rosters ?? rosters.length,
-    standings: buildStandings(rosters, byUser),
+    standings,
   };
 }

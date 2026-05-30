@@ -1,5 +1,6 @@
-import { getLeagueUsers, getMatchups, getRosters, avatarThumbUrl } from "@/lib/sleeper/client";
+import { getLeagueUsers, getMatchups, getRosters } from "@/lib/sleeper/client";
 import { teamNameFor, usersById } from "./leagues";
+import { resolveOwnerAvatars } from "./avatars";
 import type { SleeperMatchup, SleeperRoster } from "@/lib/sleeper/types";
 
 export type MatchupTeam = {
@@ -36,6 +37,8 @@ export async function getWeekMatchups(
 
   const byUser = usersById(users);
   const rosterById = new Map<number, SleeperRoster>(rosters.map((r) => [r.roster_id, r]));
+  // Team avatars use the linked member's Discord PFP (monogram fallback).
+  const ownerAvatars = await resolveOwnerAvatars(rosters.map((r) => r.owner_id)).catch(() => new Map());
 
   const team = (rosterId: number, points: number): MatchupTeam => {
     const roster = rosterById.get(rosterId);
@@ -44,7 +47,7 @@ export async function getWeekMatchups(
       rosterId,
       ownerId: roster?.owner_id ?? null,
       teamName: teamNameFor(user, rosterId),
-      avatarUrl: avatarThumbUrl(user?.avatar ?? null),
+      avatarUrl: roster?.owner_id ? ownerAvatars.get(roster.owner_id) ?? null : null,
       points: Math.round(points * 100) / 100,
       isMine: !!mineSleeperUserId && roster?.owner_id === mineSleeperUserId,
     };
