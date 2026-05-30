@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Inter_Tight, JetBrains_Mono, Oswald, Quicksand } from "next/font/google";
+import { Inter, Inter_Tight, JetBrains_Mono, Sora, Quicksand } from "next/font/google";
 import "./globals.css";
 
 // Inter is the shared body/UI typeface across the whole site (marketing +
@@ -17,11 +17,12 @@ const inter = Inter({
 //   Capital — Inter Tight (display) + JetBrains Mono (numbers), per the
 //             Whoosh Capital design system. Numbers always render in the mono
 //             face with tabular figures.
-//   Fantasy — Oswald: condensed, bold, sporty jersey feel.
+//   Fantasy — Sora (display) + JetBrains Mono (numbers), per the Whoosh Fantasy
+//             design system. Mono carries scores/records with tabular figures.
 //   Pool    — Quicksand: soft, rounded, friendly.
 const interTight = Inter_Tight({ variable: "--font-capital", subsets: ["latin"] });
 const jetbrainsMono = JetBrains_Mono({ variable: "--font-capital-num", subsets: ["latin"] });
-const oswald = Oswald({ variable: "--font-fantasy", subsets: ["latin"] });
+const sora = Sora({ variable: "--font-fantasy", subsets: ["latin"], weight: ["500", "600", "700", "800"] });
 const quicksand = Quicksand({ variable: "--font-pool", subsets: ["latin"] });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://whoosh.lol";
@@ -74,7 +75,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${interTight.variable} ${jetbrainsMono.variable} ${oswald.variable} ${quicksand.variable} h-full antialiased`}
+      className={`${inter.variable} ${interTight.variable} ${jetbrainsMono.variable} ${sora.variable} ${quicksand.variable} h-full antialiased`}
       style={{ ["--font-heading" as string]: "var(--font-body)" }}
     >
       <body className="min-h-full flex flex-col">{children}</body>

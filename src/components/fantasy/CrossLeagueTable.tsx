@@ -1,5 +1,5 @@
 import type { CrossLeagueRow } from "@/lib/fantasy/rankings";
-import { TeamAvatar } from "./TeamAvatar";
+import { TeamLogo } from "./TeamAvatar";
 
 function fmtPts(n: number): string {
   return n.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -7,11 +7,14 @@ function fmtPts(n: number): string {
 function fmtPct(n: number): string {
   return `${Math.round(n * 100)}%`;
 }
+function medal(rank: number): string {
+  return rank === 1 ? "rank--medal-1" : rank === 2 ? "rank--medal-2" : rank === 3 ? "rank--medal-3" : "";
+}
 
 /**
  * The combined cross-league Power Rankings table. Full mode shows every column;
- * `compact` trims to Rank/Team/League/Points/Power for the Overview preview.
- * Rows owned by the linked member (mineSleeperUserId) are flagged.
+ * `compact` trims to Rank/Team/League/PF/Power for the Overview preview.
+ * Rows owned by the linked member are highlighted.
  */
 export function CrossLeagueTable({
   rows,
@@ -27,10 +30,10 @@ export function CrossLeagueTable({
   }
   return (
     <div className="ftb-tbl-scroll">
-      <table className="tbl">
+      <table className="standings">
         <thead>
           <tr>
-            <th>#</th>
+            <th className="rank">#</th>
             <th>Team</th>
             <th>League</th>
             {!compact && <th className="num">Pos</th>}
@@ -44,21 +47,23 @@ export function CrossLeagueTable({
           {rows.map((r) => {
             const mine = !!mineSleeperUserId && r.ownerId === mineSleeperUserId;
             return (
-              <tr key={`${r.leagueId}-${r.rosterId}`}>
-                <td className="num num-display">{r.rank}</td>
+              <tr key={`${r.leagueId}-${r.rosterId}`} className={mine ? "is-mine" : undefined}>
+                <td className={`rank ${medal(r.rank)}`}>{r.rank}</td>
                 <td>
-                  <span className="flex items-center gap-2">
-                    <TeamAvatar url={r.avatarUrl} name={r.teamName} size={24} />
-                    <span className="font-display font-semibold uppercase tracking-tight">
-                      {r.teamName}
+                  <span className="team-cell">
+                    <TeamLogo url={r.avatarUrl} name={r.teamName} className="logo" />
+                    <span className="min-w-0">
+                      <span className="name">
+                        {r.teamName} {mine && <span className="you-chip">You</span>}
+                      </span>
+                      <span className="owner">@{r.ownerName}</span>
                     </span>
-                    {mine && <span className="you-chip">You</span>}
                   </span>
                 </td>
                 <td className="text-body-sm">{r.leagueName}</td>
                 {!compact && <td className="num">{r.leaguePosition}</td>}
                 {!compact && (
-                  <td className="num">
+                  <td className="num record">
                     {r.wins}-{r.losses}
                     {r.ties > 0 ? `-${r.ties}` : ""}
                   </td>

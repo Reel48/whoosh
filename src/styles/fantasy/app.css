@@ -1,62 +1,49 @@
 /*
  * Whoosh Fantasy — app layout helpers.
- * Fantasy-owned structural classes (page shells, grids, rows) that compose the
- * design-system components into pages. Scoped to [data-theme="fantasy"] and
- * built only from the design-system tokens in index.css. Prefixed `ftb-` to
- * mirror Capital's `cap-` convention and avoid clashing with shared utilities.
+ * Fantasy-owned structural classes (page shell, spacing, grids, rows) that
+ * compose the vendored design-system components (index.css) into pages. Scoped
+ * to [data-theme="fantasy"]; prefixed `ftb-` to avoid clashing with shared
+ * utilities. Built only from the design-system tokens.
  */
 
 [data-theme="fantasy"] {
-  /* page shell — see Capital's note: width:100% ties it to the parent flex
-     column while auto margins still center it on wide screens. */
+  /* page shell — width:100% ties it to the parent flex column while auto
+     margins still center it on wide screens (see Capital's note). */
   .ftb-page {
     width: 100%;
-    max-width: var(--ftb-container-narrow);
+    max-width: 760px;
     margin: 0 auto;
-    padding: var(--ftb-space-10) var(--ftb-space-6) var(--ftb-space-20);
+    padding: var(--space-10) var(--space-6) var(--space-16);
     min-width: 0;
     overflow-x: clip;
   }
-  .ftb-page--wide { max-width: var(--ftb-container-max); }
+  .ftb-page--wide { max-width: 1100px; }
 
   /* spacing helpers */
-  .ftb-mt    { margin-top: var(--ftb-space-6); }
-  .ftb-mt-1  { margin-top: var(--ftb-space-1); }
-  .ftb-mt-sm { margin-top: var(--ftb-space-3); }
-  .ftb-mt-lg { margin-top: var(--ftb-space-10); }
+  .ftb-mt { margin-top: var(--space-6); }
+  .ftb-mt-1 { margin-top: var(--space-1); }
+  .ftb-mt-sm { margin-top: var(--space-3); }
+  .ftb-mt-lg { margin-top: var(--space-10); }
 
   /* vertical stack */
-  .ftb-stack { display: flex; flex-direction: column; gap: var(--ftb-space-4); }
+  .ftb-stack { display: flex; flex-direction: column; gap: var(--space-4); }
 
   /* welcome strip */
-  .ftb-welcome { display: flex; align-items: center; gap: var(--ftb-space-3); }
+  .ftb-welcome { display: flex; align-items: center; gap: var(--space-3); }
   .ftb-welcome__name { flex: 1; min-width: 0; }
 
-  /* a section heading with a trailing link */
-  .ftb-card-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--ftb-space-3);
-  }
-  .ftb-section-title { margin-bottom: var(--ftb-space-3); }
+  /* section heading + trailing link */
+  .ftb-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+  .ftb-section-title { margin-bottom: var(--space-3); }
 
   /* two-column responsive layout */
-  .ftb-cols {
-    display: grid;
-    gap: var(--ftb-space-4);
-    grid-template-columns: 1fr;
-  }
+  .ftb-cols { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
   @media (min-width: 768px) {
     .ftb-cols { grid-template-columns: 1fr 1fr; }
   }
 
-  /* responsive card grid for league cards */
-  .ftb-league-grid {
-    display: grid;
-    gap: var(--ftb-space-4);
-    grid-template-columns: 1fr;
-  }
+  /* league card grid */
+  .ftb-league-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
   @media (min-width: 640px) {
     .ftb-league-grid { grid-template-columns: repeat(2, 1fr); }
   }
@@ -66,19 +53,14 @@
     display: block;
     text-decoration: none;
     color: inherit;
-    transition: transform var(--ftb-dur) var(--ftb-ease);
+    transition: transform var(--dur-fast) var(--ease-pop), box-shadow var(--dur-fast);
   }
-  .ftb-card-link:hover { transform: translateY(-2px); }
+  .ftb-card-link:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 
-  /* horizontal-scroll wrapper for wide tables on mobile */
+  /* horizontal scroll for wide tables on mobile */
   .ftb-tbl-scroll { width: 100%; overflow-x: auto; }
 
   /* inline stake form (matchup wager) */
-  .ftb-wager {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--ftb-space-2);
-  }
-  .ftb-wager .input { width: auto; flex: 1 1 120px; min-width: 0; }
+  .ftb-wager { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  .ftb-wager .input { width: auto; flex: 1 1 110px; min-width: 0; }
 }
