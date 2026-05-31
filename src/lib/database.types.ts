@@ -923,6 +923,15 @@ export type Database = {
       }
     }
     Functions: {
+      admin_subscriber_identities: {
+        Args: { p_discord_ids: string[]; p_user_ids: string[] }
+        Returns: {
+          discord_user_id: string
+          email: string
+          user_id: string
+          username: string
+        }[]
+      }
       assign_league_entitlement: {
         Args: {
           p_amount_cents: number

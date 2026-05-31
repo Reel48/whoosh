@@ -1,4 +1,7 @@
 import Stripe from "stripe";
+import { supabase } from "@/lib/supabase";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 let _stripe: Stripe | null = null;
 function stripe(): Stripe {
@@ -137,8 +140,15 @@ export async function createPortalUrl(customerId: string, returnUrl: string): Pr
 }
 
 export type SubscriptionListItem = SubscriptionSummary & {
+  /** App user id (uuid) or, for legacy subs, the Discord id — from metadata. */
+  userId: string | null;
+  /** Resolved real Discord id (from the profile), if linked. */
   discordUserId: string | null;
-  discordUsername: string | null;
+  /** Display handle — resolved from the profile, else the checkout metadata. */
+  username: string | null;
+  /** Email the member signed in with (reliable identifier). */
+  appEmail: string | null;
+  /** Stripe customer email — may be an Apple Pay "Hide My Email" relay. */
   customerEmail: string | null;
   createdAt: number; // unix seconds
 };
@@ -162,7 +172,57 @@ export async function listSubscriptions(
     ? res.data.filter((s) => opts.statuses!.includes(s.status))
     : res.data;
 
-  return subs.map(toListItem);
+  const items = subs.map(toListItem);
+  await enrichWithProfiles(items);
+  return items;
+}
+
+/**
+ * Overlay each subscription with its app identity (handle + the email the user
+ * signed in with + linked Discord), resolved from the profile via a single RPC.
+ * This is what makes the admin list identify subscribers even when Apple Pay
+ * supplied a Hide My Email relay as the Stripe customer email. Best-effort — a
+ * failure here leaves the metadata-derived fallbacks in place.
+ */
+async function enrichWithProfiles(items: SubscriptionListItem[]): Promise<void> {
+  const uuids = new Set<string>();
+  const discordIds = new Set<string>();
+  for (const it of items) {
+    if (it.userId && UUID_RE.test(it.userId)) uuids.add(it.userId);
+    else if (it.userId) discordIds.add(it.userId);
+    if (it.discordUserId) discordIds.add(it.discordUserId);
+  }
+  if (uuids.size === 0 && discordIds.size === 0) return;
+
+  try {
+    const { data, error } = await supabase().rpc("admin_subscriber_identities", {
+      p_user_ids: [...uuids],
+      p_discord_ids: [...discordIds],
+    });
+    if (error || !data) return;
+
+    const byUserId = new Map<string, (typeof data)[number]>();
+    const byDiscord = new Map<string, (typeof data)[number]>();
+    for (const row of data) {
+      byUserId.set(row.user_id, row);
+      if (row.discord_user_id) byDiscord.set(row.discord_user_id, row);
+    }
+
+    for (const it of items) {
+      const row =
+        (it.userId && byUserId.get(it.userId)) ||
+        (it.discordUserId && byDiscord.get(it.discordUserId)) ||
+        (it.userId && byDiscord.get(it.userId)) ||
+        null;
+      if (row) {
+        it.username = row.username ?? it.username;
+        it.appEmail = row.email ?? null;
+        it.discordUserId = row.discord_user_id ?? it.discordUserId;
+      }
+    }
+  } catch {
+    // leave metadata fallbacks
+  }
 }
 
 function toListItem(sub: Stripe.Subscription): SubscriptionListItem {
@@ -186,8 +246,13 @@ function toListItem(sub: Stripe.Subscription): SubscriptionListItem {
       (sub as Stripe.Subscription & { current_period_end?: number }).current_period_end ??
       0,
     cancelAtPeriodEnd: sub.cancel_at_period_end,
+    // Baseline from checkout metadata; overlaid with profile data in
+    // enrichWithProfiles. New subs carry user_id/username; legacy ones carry
+    // discord_user_id/discord_username.
+    userId: sub.metadata?.user_id ?? sub.metadata?.discord_user_id ?? null,
     discordUserId: sub.metadata?.discord_user_id ?? null,
-    discordUsername: sub.metadata?.discord_username ?? null,
+    username: sub.metadata?.username ?? sub.metadata?.discord_username ?? null,
+    appEmail: null,
     customerEmail,
     createdAt: sub.created,
   };

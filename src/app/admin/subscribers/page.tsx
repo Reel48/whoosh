@@ -108,7 +108,7 @@ export default async function AdminSubscribersPage({
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead className="bg-ink text-white-smoke">
             <tr>
-              <Th>Discord</Th>
+              <Th>Member</Th>
               <Th>Plan</Th>
               <Th>Price</Th>
               <Th>Status</Th>
@@ -128,13 +128,20 @@ export default async function AdminSubscribersPage({
                 <tr key={s.id}>
                   <Td>
                     <div className="font-medium">
-                      {s.discordUsername ? `@${s.discordUsername}` : "(unknown)"}
+                      {s.username ? `@${s.username}` : "(unknown)"}
                     </div>
-                    <div className="font-mono text-[11px] text-ink/50">
-                      {s.discordUserId ?? "—"}
-                    </div>
-                    {s.customerEmail && (
-                      <div className="text-[11px] text-ink/50">{s.customerEmail}</div>
+                    {s.appEmail && (
+                      <div className="text-[11px] text-ink/70">{s.appEmail}</div>
+                    )}
+                    {s.customerEmail && s.customerEmail !== s.appEmail && (
+                      <div className="text-[11px] text-ink/40">
+                        Stripe: {s.customerEmail}
+                      </div>
+                    )}
+                    {s.discordUserId && (
+                      <div className="font-mono text-[10px] text-ink/40">
+                        Discord {s.discordUserId}
+                      </div>
                     )}
                   </Td>
                   <Td>

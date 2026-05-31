@@ -134,10 +134,10 @@ export default async function AdminDashboardPage() {
                 >
                   <div>
                     <div className="font-medium">
-                      {s.discordUsername ? `@${s.discordUsername}` : "(unknown)"}
+                      {s.username ? `@${s.username}` : "(unknown)"}
                     </div>
                     <div className="text-xs text-ink/60">
-                      {s.discordUserId ?? s.customerId}
+                      {s.appEmail ?? s.discordUserId ?? s.customerId}
                     </div>
                   </div>
                   <div className="text-right">
