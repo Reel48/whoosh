@@ -22,16 +22,18 @@ export default async function Thanks() {
 
   if (session) {
     await ensureWallet(session.id, session.username);
+    const discordId = session.discordUserId;
     const [bal, hasRole] = await Promise.all([
       getBalance(session.id).catch(() => 0),
-      hasPremiumRole(session.id).catch(() => false),
+      discordId ? hasPremiumRole(discordId).catch(() => false) : Promise.resolve(false),
     ]);
     balance = bal;
     roleGranted = hasRole;
-    // Best-effort self-heal — webhook may not have landed yet.
-    if (!hasRole) {
+    // Best-effort self-heal — webhook may not have landed yet. Only when a
+    // Discord account is linked (the role lives on Discord).
+    if (!hasRole && discordId) {
       try {
-        const r = await addPremiumRole(session.id);
+        const r = await addPremiumRole(discordId);
         roleGranted = r.ok;
       } catch {
         // ignored — /account will retry on next visit

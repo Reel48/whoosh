@@ -57,7 +57,7 @@ export default async function InvestPage({
   searchParams: Promise<{ order?: string; error?: string; symbol?: string; range?: string }>;
 }) {
   const session = await getSession();
-  if (!session) redirect("/api/auth/discord?next=/capital/invest");
+  if (!session) redirect("/login?next=/capital/invest");
   await ensureWallet(session.id, session.username);
 
   const sp = await searchParams;

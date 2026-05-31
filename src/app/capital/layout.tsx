@@ -1,4 +1,4 @@
-import { requirePremiumSession } from "@/lib/membership";
+import { requireSession } from "@/lib/membership";
 import { AppShell } from "@/components/AppShell";
 import "@/styles/capital/index.css";
 import "@/styles/capital/app.css";
@@ -18,7 +18,7 @@ export default async function CapitalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requirePremiumSession();
+  await requireSession("/capital");
   return (
     <div data-theme="capital" className="flex flex-1 flex-col">
       <AppShell section="capital">{children}</AppShell>

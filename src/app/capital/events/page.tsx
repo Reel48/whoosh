@@ -22,7 +22,7 @@ export default async function EventsPage({
   searchParams: Promise<{ wager?: string; error?: string; sport?: string }>;
 }) {
   const session = await getSession();
-  if (!session) redirect("/api/auth/discord?next=/capital/events");
+  if (!session) redirect("/login?next=/capital/events");
   await ensureWallet(session.id, session.username);
 
   const [events, balance, recent] = await Promise.all([

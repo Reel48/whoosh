@@ -15,6 +15,6 @@ export default async function AccountLayout({
   children: React.ReactNode;
 }) {
   const session = await getSession();
-  if (!session) redirect("/api/auth/discord?next=/account");
+  if (!session) redirect("/login?next=/account");
   return <AppShell>{children}</AppShell>;
 }

@@ -16,13 +16,13 @@ export async function joinLeagueAction(formData: FormData) {
 
   const session = await getSession();
   if (!session) {
-    redirect(`/api/auth/discord?next=${encodeURIComponent("/fantasy/leagues")}`);
+    redirect(`/login?next=${encodeURIComponent("/fantasy/leagues")}`);
   }
 
   const url = await createLeagueGroupCheckoutUrl({
     groupKey,
-    discordUserId: session.id,
-    discordUsername: session.username,
+    userId: session.id,
+    username: session.username,
   });
   redirect(url);
 }

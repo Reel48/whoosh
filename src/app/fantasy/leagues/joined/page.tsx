@@ -39,7 +39,7 @@ export default async function JoinedPage({
       if (
         cs.payment_status === "paid" &&
         meta.kind === "league_entry" &&
-        meta.discord_user_id === session.id &&
+        (meta.user_id ?? meta.discord_user_id) === session.id &&
         meta.group_key &&
         meta.season
       ) {

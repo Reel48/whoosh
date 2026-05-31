@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { hasPremiumRole, addPremiumRole } from "@/lib/discord";
-import { findSubscriptionForDiscordUser } from "@/lib/stripe";
+import { findSubscriptionForUser } from "@/lib/stripe";
+import { signOut } from "@/app/auth/actions";
+import { LinkDiscordButton } from "@/components/account/LinkDiscordButton";
 import { Avatar } from "@/components/Avatar";
 import { Bolt } from "@/components/Bolt";
 import { ensureWallet } from "@/lib/wb/ledger";
@@ -47,16 +49,20 @@ function formatDate(unix: number) {
 export default async function AccountPage() {
   const session = await getSession();
   if (!session) {
-    redirect("/api/auth/discord?next=/account");
+    redirect("/login?next=/account");
   }
+
+  const discordId = session.discordUserId;
 
   await ensureWallet(session.id, session.username);
   const [initialRoleGranted, sub, referral, earned] = await Promise.all([
-    hasPremiumRole(session.id).catch((e) => {
-      console.error("Premium role lookup failed:", e);
-      return false;
-    }),
-    findSubscriptionForDiscordUser(session.id).catch((e) => {
+    discordId
+      ? hasPremiumRole(discordId).catch((e) => {
+          console.error("Premium role lookup failed:", e);
+          return false;
+        })
+      : Promise.resolve(false),
+    findSubscriptionForUser(session.id).catch((e) => {
       console.error("Stripe subscription lookup failed:", e);
       return null;
     }),
@@ -77,9 +83,9 @@ export default async function AccountPage() {
   // The Discord API call is idempotent — granting an already-granted role is
   // a 204 no-op.
   let roleGranted = initialRoleGranted;
-  if (isActive && !initialRoleGranted) {
+  if (isActive && !initialRoleGranted && discordId) {
     try {
-      const r = await addPremiumRole(session.id);
+      const r = await addPremiumRole(discordId);
       if (r.ok) {
         roleGranted = true;
         // Note: we deliberately don't invalidate the unstable_cache here.
@@ -119,8 +125,7 @@ export default async function AccountPage() {
         {/* Identity card — BLUE block */}
         <div className="mt-6 flex items-center gap-4 rounded-3xl border-2 border-ink bg-blue p-6 text-ink">
           <Avatar
-            id={session.id}
-            hash={session.avatar}
+            avatarUrl={session.avatarUrl}
             username={session.username}
             size={64}
             className="border-2 border-ink"
@@ -130,10 +135,10 @@ export default async function AccountPage() {
               @{session.username}
             </h1>
             <p className="mt-1 text-sm font-medium text-ink/80">
-              Signed in with Discord
+              {discordId ? "Discord connected" : "No Discord connected"}
             </p>
           </div>
-          <form action="/api/auth/discord/logout" method="POST">
+          <form action={signOut}>
             <button
               type="submit"
               className="cursor-pointer rounded-full border-2 border-ink bg-white-smoke px-4 py-2 text-sm font-bold transition-colors hover:bg-ink hover:text-white-smoke"
@@ -142,6 +147,19 @@ export default async function AccountPage() {
             </button>
           </form>
         </div>
+
+        {!discordId && (
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink">
+            <div className="flex-1">
+              <h2 className="font-heading text-lg font-bold">Connect Discord</h2>
+              <p className="mt-1 text-sm font-medium text-ink/70">
+                Link your Discord to claim any existing Whoosh Bucks balance and
+                to receive the Premium role and members-only channels.
+              </p>
+            </div>
+            <LinkDiscordButton />
+          </div>
+        )}
 
         {/* Premium status card — neutral so colored status pills can live inside */}
         <div className="mt-6 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">

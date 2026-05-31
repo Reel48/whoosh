@@ -53,7 +53,7 @@ export default async function ActivityPage({
   searchParams: Promise<{ group?: string; since?: string; until?: string }>;
 }) {
   const session = await getSession();
-  if (!session) redirect("/api/auth/discord?next=/capital/wallet/activity");
+  if (!session) redirect("/login?next=/capital/wallet/activity");
   await ensureWallet(session.id, session.username);
   const sp = await searchParams;
 

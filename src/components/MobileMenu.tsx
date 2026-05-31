@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { signOut } from "@/app/auth/actions";
 
 type Props = {
   signedIn: boolean;
@@ -141,11 +142,7 @@ export function MobileMenu({ signedIn, isAdmin, username }: Props) {
                 <p className="mt-1 font-heading font-bold text-ink">
                   @{username ?? "you"}
                 </p>
-                <form
-                  action="/api/auth/discord/logout"
-                  method="POST"
-                  className="mt-3"
-                >
+                <form action={signOut} className="mt-3">
                   <button
                     type="submit"
                     className="cursor-pointer text-sm font-bold text-ink/70 underline-offset-2 hover:underline"
@@ -156,10 +153,10 @@ export function MobileMenu({ signedIn, isAdmin, username }: Props) {
               </div>
             ) : (
               <a
-                href="/api/auth/discord?next=/account"
+                href="/login?next=/account"
                 className="rounded-2xl border-2 border-ink bg-ink px-4 py-3 text-center font-heading text-base font-bold text-white-smoke"
               >
-                Sign in with Discord
+                Sign in
               </a>
             )}
           </nav>

@@ -19,15 +19,15 @@ export async function GET(req: Request) {
   if (!session) {
     const next = `/api/checkout?interval=${encodeURIComponent(interval)}`;
     return NextResponse.redirect(
-      new URL(`/api/auth/discord?next=${encodeURIComponent(next)}`, req.url),
+      new URL(`/login?next=${encodeURIComponent(next)}`, req.url),
     );
   }
 
   try {
     const checkoutUrl = await createCheckoutSessionUrl({
       interval,
-      discordUserId: session.id,
-      discordUsername: session.username,
+      userId: session.id,
+      username: session.username,
     });
     return NextResponse.redirect(checkoutUrl);
   } catch (e) {

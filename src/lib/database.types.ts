@@ -1,8 +1,3 @@
-// Generated from the live Supabase schema (project yjmohosxtemjamwrsffw) via
-// the Supabase MCP `generate_typescript_types`. Regenerate after any migration:
-//   npx supabase gen types typescript --linked > src/lib/database.types.ts
-// Do not edit by hand.
-
 export type Json =
   | string
   | number
@@ -12,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -537,6 +552,39 @@ export type Database = {
           },
         ]
       }
+      profile: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          discord_user_id: string | null
+          is_admin: boolean
+          stripe_customer_id: string | null
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          discord_user_id?: string | null
+          is_admin?: boolean
+          stripe_customer_id?: string | null
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          discord_user_id?: string | null
+          is_admin?: boolean
+          stripe_customer_id?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       referral_code: {
         Row: {
           code: string
@@ -902,6 +950,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      claim_legacy_wallet: {
+        Args: { p_discord_user_id: string; p_new_user_id: string }
+        Returns: boolean
+      }
       ensure_wallet: {
         Args: { p_user_id: string; p_username: string }
         Returns: undefined
@@ -1192,7 +1244,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
+

@@ -60,8 +60,6 @@ export function Leaderboard({ entries, highlightUserId, subtitle }: Props) {
                 </span>
                 <div className="flex items-center gap-3 min-w-0">
                   <Avatar
-                    id={e.discordUserId}
-                    hash={null}
                     username={e.discordUsername}
                     size={32}
                     className="border-theme border-ink flex-none"

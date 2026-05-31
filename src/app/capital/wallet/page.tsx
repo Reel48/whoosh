@@ -74,7 +74,7 @@ export default async function WalletPage({
 }) {
   const session = await getSession();
   if (!session) {
-    redirect("/api/auth/discord?next=/capital/wallet");
+    redirect("/login?next=/capital/wallet");
   }
   await ensureWallet(session.id, session.username);
 

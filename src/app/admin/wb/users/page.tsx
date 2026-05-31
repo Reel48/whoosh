@@ -112,8 +112,6 @@ export default async function AdminUsersPage({
           <div className="flex flex-wrap items-center justify-between gap-6 rounded-3xl border-2 border-ink bg-blue p-6 text-ink sm:p-8">
             <div className="flex items-center gap-5 min-w-0">
               <Avatar
-                id={recipient.discordUserId}
-                hash={null}
                 username={recipient.discordUsername}
                 size={56}
                 className="border-2 border-ink"

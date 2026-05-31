@@ -15,8 +15,8 @@ import { listActiveLeagues, type FantasyLeagueConfig } from "./leagues";
 
 export type LeagueCheckoutInput = {
   groupKey: string;
-  discordUserId: string;
-  discordUsername: string;
+  userId: string;
+  username: string;
 };
 
 export type LeagueGroup = {
@@ -46,8 +46,8 @@ export async function getPurchasableGroup(groupKey: string): Promise<LeagueGroup
 
 export async function createLeagueGroupCheckoutUrl({
   groupKey,
-  discordUserId,
-  discordUsername,
+  userId,
+  username,
 }: LeagueCheckoutInput): Promise<string> {
   const group = await getPurchasableGroup(groupKey);
   if (!group) throw new Error(`No purchasable league group "${groupKey}".`);
@@ -67,8 +67,8 @@ export async function createLeagueGroupCheckoutUrl({
     kind: "league_entry" as const,
     group_key: groupKey,
     season: group.season,
-    discord_user_id: discordUserId,
-    discord_username: discordUsername,
+    user_id: userId,
+    username,
   };
 
   const session = await stripe.checkout.sessions.create({
@@ -81,14 +81,14 @@ export async function createLeagueGroupCheckoutUrl({
           unit_amount: group.feeCents,
           product_data: {
             name: `${group.productName} — ${group.season} entry`,
-            description: `Season buy-in for @${discordUsername}`,
+            description: `Season buy-in for @${username}`,
           },
         },
       },
     ],
     success_url: `${origin}/fantasy/leagues/joined?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/fantasy/leagues`,
-    client_reference_id: discordUserId,
+    client_reference_id: userId,
     metadata,
     payment_intent_data: { metadata },
   });
