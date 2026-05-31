@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
 import { createWbPurchaseCheckoutUrl } from "@/lib/wb/purchase";
+import { redirectError, requireSession } from "@/lib/api/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const DEST = "/capital/wallet";
 
 /**
  * Initiate a Whoosh Bucks purchase.
@@ -11,13 +13,8 @@ export const dynamic = "force-dynamic";
  * Redirects to the Stripe-hosted checkout URL on success.
  */
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.redirect(
-      new URL(`/api/auth/discord?next=/capital/wallet`, req.url),
-      303,
-    );
-  }
+  const session = await requireSession(req, DEST);
+  if (session instanceof NextResponse) return session;
 
   let amountCents: number | null = null;
   const contentType = req.headers.get("content-type") ?? "";
@@ -52,10 +49,7 @@ export async function POST(req: Request) {
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Checkout creation failed.";
     console.error("WB buy failed:", e);
-    return NextResponse.redirect(
-      new URL(`/capital/wallet?error=${encodeURIComponent(msg)}`, req.url),
-      303,
-    );
+    return redirectError(req, DEST, msg);
   }
 }
 

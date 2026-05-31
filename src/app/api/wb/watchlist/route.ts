@@ -1,19 +1,22 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
 import { ensureWallet } from "@/lib/wb/ledger";
 import { addToWatchlist, removeFromWatchlist } from "@/lib/wb/watchlist";
+import { redirectOk, requireSession, seeOther } from "@/lib/api/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const DEST = "/capital/invest";
+
+/** Error redirect that preserves the symbol the user was viewing. */
+function back(req: Request, msg: string, symbol: string) {
+  const sym = symbol ? `&symbol=${encodeURIComponent(symbol)}` : "";
+  return seeOther(req, `${DEST}?error=${encodeURIComponent(msg)}${sym}`);
+}
+
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.redirect(
-      new URL("/api/auth/discord?next=/capital/invest", req.url),
-      303,
-    );
-  }
+  const session = await requireSession(req, DEST);
+  if (session instanceof NextResponse) return session;
   await ensureWallet(session.id, session.username);
 
   let symbol = "";
@@ -39,16 +42,5 @@ export async function POST(req: Request) {
     return back(req, msg, symbol);
   }
 
-  return NextResponse.redirect(
-    new URL(`/capital/invest?symbol=${encodeURIComponent(symbol)}`, req.url),
-    303,
-  );
-}
-
-function back(req: Request, msg: string, symbol: string) {
-  const sym = symbol ? `&symbol=${encodeURIComponent(symbol)}` : "";
-  return NextResponse.redirect(
-    new URL(`/capital/invest?error=${encodeURIComponent(msg)}${sym}`, req.url),
-    303,
-  );
+  return redirectOk(req, DEST, `symbol=${encodeURIComponent(symbol)}`);
 }

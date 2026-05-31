@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import type { Json } from "@/lib/database.types";
 
 export type LedgerKind =
   | "purchase"
@@ -25,7 +26,7 @@ export type CreditLedgerInput = {
   /** External event id — must be unique within (refKind, refId). */
   refId?: string;
   memo?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Json;
 };
 
 export type LedgerEntry = {
@@ -58,13 +59,15 @@ export async function creditLedger(input: CreditLedgerInput): Promise<number | n
     p_user_id: input.discordUserId,
     p_amount_cents: input.amountCents,
     p_kind: input.kind,
-    p_ref_kind: input.refKind ?? null,
-    p_ref_id: input.refId ?? null,
-    p_memo: input.memo ?? null,
+    // The Postgres params are nullable `text`, but Supabase's type generator
+    // emits them as non-null `string`; cast the intentional nulls through.
+    p_ref_kind: (input.refKind ?? null) as string,
+    p_ref_id: (input.refId ?? null) as string,
+    p_memo: (input.memo ?? null) as string,
     p_metadata: input.metadata ?? {},
   });
   if (error) throw new Error(`creditLedger failed: ${error.message}`);
-  return (data as number | null) ?? null;
+  return data ?? null;
 }
 
 /** Returns the user's current balance in cents (0 if no wallet exists yet). */

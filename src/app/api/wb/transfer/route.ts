@@ -1,21 +1,18 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
 import { ensureWallet } from "@/lib/wb/ledger";
 import { findRecipient, transfer } from "@/lib/wb/transfer";
 import { evaluateAchievements } from "@/lib/wb/achievements";
 import { pushNotification } from "@/lib/wb/notifications";
+import { redirectError, redirectOk, requireSession } from "@/lib/api/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const DEST = "/capital/wallet";
+
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.redirect(
-      new URL("/api/auth/discord?next=/capital/wallet", req.url),
-      303,
-    );
-  }
+  const session = await requireSession(req, DEST);
+  if (session instanceof NextResponse) return session;
   // Ensure the sender's wallet exists so the balance check has something to read.
   await ensureWallet(session.id, session.username);
 
@@ -46,24 +43,25 @@ export async function POST(req: Request) {
       memo = typeof m === "string" && m.trim() !== "" ? m.trim() : null;
     }
   } catch {
-    return back(req, "Could not parse request.");
+    return redirectError(req, DEST, "Could not parse request.");
   }
 
-  if (!recipientUsername.trim()) return back(req, "Recipient username is required.");
+  if (!recipientUsername.trim()) return redirectError(req, DEST, "Recipient username is required.");
   if (!Number.isFinite(amountCents) || amountCents <= 0) {
-    return back(req, "Enter a positive amount.");
+    return redirectError(req, DEST, "Enter a positive amount.");
   }
 
   const recipient = await findRecipient(recipientUsername);
   if (!recipient) {
-    return back(
+    return redirectError(
       req,
+      DEST,
       `No Whoosh wallet for @${recipientUsername.replace(/^@/, "")}. The recipient must sign in once before they can receive WB.`,
     );
   }
 
   const result = await transfer(session.id, recipient.discordUserId, amountCents, memo);
-  if (!result.ok) return back(req, result.error);
+  if (!result.ok) return redirectError(req, DEST, result.error);
 
   // Fire achievement check + notify recipient. Both are best-effort.
   await Promise.allSettled([
@@ -77,12 +75,5 @@ export async function POST(req: Request) {
     }),
   ]);
 
-  return NextResponse.redirect(new URL(`/capital/wallet?transfer=ok`, req.url), 303);
-}
-
-function back(req: Request, msg: string) {
-  return NextResponse.redirect(
-    new URL(`/capital/wallet?error=${encodeURIComponent(msg)}`, req.url),
-    303,
-  );
+  return redirectOk(req, DEST, "transfer=ok");
 }

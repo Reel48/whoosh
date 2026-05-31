@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import type { Json } from "@/lib/database.types";
 
 export type NotificationKind =
   | "bet_settled"
@@ -67,7 +68,7 @@ export async function pushNotification(input: {
   title: string;
   body?: string;
   href?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Json;
 }): Promise<void> {
   const { error } = await supabase().from("notification").insert({
     discord_user_id: input.userId,

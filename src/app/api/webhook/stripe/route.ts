@@ -1,6 +1,8 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { addPremiumRole, removePremiumRole } from "@/lib/discord";
+import { revalidateTag } from "next/cache";
+import { addPremiumRole, removePremiumRole, GUILD_MEMBER_CACHE_TAG } from "@/lib/discord";
+import { PREMIUM_CACHE_TAG } from "@/lib/membership";
 import { creditLedger } from "@/lib/wb/ledger";
 import { WB_PER_USD } from "@/lib/wb/purchase";
 import { pendingReferralFor, markReferralRewarded } from "@/lib/wb/referrals";
@@ -12,6 +14,19 @@ const REFERRAL_REWARD_WB_CENTS = 5000; // $50 WB
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/**
+ * Drop the cached premium decision (and the guild-member read it leans on) so a
+ * just-granted or just-revoked member sees the change on their next request
+ * rather than waiting out the cache TTL.
+ */
+function invalidatePremiumCaches() {
+  // `{ expire: 0 }` = immediate expiration, the documented pattern for a webhook
+  // (a third-party caller) that needs the next request to see fresh data rather
+  // than stale-while-revalidate.
+  revalidateTag(PREMIUM_CACHE_TAG, { expire: 0 });
+  revalidateTag(GUILD_MEMBER_CACHE_TAG, { expire: 0 });
+}
 
 /** Split a comma-separated STRIPE_WEBHOOK_SECRET into individual secrets. */
 function parseSecrets(raw: string | undefined): string[] {
@@ -170,6 +185,9 @@ export async function POST(req: Request) {
             return new NextResponse("Discord transient error", { status: 500 });
           }
         }
+        // Premium just became active (role granted, or recognizable via the
+        // now-active Stripe sub) — refresh the cached decision immediately.
+        invalidatePremiumCaches();
 
         // Referral reward — fires once per referred user, on first Premium sub.
         try {
@@ -291,6 +309,7 @@ export async function POST(req: Request) {
           console.error(`Failed to revoke role from ${userId}: ${res.status} ${res.body ?? ""}`);
           return new NextResponse("Discord transient error", { status: 500 });
         }
+        invalidatePremiumCaches();
         break;
       }
       default:

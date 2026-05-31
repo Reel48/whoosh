@@ -56,7 +56,8 @@ export async function transfer(
     p_from: fromUserId,
     p_to: toUserId,
     p_amount_cents: amountCents,
-    p_memo: memo,
+    // p_memo is nullable `text` in Postgres; the generator types it non-null.
+    p_memo: memo as string,
   });
   if (error) {
     const msg = error.message ?? "";
