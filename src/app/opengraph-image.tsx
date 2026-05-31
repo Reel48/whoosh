@@ -61,7 +61,7 @@ export default async function OpenGraphImage() {
               fontSize: 28,
             }}
           >
-            whoosh.lol
+            whoosh.business
           </span>
         </div>
       </div>

@@ -10,10 +10,10 @@ import type { ReferralStats } from "@/lib/wb/referrals";
  */
 export function ReferralCard({ stats }: { stats: ReferralStats }) {
   const [copied, setCopied] = useState<"code" | "url" | null>(null);
-  const url =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/r/${stats.code}`
-      : `https://whoosh.lol/r/${stats.code}`;
+  // Use the public site URL (inlined identically on server + client, so no
+  // hydration mismatch) rather than branching on window.
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://whoosh.business").replace(/\/+$/, "");
+  const url = `${base}/r/${stats.code}`;
 
   function copy(value: string, which: "code" | "url") {
     navigator.clipboard?.writeText(value).then(() => {

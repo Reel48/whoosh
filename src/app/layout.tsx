@@ -25,7 +25,7 @@ const jetbrainsMono = JetBrains_Mono({ variable: "--font-capital-num", subsets: 
 const sora = Sora({ variable: "--font-fantasy", subsets: ["latin"], weight: ["500", "600", "700", "800"] });
 const quicksand = Quicksand({ variable: "--font-pool", subsets: ["latin"] });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://whoosh.lol";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://whoosh.business";
 
 // Mobile-first viewport. `viewportFit: "cover"` lets us use env(safe-area-inset-*)
 // so fixed UI (bottom tab bar, future sticky CTAs) sits above the iPhone home
