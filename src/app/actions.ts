@@ -19,13 +19,13 @@ export async function createCheckoutSession(formData: FormData) {
   const session = await getSession();
   if (!session) {
     const next = `/api/checkout?interval=${encodeURIComponent(interval)}`;
-    redirect(`/api/auth/discord?next=${encodeURIComponent(next)}`);
+    redirect(`/login?next=${encodeURIComponent(next)}`);
   }
 
   const url = await createCheckoutSessionUrl({
     interval,
-    discordUserId: session.id,
-    discordUsername: session.username,
+    userId: session.id,
+    username: session.username,
   });
   redirect(url);
 }

@@ -35,19 +35,19 @@ export type SubscriptionSummary = {
 };
 
 /**
- * Find the most relevant subscription for a Discord user, preferring active
- * ones. Uses Stripe's Search API to query the metadata index we set at
- * checkout time. Returns null if none exists.
+ * Find the most relevant subscription for an app user, preferring active ones.
+ * Uses Stripe's Search API to query the `user_id` metadata we set at checkout
+ * time. Returns null if none exists.
  *
  * Note: Stripe Search has eventual consistency (a few seconds). Brand-new
  * subscriptions may not appear for a moment after payment.
  */
-export async function findSubscriptionForDiscordUser(
-  discordUserId: string,
+export async function findSubscriptionForUser(
+  userId: string,
 ): Promise<SubscriptionSummary | null> {
-  const safe = discordUserId.replace(/"/g, ""); // metadata values shouldn't contain quotes anyway
+  const safe = userId.replace(/"/g, ""); // metadata values shouldn't contain quotes anyway
   const res = await stripe().subscriptions.search({
-    query: `metadata["discord_user_id"]:"${safe}"`,
+    query: `metadata["user_id"]:"${safe}"`,
     limit: 10,
   });
   if (res.data.length === 0) return null;

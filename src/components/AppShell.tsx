@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { hasAdminRole } from "@/lib/discord";
 import { Avatar } from "./Avatar";
 import { NotificationsBell } from "./NotificationsBell";
 import { SectionSubNav } from "./app/SectionSubNav";
@@ -40,9 +39,7 @@ export async function AppShell({
   children: React.ReactNode;
 }) {
   const session = await getSession();
-  const isAdmin = session
-    ? await hasAdminRole(session.id).catch(() => false)
-    : false;
+  const isAdmin = session?.isAdmin ?? false;
 
   const current = section ? SECTIONS[section] : null;
 
@@ -96,7 +93,7 @@ export async function AppShell({
                 href="/account"
                 className="flex items-center gap-2 rounded-theme border-theme border-ink/15 py-1 pl-1 pr-3 transition-colors hover:bg-ink/5"
               >
-                <Avatar id={session.id} hash={session.avatar} username={session.username} size={28} />
+                <Avatar avatarUrl={session.avatarUrl} username={session.username} size={28} />
                 <span className="hidden text-sm sm:inline">@{session.username}</span>
               </Link>
             )}

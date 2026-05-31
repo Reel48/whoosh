@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { addPremiumRole, removePremiumRole, GUILD_MEMBER_CACHE_TAG } from "@/lib/discord";
 import { PREMIUM_CACHE_TAG } from "@/lib/membership";
+import { getLinkedDiscordId, setStripeCustomerId } from "@/lib/auth";
 import { creditLedger } from "@/lib/wb/ledger";
 import { creditCheckoutSession, creditInvoicePremiumMatch } from "@/lib/wb/stripeCredits";
 import { pendingReferralFor, markReferralRewarded } from "@/lib/wb/referrals";
@@ -97,9 +98,9 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.metadata?.discord_user_id;
+        const userId = session.metadata?.user_id ?? session.metadata?.discord_user_id;
         if (!userId) {
-          console.warn("checkout.session.completed without discord_user_id metadata", session.id);
+          console.warn("checkout.session.completed without user_id metadata", session.id);
           break;
         }
 
@@ -120,7 +121,7 @@ export async function POST(req: Request) {
         if (session.metadata?.kind === "league_entry") {
           const groupKey = session.metadata.group_key;
           const season = session.metadata.season;
-          const username = session.metadata.discord_username ?? "";
+          const username = session.metadata.username ?? session.metadata.discord_username ?? "";
           if (!groupKey || !season) {
             console.warn("league_entry checkout missing group_key/season", session.id);
             break;
@@ -167,17 +168,36 @@ export async function POST(req: Request) {
           break;
         }
 
-        // Subscription checkout → grant Premium role (existing behavior).
-        const res = await addPremiumRole(userId);
-        if (!res.ok) {
-          console.error(
-            `Failed to grant Premium role to ${userId} (session=${session.id}): ${res.status} ${res.body ?? ""}`,
+        // Subscription checkout. Persist the Stripe customer id so future
+        // premium lookups don't depend on Search-API eventual consistency.
+        const customerId =
+          typeof session.customer === "string" ? session.customer : session.customer?.id;
+        if (customerId) {
+          await setStripeCustomerId(userId, customerId).catch((e) =>
+            console.warn("setStripeCustomerId failed (non-fatal)", userId, e),
           );
-          // 4xx (e.g. user not in guild) → don't ask Stripe to retry.
-          // 5xx → return 500 so Stripe retries.
-          if (res.status >= 500) {
-            return new NextResponse("Discord transient error", { status: 500 });
+        }
+
+        // Grant the Premium role — but only if a Discord account is linked.
+        // Email-only subscribers still get the WB match (invoice.paid); their
+        // perk is the in-app "Connect Discord" prompt to unlock channels.
+        const discordId = await getLinkedDiscordId(userId).catch(() => null);
+        if (discordId) {
+          const res = await addPremiumRole(discordId);
+          if (!res.ok) {
+            console.error(
+              `Failed to grant Premium role to ${discordId} (session=${session.id}): ${res.status} ${res.body ?? ""}`,
+            );
+            // 4xx (e.g. user not in guild) → don't ask Stripe to retry.
+            // 5xx → return 500 so Stripe retries.
+            if (res.status >= 500) {
+              return new NextResponse("Discord transient error", { status: 500 });
+            }
           }
+        } else {
+          console.log(
+            JSON.stringify({ at: "webhook.sub.no_discord_link", user_id: userId, session_id: session.id }),
+          );
         }
         // Premium just became active (role granted, or recognizable via the
         // now-active Stripe sub) — refresh the cached decision immediately.
@@ -240,15 +260,19 @@ export async function POST(req: Request) {
       }
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        const userId = sub.metadata?.discord_user_id;
+        const userId = sub.metadata?.user_id ?? sub.metadata?.discord_user_id;
         if (!userId) {
-          console.warn("subscription.deleted without discord_user_id metadata", sub.id);
+          console.warn("subscription.deleted without user_id metadata", sub.id);
           break;
         }
-        const res = await removePremiumRole(userId);
-        if (!res.ok && res.status >= 500) {
-          console.error(`Failed to revoke role from ${userId}: ${res.status} ${res.body ?? ""}`);
-          return new NextResponse("Discord transient error", { status: 500 });
+        // Revoke the Premium role from the linked Discord account, if any.
+        const discordId = await getLinkedDiscordId(userId).catch(() => null);
+        if (discordId) {
+          const res = await removePremiumRole(discordId);
+          if (!res.ok && res.status >= 500) {
+            console.error(`Failed to revoke role from ${discordId}: ${res.status} ${res.body ?? ""}`);
+            return new NextResponse("Discord transient error", { status: 500 });
+          }
         }
         invalidatePremiumCaches();
         break;

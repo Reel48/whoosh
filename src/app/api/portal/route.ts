@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
-import { createPortalUrl, findSubscriptionForDiscordUser } from "@/lib/stripe";
+import { createPortalUrl, findSubscriptionForUser } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,11 +15,11 @@ async function handle(req: Request) {
   const session = await getSession();
   if (!session) {
     return NextResponse.redirect(
-      new URL("/api/auth/discord?next=/account", req.url),
+      new URL("/login?next=/account", req.url),
     );
   }
 
-  const sub = await findSubscriptionForDiscordUser(session.id);
+  const sub = await findSubscriptionForUser(session.id);
   if (!sub) {
     return NextResponse.redirect(new URL("/account?error=no_subscription", req.url));
   }

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { isGuildMember, hasAdminRole } from "@/lib/discord";
+import { isGuildMember } from "@/lib/discord";
 import { Bolt } from "./Bolt";
 import { Avatar } from "./Avatar";
 import { NavLinks } from "./NavLinks";
@@ -12,12 +12,10 @@ const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
 
 export async function Nav() {
   const session = await getSession();
-  const [inServer, isAdmin] = session
-    ? await Promise.all([
-        isGuildMember(session.id).catch(() => false),
-        hasAdminRole(session.id).catch(() => false),
-      ])
-    : [false, false];
+  const isAdmin = session?.isAdmin ?? false;
+  const inServer = session?.discordUserId
+    ? await isGuildMember(session.discordUserId).catch(() => false)
+    : false;
   const discordLabel = inServer ? "Open Discord" : "Join the Discord";
   // Signed-in members get a logo-link straight to the hub (Fantasy is open to
   // all signed-in users; Premium sections show an upsell there). Anonymous
@@ -58,12 +56,12 @@ export async function Nav() {
               href="/account"
               className="flex items-center gap-2 rounded-full border-2 border-ink bg-white-smoke py-1 pl-1 pr-3 transition-colors hover:bg-ink/5"
             >
-              <Avatar id={session.id} hash={session.avatar} username={session.username} size={28} />
+              <Avatar avatarUrl={session.avatarUrl} username={session.username} size={28} />
               <span className="hidden text-sm sm:inline">@{session.username}</span>
             </Link>
           ) : (
             <a
-              href="/api/auth/discord?next=/account"
+              href="/login?next=/account"
               className="hidden hover:underline sm:inline"
             >
               Sign in

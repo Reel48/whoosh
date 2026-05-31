@@ -1,9 +1,9 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createCheckoutSession } from "./actions";
+import { signOut } from "@/app/auth/actions";
 import { getSession } from "@/lib/session";
 import { isGuildMember, getGuildOnlineCount } from "@/lib/discord";
-import { isPremium } from "@/lib/membership";
 import {
   getLeaderboard,
   getTradersLeaderboard,
@@ -153,17 +153,17 @@ export default async function Home({
 }) {
   const session = await getSession();
   const sp = await searchParams;
-  // Premium members get bounced to their app dashboard. Anon + signed-in-but-
-  // not-premium continue to see the marketing site so they can convert.
-  // `?plans` is an explicit escape hatch: a user who holds the Discord Premium
-  // role without an active Stripe subscription is still "premium" here, so
-  // without this they'd be redirected away from the only page that sells a
-  // subscription — trapping them with no way to actually pay.
-  if (!sp.plans && session && (await isPremium(session.id))) {
+  // Anyone with an account belongs in the app — bounce them to the hub. Premium
+  // is no longer required to enter, so we no longer gate this on isPremium.
+  // `?plans` is an explicit escape hatch so a signed-in user can still reach the
+  // page that sells a subscription instead of being redirected away from it.
+  if (!sp.plans && session) {
     redirect("/home");
   }
   const [inServer, onlineCount, holders, traders, wins, streaks] = await Promise.all([
-    session ? isGuildMember(session.id).catch(() => false) : Promise.resolve(false),
+    session?.discordUserId
+      ? isGuildMember(session.discordUserId).catch(() => false)
+      : Promise.resolve(false),
     getGuildOnlineCount(),
     getLeaderboard(10).catch(() => []),
     getTradersLeaderboard(10, 7).catch(() => []),
@@ -322,58 +322,50 @@ export default async function Home({
 
             {/* Billing options */}
             <div className="space-y-4">
-              {/* Discord connection banner — ink CTA when signed out, neutral confirmation when signed in */}
+              {/* Account banner — sign-up CTA when signed out, confirmation when signed in */}
               {session ? (
                 <div className="flex items-center gap-3 rounded-2xl border-2 border-ink bg-white-smoke px-4 py-3 text-sm text-ink">
                   <span className="inline-flex h-2.5 w-2.5 shrink-0 rounded-full border-2 border-ink bg-ink" />
                   <span className="flex-1 font-medium">
-                    Connected as{" "}
+                    Signed in as{" "}
                     <strong className="font-heading font-bold">@{session.username}</strong>
                   </span>
-                  <form action="/api/auth/discord/logout" method="POST">
+                  <form action={signOut}>
                     <button
                       type="submit"
                       className="cursor-pointer text-ink/70 underline-offset-2 hover:text-ink hover:underline"
                     >
-                      Disconnect
+                      Sign out
                     </button>
                   </form>
                 </div>
               ) : (
                 <a
-                  href="/api/auth/discord"
+                  href="/signup?next=/account"
                   className="flex items-center justify-between gap-3 rounded-2xl border-2 border-ink bg-ink px-4 py-3 text-sm text-white-smoke transition-opacity hover:opacity-90"
                 >
                   <span className="font-medium">
-                    <strong className="font-heading font-bold">Connect your Discord</strong>{" "}
-                    so we can grant your Premium role on payment.
+                    <strong className="font-heading font-bold">Create your account</strong>{" "}
+                    to subscribe — it only takes a moment.
                   </span>
                   <span className="shrink-0 rounded-full border-2 border-ink bg-safety-orange px-3 py-1 text-xs font-bold text-ink">
-                    Connect →
+                    Sign up →
                   </span>
                 </a>
               )}
-              {inServer ? (
-                <p className="text-xs font-medium text-ink/70">
-                  <span className="font-black">✓</span> You&rsquo;re in the
-                  Whoosh server — your Premium role will land as soon as
-                  payment clears.
-                </p>
-              ) : (
-                <p className="text-xs font-medium text-ink/70">
-                  Make sure you&rsquo;ve already{" "}
-                  <a
-                    href={DISCORD_INVITE}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-bold text-ink underline underline-offset-2"
-                  >
-                    joined the Whoosh server
-                  </a>{" "}
-                  — the Premium role is granted to your account inside the
-                  server.
-                </p>
-              )}
+              <p className="text-xs font-medium text-ink/70">
+                Premium channels and the Discord role are granted once you{" "}
+                <a
+                  href={DISCORD_INVITE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-ink underline underline-offset-2"
+                >
+                  join the Whoosh server
+                </a>{" "}
+                and connect Discord from your account — optional, and only needed
+                for the chat perks.
+              </p>
 
               {billing.map((b) => {
                 const isHi = b.highlight;

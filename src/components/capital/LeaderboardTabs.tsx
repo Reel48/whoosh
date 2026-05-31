@@ -148,7 +148,7 @@ function RankList<T extends Entry>({
         return (
           <li key={`${e.rank}-${e.discordUserId}`} className={`cap-rank__row ${isMe ? "is-me" : ""}`}>
             <span className="cap-rank__n">{e.rank}</span>
-            <Avatar id={e.discordUserId} hash={null} username={e.discordUsername} size={32} />
+            <Avatar username={e.discordUsername} size={32} />
             <div className="cap-rank__who">
               <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
                 <span className="cap-rank__name">@{e.discordUsername}</span>

@@ -45,7 +45,7 @@ export async function requireSession(
 ): Promise<Session | NextResponse> {
   const session = await getSession();
   if (!session) {
-    return seeOther(req, `/api/auth/discord?next=${encodeURIComponent(next)}`);
+    return seeOther(req, `/login?next=${encodeURIComponent(next)}`);
   }
   return session;
 }

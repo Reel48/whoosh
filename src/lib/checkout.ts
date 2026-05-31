@@ -9,19 +9,19 @@ const PRICE_BY_INTERVAL: Record<string, string | undefined> = {
 
 export type CheckoutInput = {
   interval: string;
-  discordUserId: string;
-  discordUsername: string;
+  userId: string;
+  username: string;
 };
 
 /**
  * Create a Stripe Checkout Session for the given billing interval and return its
- * hosted-page URL. Embeds the Discord user ID + username in metadata so the
- * webhook can map the payment back to a Discord member.
+ * hosted-page URL. Embeds the app user id + username in metadata so the webhook
+ * can map the payment back to the account (and find it later via Search).
  */
 export async function createCheckoutSessionUrl({
   interval,
-  discordUserId,
-  discordUsername,
+  userId,
+  username,
 }: CheckoutInput): Promise<string> {
   const priceId = PRICE_BY_INTERVAL[interval];
   if (!priceId) {
@@ -43,8 +43,8 @@ export async function createCheckoutSessionUrl({
   const origin = rawOrigin.replace(/\/+$/, "");
 
   const metadata = {
-    discord_user_id: discordUserId,
-    discord_username: discordUsername,
+    user_id: userId,
+    username,
   };
 
   const session = await stripe.checkout.sessions.create({
@@ -53,7 +53,7 @@ export async function createCheckoutSessionUrl({
     success_url: `${origin}/thanks?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/#plans`,
     allow_promotion_codes: true,
-    client_reference_id: discordUserId,
+    client_reference_id: userId,
     metadata,
     subscription_data: { metadata },
   });

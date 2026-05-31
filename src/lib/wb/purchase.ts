@@ -4,8 +4,8 @@ import { headers } from "next/headers";
 export type WbPurchaseInput = {
   /** USD cents the user wants to spend. Each $1 paid yields 10 WB. */
   amountCents: number;
-  discordUserId: string;
-  discordUsername: string;
+  userId: string;
+  username: string;
 };
 
 const MIN_PURCHASE_CENTS = 100; // $1.00
@@ -22,8 +22,8 @@ export const WB_PER_USD = 10;
  */
 export async function createWbPurchaseCheckoutUrl({
   amountCents,
-  discordUserId,
-  discordUsername,
+  userId,
+  username,
 }: WbPurchaseInput): Promise<string> {
   if (!Number.isInteger(amountCents)) {
     throw new Error("amountCents must be an integer.");
@@ -52,8 +52,8 @@ export async function createWbPurchaseCheckoutUrl({
 
   const metadata = {
     kind: "wb_purchase" as const,
-    discord_user_id: discordUserId,
-    discord_username: discordUsername,
+    user_id: userId,
+    username,
     wb_cents: String(wbCents),
   };
 
@@ -67,14 +67,14 @@ export async function createWbPurchaseCheckoutUrl({
           unit_amount: amountCents,
           product_data: {
             name: "Whoosh Bucks",
-            description: `$${wbWhole.toLocaleString("en-US")} of Whoosh Bucks credited to @${discordUsername}`,
+            description: `$${wbWhole.toLocaleString("en-US")} of Whoosh Bucks credited to @${username}`,
           },
         },
       },
     ],
     success_url: `${origin}/capital/wallet?purchase=ok`,
     cancel_url: `${origin}/capital/wallet?purchase=cancelled`,
-    client_reference_id: discordUserId,
+    client_reference_id: userId,
     metadata,
     payment_intent_data: { metadata },
   });

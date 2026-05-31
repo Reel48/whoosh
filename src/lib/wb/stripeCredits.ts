@@ -43,7 +43,7 @@ async function resolveInvoiceUser(
     subscriptionId = typeof legacy === "string" ? legacy : legacy?.id;
   }
 
-  if (subscriptionId && !subMeta.discord_user_id) {
+  if (subscriptionId && !subMeta.user_id && !subMeta.discord_user_id) {
     try {
       const sub = await stripe.subscriptions.retrieve(subscriptionId);
       subMeta = (sub.metadata ?? {}) as Record<string, string>;
@@ -52,9 +52,17 @@ async function resolveInvoiceUser(
     }
   }
 
+  // `user_id` is the app user id (current scheme). `discord_user_id` is the
+  // legacy key from pre-auth-migration subscriptions — credited as-is to the
+  // matching legacy wallet (no-op once that account migrates).
   const userId =
-    (invoice.metadata?.discord_user_id as string | undefined) ?? subMeta.discord_user_id;
+    (invoice.metadata?.user_id as string | undefined) ??
+    subMeta.user_id ??
+    (invoice.metadata?.discord_user_id as string | undefined) ??
+    subMeta.discord_user_id;
   const username =
+    (invoice.metadata?.username as string | undefined) ??
+    subMeta.username ??
     (invoice.metadata?.discord_username as string | undefined) ??
     subMeta.discord_username ??
     "";
@@ -103,8 +111,8 @@ export async function creditCheckoutSession(
     return { credited: false, ledgerId: null, reason: "unpaid" };
   }
   const kind = session.metadata?.kind;
-  const userId = session.metadata?.discord_user_id;
-  const username = session.metadata?.discord_username ?? "";
+  const userId = session.metadata?.user_id ?? session.metadata?.discord_user_id;
+  const username = session.metadata?.username ?? session.metadata?.discord_username ?? "";
   if (!userId) return { credited: false, ledgerId: null, reason: "no_user" };
 
   const usdCents = session.amount_total ?? 0;

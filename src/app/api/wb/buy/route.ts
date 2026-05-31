@@ -42,8 +42,8 @@ export async function POST(req: Request) {
   try {
     const url = await createWbPurchaseCheckoutUrl({
       amountCents,
-      discordUserId: session.id,
-      discordUsername: session.username,
+      userId: session.id,
+      username: session.username,
     });
     return NextResponse.redirect(url, 303);
   } catch (e) {

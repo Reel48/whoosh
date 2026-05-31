@@ -33,7 +33,7 @@ export default async function MyBetsPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const session = await getSession();
-  if (!session) redirect("/api/auth/discord?next=/capital/bets");
+  if (!session) redirect("/login?next=/capital/bets");
   await ensureWallet(session.id, session.username);
 
   const wagers = await listUserWagers(session.id);

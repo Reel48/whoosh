@@ -179,3 +179,43 @@ h6,
     transparent 12px
   );
 }
+
+/* ---------------------------------------------------------------------------
+ * Auth pages (/login, /signup) and the account Connect-Discord button. Plain
+ * classes (not per-section themed) so they share the marketing look.
+ * ------------------------------------------------------------------------- */
+.auth-form { display: flex; flex-direction: column; gap: 0.75rem; }
+.auth-label {
+  display: flex; flex-direction: column; gap: 0.35rem;
+  font-size: 0.8rem; font-weight: 700; color: color-mix(in srgb, var(--ink) 70%, transparent);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.auth-input {
+  border: 2px solid var(--ink); border-radius: 0.75rem;
+  padding: 0.6rem 0.8rem; font-size: 1rem; font-weight: 500;
+  color: var(--ink); background: var(--white); text-transform: none; letter-spacing: normal;
+}
+.auth-input:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+.auth-submit, .auth-submit-secondary, .auth-discord {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  border: 2px solid var(--ink); border-radius: 9999px;
+  padding: 0.7rem 1rem; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+  width: 100%; transition: opacity 0.15s ease;
+}
+.auth-submit { background: var(--ink); color: var(--white-smoke); }
+.auth-discord { background: var(--blue); color: var(--ink); }
+.auth-submit-secondary { background: var(--white-smoke); color: var(--ink); }
+.auth-submit:hover, .auth-discord:hover, .auth-submit-secondary:hover { opacity: 0.9; }
+.auth-divider {
+  display: flex; align-items: center; gap: 0.75rem;
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: color-mix(in srgb, var(--ink) 50%, transparent);
+}
+.auth-divider::before, .auth-divider::after {
+  content: ""; flex: 1; height: 2px; background: color-mix(in srgb, var(--ink) 15%, transparent);
+}
+.auth-alt { font-size: 0.85rem; font-weight: 500; color: color-mix(in srgb, var(--ink) 70%, transparent); }
+.auth-alt a { font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+.auth-forgot { font-size: 0.85rem; }
+.auth-forgot summary { cursor: pointer; font-weight: 600; color: color-mix(in srgb, var(--ink) 70%, transparent); }
+

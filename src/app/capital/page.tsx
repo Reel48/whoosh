@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { findSubscriptionForDiscordUser } from "@/lib/stripe";
+import { findSubscriptionForUser } from "@/lib/stripe";
 import { Disclaimer } from "@/components/Disclaimer";
 import { Avatar } from "@/components/Avatar";
 import { ReferralCard } from "@/components/capital/ReferralCard";
@@ -80,7 +80,7 @@ export default async function CapitalHome() {
     getBiggestWinsLeaderboard(3, 7).catch(() => []),
     getReferralStats(session.id).catch(() => null),
     listEarned(session.id).catch(() => []),
-    findSubscriptionForDiscordUser(session.id).catch(() => null),
+    findSubscriptionForUser(session.id).catch(() => null),
   ]);
 
   // Legacy members hold the Discord Premium role from the old payment
@@ -107,7 +107,7 @@ export default async function CapitalHome() {
     <main className="cap-page">
       {/* Welcome */}
       <header className="cap-welcome">
-        <Avatar id={session.id} hash={session.avatar} username={session.username} size={44} />
+        <Avatar avatarUrl={session.avatarUrl} username={session.username} size={44} />
         <div className="cap-welcome__name">
           <p className="text-eyebrow">Capital · Overview</p>
           <h1 className="text-h2">@{session.username}</h1>

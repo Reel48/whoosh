@@ -1,6 +1,5 @@
 import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { hasAdminRole } from "@/lib/discord";
 import { Nav } from "@/components/Nav";
 import { AdminSubNav } from "@/components/AdminSubNav";
 
@@ -23,11 +22,10 @@ export default async function AdminLayout({
 }) {
   const session = await getSession();
   if (!session) {
-    redirect("/api/auth/discord?next=/admin");
+    redirect("/login?next=/admin");
   }
 
-  const isAdmin = await hasAdminRole(session.id).catch(() => false);
-  if (!isAdmin) {
+  if (!session.isAdmin) {
     notFound();
   }
 

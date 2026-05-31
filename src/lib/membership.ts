@@ -2,7 +2,8 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { hasPremiumRole } from "@/lib/discord";
-import { findSubscriptionForDiscordUser } from "@/lib/stripe";
+import { findSubscriptionForUser } from "@/lib/stripe";
+import { getLinkedDiscordId } from "@/lib/auth";
 import { getSession, type Session } from "@/lib/session";
 
 /**
@@ -16,20 +17,20 @@ export const PREMIUM_CACHE_TAG = "membership:premium";
 /**
  * Single source of truth for "is this user a Whoosh Premium member?"
  *
- * Checks the Discord Premium role first (fast — fetchGuildMember is
- * cached for 5 min via unstable_cache). If the role isn't granted yet
- * (e.g. brand-new subscriber whose webhook hasn't fired or whose Discord
- * grant is still propagating), falls back to a Stripe subscription
- * lookup so they're treated as premium immediately on checkout success.
+ * Premium is now a *perk* tier, not a gate. The argument is the app user id.
+ * If the user has linked a Discord account, the fast Discord-role check applies
+ * (cached 5 min via fetchGuildMember). Otherwise — or if the role hasn't been
+ * granted yet — fall back to a Stripe subscription lookup keyed by `user_id`.
  */
 async function _isPremium(userId: string): Promise<boolean> {
   try {
-    if (await hasPremiumRole(userId)) return true;
+    const discordId = await getLinkedDiscordId(userId);
+    if (discordId && (await hasPremiumRole(discordId))) return true;
   } catch {
-    // Discord may be down — fall through to Stripe.
+    // Discord may be down or unlinked — fall through to Stripe.
   }
   try {
-    const sub = await findSubscriptionForDiscordUser(userId);
+    const sub = await findSubscriptionForUser(userId);
     return sub?.status === "active" || sub?.status === "trialing";
   } catch {
     return false;
@@ -37,14 +38,11 @@ async function _isPremium(userId: string): Promise<boolean> {
 }
 
 /**
- * The premium decision is read on every signed-in app navigation (each section
- * `layout.tsx`). Without a cache, users whose Premium role isn't granted yet
- * hit the uncached Stripe Search API on every page load. Layer a 60s
- * cross-request cache (keyed per-userId by `unstable_cache`) over the live
- * check, tagged so the webhook can invalidate it on a grant/revoke. The
- * staleness window (≤60s) is tighter than the existing 5-min guild-member
- * cache, so this never widens the access window. React `cache()` on top dedups
- * the multiple call sites within a single render.
+ * The premium decision is read on signed-in surfaces that show perk messaging
+ * (and the old hot path). Layer a 60s cross-request cache (keyed per-userId by
+ * `unstable_cache`) over the live check, tagged so the webhook can invalidate
+ * it on a grant/revoke. React `cache()` on top dedups call sites within a
+ * single render.
  */
 const _isPremiumCached = unstable_cache(_isPremium, ["membership:premium"], {
   revalidate: 60,
@@ -54,27 +52,12 @@ const _isPremiumCached = unstable_cache(_isPremium, ["membership:premium"], {
 export const isPremium = cache(_isPremiumCached);
 
 /**
- * Gate for signed-in app sections. Returns the session for a premium member,
- * or redirects to the marketing landing (which itself bounces premium users
- * back to /home, so anon + non-premium land on the page that sells a sub).
- *
- * Used once per section `layout.tsx` so the page bodies don't each repeat the
- * getSession + isPremium + redirect dance.
- */
-export async function requirePremiumSession(): Promise<Session> {
-  const session = await getSession();
-  if (!session) redirect("/");
-  if (!(await isPremium(session.id))) redirect("/");
-  return session;
-}
-
-/**
- * Sign-in-only gate for sections that don't require Premium (e.g. Fantasy,
- * where access is sold per-league). Sends anonymous visitors through Discord
- * OAuth and back to where they were headed.
+ * Sign-in gate for the whole signed-in app. Premium is no longer required to
+ * enter any section — only an account. Sends anonymous visitors to the login
+ * page and back to where they were headed.
  */
 export async function requireSession(next = "/home"): Promise<Session> {
   const session = await getSession();
-  if (!session) redirect(`/api/auth/discord?next=${encodeURIComponent(next)}`);
+  if (!session) redirect(`/login?next=${encodeURIComponent(next)}`);
   return session;
 }

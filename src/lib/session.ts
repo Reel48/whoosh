@@ -1,99 +1,66 @@
-import crypto from "node:crypto";
-import { cookies } from "next/headers";
+import { cache } from "react";
+import { createServerSupabase } from "@/lib/supabase/server";
+import { supabase } from "@/lib/supabase";
 
-const SESSION_COOKIE = "whoosh_session";
-const STATE_COOKIE = "whoosh_oauth_state";
-const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
-const STATE_MAX_AGE = 10 * 60; // 10 minutes
-
+/**
+ * The signed-in user, backed by Supabase Auth.
+ *
+ * `id` is the stable app user id (Supabase `auth.users.id`) — the key for the
+ * wallet, Whoosh Bucks ledger, and fantasy data. Discord is now an *optional*
+ * linked account (`discordUserId`), no longer the identity itself.
+ */
 export type Session = {
+  /** App user id (auth.users.id). The key everything economic hangs off. */
   id: string;
+  /** Display handle, from the profile. */
   username: string;
-  /** Discord avatar hash, or null/undefined for users with no custom avatar. */
-  avatar?: string | null;
+  /** Full avatar URL, or null to render an initials fallback. */
+  avatarUrl: string | null;
+  /** Linked Discord snowflake, or null when no Discord account is connected. */
+  discordUserId: string | null;
+  /** Admin flag, from the profile (replaces the old Discord-role check). */
+  isAdmin: boolean;
 };
 
-function secret(): string {
-  const s = process.env.DISCORD_SESSION_SECRET;
-  if (!s) throw new Error("DISCORD_SESSION_SECRET is not set.");
-  return s;
+async function _getSession(): Promise<Session | null> {
+  const sb = await createServerSupabase();
+  // getClaims() verifies the JWT locally (trustworthy + cheap), unlike
+  // getSession() which must not be trusted server-side.
+  const { data, error } = await sb.auth.getClaims();
+  const claims = data?.claims;
+  if (error || !claims?.sub) return null;
+  const userId = claims.sub as string;
+
+  // Read display + link info from the profile (service role — always works
+  // server-side and sidesteps RLS). The profile is created by the
+  // on_auth_user_created trigger at signup.
+  const { data: profile } = await supabase()
+    .from("profile")
+    .select("username, avatar_url, discord_user_id, is_admin")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const emailLocal =
+    typeof claims.email === "string" ? claims.email.split("@")[0] : undefined;
+
+  return {
+    id: userId,
+    username: profile?.username ?? emailLocal ?? "member",
+    avatarUrl: profile?.avatar_url ?? null,
+    discordUserId: profile?.discord_user_id ?? null,
+    isAdmin: profile?.is_admin ?? false,
+  };
 }
 
-function sign(payload: string): string {
-  return crypto.createHmac("sha256", secret()).update(payload).digest("base64url");
-}
-
-function pack(value: object): string {
-  const payload = Buffer.from(JSON.stringify(value)).toString("base64url");
-  return `${payload}.${sign(payload)}`;
-}
-
-function unpack<T>(raw: string | undefined): T | null {
-  if (!raw) return null;
-  const [payload, sig] = raw.split(".");
-  if (!payload || !sig) return null;
-  const expected = sign(payload);
-  const a = Buffer.from(sig);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
-  try {
-    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as T;
-  } catch {
-    return null;
-  }
-}
-
-export async function setSession(s: Session) {
-  const jar = await cookies();
-  jar.set(SESSION_COOKIE, pack(s), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: SESSION_MAX_AGE,
-  });
-}
-
-export async function getSession(): Promise<Session | null> {
-  const jar = await cookies();
-  return unpack<Session>(jar.get(SESSION_COOKIE)?.value);
-}
-
-export async function clearSession() {
-  const jar = await cookies();
-  jar.delete(SESSION_COOKIE);
-}
+/** Current session, deduped per-render via React `cache()`. */
+export const getSession = cache(_getSession);
 
 /**
  * Validate a `next` redirect target. Only internal paths starting with a single
- * leading slash are allowed, to prevent open-redirect abuse via OAuth.
+ * leading slash are allowed, to prevent open-redirect abuse via auth callbacks.
  */
 export function sanitizeNext(next: string | null | undefined): string {
   if (!next) return "/";
   if (!next.startsWith("/") || next.startsWith("//")) return "/";
   return next;
-}
-
-/** Short-lived OAuth state cookie used to prevent CSRF on the callback. */
-export async function setOAuthState(next: string): Promise<string> {
-  const nonce = crypto.randomBytes(16).toString("hex");
-  const state = pack({ n: nonce, p: sanitizeNext(next) });
-  const jar = await cookies();
-  jar.set(STATE_COOKIE, state, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: STATE_MAX_AGE,
-  });
-  return state;
-}
-
-export async function consumeOAuthState(state: string): Promise<{ next: string } | null> {
-  const jar = await cookies();
-  const stored = jar.get(STATE_COOKIE)?.value;
-  jar.delete(STATE_COOKIE);
-  if (!stored || stored !== state) return null;
-  const payload = unpack<{ n: string; p: string }>(stored);
-  return payload ? { next: sanitizeNext(payload.p) } : null;
 }

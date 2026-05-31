@@ -1,4 +1,4 @@
-import { requirePremiumSession } from "@/lib/membership";
+import { requireSession } from "@/lib/membership";
 import { AppShell } from "@/components/AppShell";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export default async function PoolLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requirePremiumSession();
+  await requireSession("/pool");
   return (
     <div data-theme="pool" className="flex flex-1 flex-col bg-white-smoke text-ink">
       <AppShell section="pool">{children}</AppShell>
