@@ -29,31 +29,33 @@ export default async function SignupPage({
       <form action={signInWithDiscord}>
         <input type="hidden" name="next" value={next} />
         <button type="submit" className="auth-discord">
-          <Bolt className="h-4 w-4" /> Continue with Discord
+          <Bolt className="h-4 w-4" /> Sign up with Discord
         </button>
       </form>
+      <p className="auth-recommended">Recommended — instant Premium role &amp; claim your balance.</p>
 
-      <div className="auth-divider"><span>or</span></div>
-
-      <form action={signUp} className="auth-form">
-        <input type="hidden" name="next" value={next} />
-        <label className="auth-label">
-          Email
-          <input name="email" type="email" required autoComplete="email" className="auth-input" />
-        </label>
-        <label className="auth-label">
-          Password
-          <input
-            name="password"
-            type="password"
-            required
-            minLength={8}
-            autoComplete="new-password"
-            className="auth-input"
-          />
-        </label>
-        <button type="submit" className="auth-submit">Create account</button>
-      </form>
+      <details className="auth-email">
+        <summary>Sign up with email</summary>
+        <form action={signUp} className="auth-form" style={{ marginTop: "0.75rem" }}>
+          <input type="hidden" name="next" value={next} />
+          <label className="auth-label">
+            Email
+            <input name="email" type="email" required autoComplete="email" className="auth-input" />
+          </label>
+          <label className="auth-label">
+            Password
+            <input
+              name="password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              className="auth-input"
+            />
+          </label>
+          <button type="submit" className="auth-submit">Create account</button>
+        </form>
+      </details>
 
       <p className="auth-alt">
         Already have an account? <Link href={`/login?next=${encodeURIComponent(next)}`}>Sign in</Link>

@@ -35,31 +35,33 @@ export default async function LoginPage({
           <Bolt className="h-4 w-4" /> Continue with Discord
         </button>
       </form>
+      <p className="auth-recommended">Recommended — instant Premium role &amp; claim your balance.</p>
 
-      <div className="auth-divider"><span>or</span></div>
-
-      <form action={signIn} className="auth-form">
-        <input type="hidden" name="next" value={next} />
-        <label className="auth-label">
-          Email
-          <input name="email" type="email" required autoComplete="email" className="auth-input" />
-        </label>
-        <label className="auth-label">
-          Password
-          <input name="password" type="password" required autoComplete="current-password" className="auth-input" />
-        </label>
-        <button type="submit" className="auth-submit">Sign in</button>
-      </form>
-
-      <details className="auth-forgot">
-        <summary>Forgot your password?</summary>
-        <form action={requestPasswordReset} className="auth-form" style={{ marginTop: "0.75rem" }}>
+      <details className="auth-email">
+        <summary>Continue with email</summary>
+        <form action={signIn} className="auth-form" style={{ marginTop: "0.75rem" }}>
+          <input type="hidden" name="next" value={next} />
           <label className="auth-label">
             Email
-            <input name="email" type="email" required className="auth-input" />
+            <input name="email" type="email" required autoComplete="email" className="auth-input" />
           </label>
-          <button type="submit" className="auth-submit-secondary">Email me a reset link</button>
+          <label className="auth-label">
+            Password
+            <input name="password" type="password" required autoComplete="current-password" className="auth-input" />
+          </label>
+          <button type="submit" className="auth-submit">Sign in</button>
         </form>
+
+        <details className="auth-forgot" style={{ marginTop: "0.75rem" }}>
+          <summary>Forgot your password?</summary>
+          <form action={requestPasswordReset} className="auth-form" style={{ marginTop: "0.75rem" }}>
+            <label className="auth-label">
+              Email
+              <input name="email" type="email" required className="auth-input" />
+            </label>
+            <button type="submit" className="auth-submit-secondary">Email me a reset link</button>
+          </form>
+        </details>
       </details>
 
       <p className="auth-alt">
