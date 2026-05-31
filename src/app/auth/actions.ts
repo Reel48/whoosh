@@ -3,7 +3,10 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { sanitizeNext } from "@/lib/session";
+import { getSession, sanitizeNext } from "@/lib/session";
+import { persistHandle, setHasPassword } from "@/lib/auth";
+
+const HANDLE_RE = /^[A-Za-z0-9_]{3,20}$/;
 
 /**
  * Auth server actions backing the /login, /signup, and /account forms. All run
@@ -92,13 +95,49 @@ export async function requestPasswordReset(formData: FormData) {
 
 export async function updatePassword(formData: FormData) {
   const password = String(formData.get("password") ?? "");
+  // `back` lets both the recovery page and the account card reuse this action.
+  const back = sanitizeNext(String(formData.get("back") ?? "/account/password"));
   if (password.length < 8) {
-    redirect(`/account/password?error=${encodeURIComponent("Password must be at least 8 characters.")}`);
+    redirect(`${back}?error=${encodeURIComponent("Password must be at least 8 characters.")}`);
   }
   const sb = await createServerSupabase();
-  const { error } = await sb.auth.updateUser({ password });
+  const { data, error } = await sb.auth.updateUser({ password });
   if (error) {
-    redirect(`/account/password?error=${encodeURIComponent(error.message)}`);
+    redirect(`${back}?error=${encodeURIComponent(error.message)}`);
   }
+  // Record that email + password login is now available for this account.
+  if (data.user) await setHasPassword(data.user.id, true).catch(() => {});
   redirect("/account?password=updated");
+}
+
+/** Change the unique @handle (shown on leaderboards, used for WB transfers). */
+export async function updateHandle(formData: FormData) {
+  const handle = String(formData.get("handle") ?? "").trim();
+  const session = await getSession();
+  if (!session) redirect("/login?next=/account");
+  if (!HANDLE_RE.test(handle)) {
+    redirect(`/account?error=${encodeURIComponent("Handle must be 3–20 letters, numbers, or underscores.")}`);
+  }
+  const res = await persistHandle(session.id, handle);
+  if (!res.ok) {
+    redirect(`/account?error=${encodeURIComponent(res.message)}`);
+  }
+  redirect("/account?handle=updated");
+}
+
+/** Add or change the login email. Supabase emails a confirmation to the new
+ *  address; /auth/confirm verifies it and makes it the login email. */
+export async function updateEmail(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim();
+  const session = await getSession();
+  if (!session) redirect("/login?next=/account");
+  const sb = await createServerSupabase();
+  const { error } = await sb.auth.updateUser(
+    { email },
+    { emailRedirectTo: `${await origin()}/auth/confirm?next=/account` },
+  );
+  if (error) {
+    redirect(`/account?error=${encodeURIComponent(error.message)}`);
+  }
+  redirect("/account?email=pending");
 }

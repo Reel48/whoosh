@@ -557,6 +557,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           discord_user_id: string | null
+          has_password: boolean
           is_admin: boolean
           stripe_customer_id: string | null
           updated_at: string
@@ -567,6 +568,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           discord_user_id?: string | null
+          has_password?: boolean
           is_admin?: boolean
           stripe_customer_id?: string | null
           updated_at?: string
@@ -577,6 +579,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           discord_user_id?: string | null
+          has_password?: boolean
           is_admin?: boolean
           stripe_customer_id?: string | null
           updated_at?: string
@@ -1116,6 +1119,7 @@ export type Database = {
         }[]
       }
       fn_wb_total_supply: { Args: never; Returns: number }
+      normalize_handle: { Args: { input: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never

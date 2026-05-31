@@ -3,7 +3,8 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { hasPremiumRole, addPremiumRole } from "@/lib/discord";
 import { findSubscriptionForUser } from "@/lib/stripe";
-import { signOut } from "@/app/auth/actions";
+import { signOut, updateHandle, updateEmail, updatePassword } from "@/app/auth/actions";
+import { getAuthMethods } from "@/lib/auth";
 import { LinkDiscordButton } from "@/components/account/LinkDiscordButton";
 import { Avatar } from "@/components/Avatar";
 import { Bolt } from "@/components/Bolt";
@@ -46,16 +47,22 @@ function formatDate(unix: number) {
   });
 }
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; handle?: string; password?: string; email?: string }>;
+}) {
   const session = await getSession();
   if (!session) {
     redirect("/login?next=/account");
   }
+  const sp = await searchParams;
 
   const discordId = session.discordUserId;
 
   await ensureWallet(session.id, session.username);
-  const [initialRoleGranted, sub, referral, earned] = await Promise.all([
+  const [authMethods, initialRoleGranted, sub, referral, earned] = await Promise.all([
+    getAuthMethods(session.id).catch(() => ({ hasDiscord: !!discordId, hasPassword: session.hasPassword, email: session.email, emailVerified: false })),
     discordId
       ? hasPremiumRole(discordId).catch((e) => {
           console.error("Premium role lookup failed:", e);
@@ -122,6 +129,11 @@ export default async function AccountPage() {
           Your account
         </span>
 
+        {sp.error && <AccountNotice tone="error">{sp.error}</AccountNotice>}
+        {sp.handle === "updated" && <AccountNotice tone="ok">Handle updated.</AccountNotice>}
+        {sp.password === "updated" && <AccountNotice tone="ok">Password set — you can now sign in with email + password.</AccountNotice>}
+        {sp.email === "pending" && <AccountNotice tone="ok">Check your inbox to confirm your new email address.</AccountNotice>}
+
         {/* Identity card — BLUE block */}
         <div className="mt-6 flex items-center gap-4 rounded-3xl border-2 border-ink bg-blue p-6 text-ink">
           <Avatar
@@ -130,12 +142,12 @@ export default async function AccountPage() {
             size={64}
             className="border-2 border-ink"
           />
-          <div className="flex-1">
-            <h1 className="font-heading text-2xl font-black tracking-tight">
+          <div className="flex-1 min-w-0">
+            <h1 className="truncate font-heading text-2xl font-black tracking-tight">
               @{session.username}
             </h1>
             <p className="mt-1 text-sm font-medium text-ink/80">
-              {discordId ? "Discord connected" : "No Discord connected"}
+              {authMethods.email ?? "No email set"}
             </p>
           </div>
           <form action={signOut}>
@@ -148,18 +160,86 @@ export default async function AccountPage() {
           </form>
         </div>
 
-        {!discordId && (
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink">
-            <div className="flex-1">
-              <h2 className="font-heading text-lg font-bold">Connect Discord</h2>
-              <p className="mt-1 text-sm font-medium text-ink/70">
-                Link your Discord to claim any existing Whoosh Bucks balance and
-                to receive the Premium role and members-only channels.
+        {/* Sign-in methods + profile management */}
+        <div className="mt-6 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
+          <h2 className="font-heading text-xl font-bold">Sign-in &amp; profile</h2>
+
+          {/* Discord */}
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink/10 pb-5">
+            <div className="min-w-0">
+              <p className="font-heading font-bold">Discord</p>
+              <p className="mt-0.5 text-sm font-medium text-ink/70">
+                {discordId
+                  ? "Connected — Premium role + members-only channels unlocked."
+                  : "Connect to claim your balance and unlock the Premium role + channels."}
               </p>
             </div>
-            <LinkDiscordButton />
+            {discordId ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-pigment-green px-3 py-1 text-xs font-bold uppercase tracking-wider text-white-smoke">
+                <span className="inline-flex h-2 w-2 rounded-full bg-white-smoke" /> Connected
+              </span>
+            ) : (
+              <LinkDiscordButton />
+            )}
           </div>
-        )}
+
+          {/* Handle */}
+          <form action={updateHandle} className="mt-5 flex flex-wrap items-end gap-3 border-b-2 border-ink/10 pb-5">
+            <label className="flex-1 min-w-[12rem] text-xs font-bold uppercase tracking-wider text-ink/60">
+              Handle
+              <div className="mt-1 flex items-center rounded-xl border-2 border-ink bg-white px-3">
+                <span className="font-heading font-black text-ink/50">@</span>
+                <input
+                  name="handle"
+                  defaultValue={session.username}
+                  pattern="[A-Za-z0-9_]{3,20}"
+                  title="3–20 letters, numbers, or underscores"
+                  required
+                  className="w-full bg-transparent py-2 pl-1 font-medium text-ink outline-none"
+                />
+              </div>
+            </label>
+            <button type="submit" className="rounded-full border-2 border-ink bg-ink px-5 py-2.5 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90">
+              Save handle
+            </button>
+          </form>
+
+          {/* Email */}
+          <form action={updateEmail} className="mt-5 flex flex-wrap items-end gap-3 border-b-2 border-ink/10 pb-5">
+            <label className="flex-1 min-w-[12rem] text-xs font-bold uppercase tracking-wider text-ink/60">
+              {authMethods.email ? "Change email" : "Add email"}
+              <input
+                name="email"
+                type="email"
+                required
+                defaultValue={authMethods.email ?? ""}
+                className="mt-1 w-full rounded-xl border-2 border-ink bg-white px-3 py-2 font-medium text-ink outline-none"
+              />
+            </label>
+            <button type="submit" className="rounded-full border-2 border-ink bg-white-smoke px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke">
+              {authMethods.email ? "Update email" : "Add email"}
+            </button>
+          </form>
+
+          {/* Password */}
+          <form action={updatePassword} className="mt-5 flex flex-wrap items-end gap-3">
+            <input type="hidden" name="back" value="/account" />
+            <label className="flex-1 min-w-[12rem] text-xs font-bold uppercase tracking-wider text-ink/60">
+              {authMethods.hasPassword ? "Change password" : "Set a password (enables email login)"}
+              <input
+                name="password"
+                type="password"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className="mt-1 w-full rounded-xl border-2 border-ink bg-white px-3 py-2 font-medium text-ink outline-none"
+              />
+            </label>
+            <button type="submit" className="rounded-full border-2 border-ink bg-white-smoke px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-white-smoke">
+              {authMethods.hasPassword ? "Update password" : "Set password"}
+            </button>
+          </form>
+        </div>
 
         {/* Premium status card — neutral so colored status pills can live inside */}
         <div className="mt-6 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
@@ -316,6 +396,13 @@ export default async function AccountPage() {
 
 // Suppress unused-import warning when not used inline
 void formatWb;
+
+function AccountNotice({ tone, children }: { tone: "error" | "ok"; children: React.ReactNode }) {
+  const cls = tone === "error" ? "bg-imperial-red text-white-smoke" : "bg-pigment-green text-white-smoke";
+  return (
+    <p className={`mt-4 rounded-xl border-2 border-ink px-4 py-2.5 text-sm font-medium ${cls}`}>{children}</p>
+  );
+}
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
