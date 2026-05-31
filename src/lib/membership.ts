@@ -46,3 +46,14 @@ export async function requirePremiumSession(): Promise<Session> {
   if (!(await isPremium(session.id))) redirect("/");
   return session;
 }
+
+/**
+ * Sign-in-only gate for sections that don't require Premium (e.g. Fantasy,
+ * where access is sold per-league). Sends anonymous visitors through Discord
+ * OAuth and back to where they were headed.
+ */
+export async function requireSession(next = "/home"): Promise<Session> {
+  const session = await getSession();
+  if (!session) redirect(`/api/auth/discord?next=${encodeURIComponent(next)}`);
+  return session;
+}

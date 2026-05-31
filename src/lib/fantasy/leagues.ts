@@ -32,6 +32,17 @@ export type FantasyLeagueConfig = {
   logoUrl: string | null;
   /** Game type — standard H2H, or a pick'em / survivor pool. */
   kind: LeagueKind;
+  /** One-time entry fee in USD cents. null/0 = not purchasable (free/legacy). */
+  entryFeeCents: number | null;
+  /** Sleeper invite link, revealed only after a paid entitlement. */
+  joinUrl: string | null;
+  /** Interchangeable leagues share one product/payment. Falls back to the
+   *  league id (each league is then its own group). */
+  groupKey: string;
+  /** Max paid entries per league — used to balance auto-assignment. */
+  capacity: number;
+  /** Display name for the shared product (e.g. "Whoosh PPR League"). */
+  productName: string | null;
 };
 
 export type StandingRow = {
@@ -70,7 +81,7 @@ export function teamNameFor(user: SleeperLeagueUser | undefined, rosterId: numbe
 export async function listActiveLeagues(): Promise<FantasyLeagueConfig[]> {
   const { data, error } = await supabase()
     .from("fantasy_league")
-    .select("sleeper_league_id, season, name, sort, active, logo_url, kind")
+    .select("sleeper_league_id, season, name, sort, active, logo_url, kind, entry_fee_cents, join_url, group_key, capacity, product_name")
     .eq("active", true)
     .order("sort", { ascending: true })
     .order("created_at", { ascending: true });
@@ -81,7 +92,7 @@ export async function listActiveLeagues(): Promise<FantasyLeagueConfig[]> {
 export async function listAllLeagues(): Promise<FantasyLeagueConfig[]> {
   const { data, error } = await supabase()
     .from("fantasy_league")
-    .select("sleeper_league_id, season, name, sort, active, logo_url, kind")
+    .select("sleeper_league_id, season, name, sort, active, logo_url, kind, entry_fee_cents, join_url, group_key, capacity, product_name")
     .order("sort", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) throw new Error(`listAllLeagues failed: ${error.message}`);
@@ -91,7 +102,7 @@ export async function listAllLeagues(): Promise<FantasyLeagueConfig[]> {
 export async function getLeagueConfig(sleeperLeagueId: string): Promise<FantasyLeagueConfig | null> {
   const { data, error } = await supabase()
     .from("fantasy_league")
-    .select("sleeper_league_id, season, name, sort, active, logo_url, kind")
+    .select("sleeper_league_id, season, name, sort, active, logo_url, kind, entry_fee_cents, join_url, group_key, capacity, product_name")
     .eq("sleeper_league_id", sleeperLeagueId)
     .maybeSingle();
   if (error) throw new Error(`getLeagueConfig failed: ${error.message}`);
@@ -107,6 +118,12 @@ function shapeConfig(r: Record<string, unknown>): FantasyLeagueConfig {
     active: Boolean(r.active),
     logoUrl: (r.logo_url as string | null) ?? null,
     kind: ((r.kind as string) ?? "standard") as LeagueKind,
+    entryFeeCents: (r.entry_fee_cents as number | null) ?? null,
+    joinUrl: (r.join_url as string | null) ?? null,
+    // Falls back to the league id so an ungrouped league is its own product.
+    groupKey: (r.group_key as string | null)?.trim() || String(r.sleeper_league_id),
+    capacity: Number(r.capacity ?? 10),
+    productName: (r.product_name as string | null) ?? null,
   };
 }
 

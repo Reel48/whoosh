@@ -22,6 +22,31 @@ function refresh() {
   revalidatePath("/fantasy/leagues");
 }
 
+/** Parse a dollars string ("25", "9.99", "") into USD cents, or null when blank. */
+function parseFeeCents(raw: FormDataEntryValue | null): number | null {
+  const s = String(raw ?? "").trim().replace(/^\$/, "");
+  if (!s) return null;
+  const dollars = Number(s);
+  if (!Number.isFinite(dollars) || dollars < 0) throw new Error("Entry fee must be a non-negative number.");
+  return Math.round(dollars * 100);
+}
+
+/** Read the per-league commerce fields shared by add + update. */
+function commerceFields(formData: FormData) {
+  const groupKey = String(formData.get("group_key") ?? "").trim() || null;
+  const productName = String(formData.get("product_name") ?? "").trim() || null;
+  const joinUrl = String(formData.get("join_url") ?? "").trim() || null;
+  const capacityRaw = String(formData.get("capacity") ?? "").trim();
+  const capacity = capacityRaw ? Math.max(1, Math.round(Number(capacityRaw))) : 10;
+  return {
+    entry_fee_cents: parseFeeCents(formData.get("entry_fee")),
+    group_key: groupKey,
+    product_name: productName,
+    join_url: joinUrl,
+    capacity,
+  };
+}
+
 /** Add a curated Whoosh league. Validates the id against Sleeper and pulls
  *  season/name defaults from the league when not supplied. */
 export async function addLeagueAction(formData: FormData): Promise<void> {
@@ -45,6 +70,7 @@ export async function addLeagueAction(formData: FormData): Promise<void> {
       active: true,
       // Auto-classify: standard H2H vs a pick'em / survivor pool.
       kind: detectLeagueKind(league),
+      ...commerceFields(formData),
     },
     { onConflict: "sleeper_league_id" },
   );
@@ -61,7 +87,7 @@ export async function updateLeagueAction(formData: FormData): Promise<void> {
 
   const { error } = await supabase()
     .from("fantasy_league")
-    .update({ name: nameOverride, sort })
+    .update({ name: nameOverride, sort, ...commerceFields(formData) })
     .eq("sleeper_league_id", sleeperLeagueId);
   if (error) throw new Error(`Could not update league: ${error.message}`);
   refresh();

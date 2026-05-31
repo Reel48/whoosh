@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { listAllLeagues } from "@/lib/fantasy/leagues";
+import { entitlementCountsByLeague } from "@/lib/fantasy/entitlements";
 import { getNflState } from "@/lib/sleeper/client";
 import {
   addLeagueAction,
@@ -14,10 +15,14 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminFantasyPage() {
-  const [leagues, state] = await Promise.all([
+  const [leagues, state, fillCounts] = await Promise.all([
     listAllLeagues(),
     getNflState().catch(() => null),
+    entitlementCountsByLeague().catch(() => new Map<string, number>()),
   ]);
+
+  const fmtFee = (cents: number | null): string =>
+    cents && cents > 0 ? `$${(cents / 100).toFixed(cents % 100 === 0 ? 0 : 2)}` : "Free";
 
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 sm:py-16">
@@ -82,6 +87,52 @@ export default async function AdminFantasyPage() {
             className="mt-1 w-20 rounded-lg border-2 border-ink bg-white px-3 py-2"
           />
         </label>
+
+        {/* Commerce: leave entry fee blank for a free league. Leagues sharing a
+            group key are interchangeable and sold as one product. */}
+        <label className="text-sm font-medium">
+          Entry fee ($)
+          <input
+            name="entry_fee"
+            placeholder="blank = free"
+            inputMode="decimal"
+            className="mt-1 w-full rounded-lg border-2 border-ink bg-white px-3 py-2"
+          />
+        </label>
+        <label className="text-sm font-medium">
+          Group key
+          <input
+            name="group_key"
+            placeholder="e.g. ppr (blank = own group)"
+            className="mt-1 w-full rounded-lg border-2 border-ink bg-white px-3 py-2"
+          />
+        </label>
+        <label className="text-sm font-medium">
+          Product name
+          <input
+            name="product_name"
+            placeholder="e.g. Whoosh PPR League"
+            className="mt-1 w-full rounded-lg border-2 border-ink bg-white px-3 py-2"
+          />
+        </label>
+        <label className="text-sm font-medium">
+          Capacity
+          <input
+            name="capacity"
+            type="number"
+            defaultValue={10}
+            className="mt-1 w-20 rounded-lg border-2 border-ink bg-white px-3 py-2"
+          />
+        </label>
+        <label className="text-sm font-medium sm:col-span-4">
+          Sleeper invite URL (revealed after payment)
+          <input
+            name="join_url"
+            placeholder="https://sleeper.com/i/…"
+            className="mt-1 w-full rounded-lg border-2 border-ink bg-white px-3 py-2"
+          />
+        </label>
+
         <div className="sm:col-span-4">
           <button
             type="submit"
@@ -127,6 +178,16 @@ export default async function AdminFantasyPage() {
                     </div>
                     <div className="font-mono text-xs text-ink/60">
                       {l.sleeperLeagueId} · {l.season} · sort {l.sort}
+                    </div>
+                    <div className="mt-0.5 text-xs font-semibold text-ink/70">
+                      {fmtFee(l.entryFeeCents)}
+                      {l.groupKey && l.groupKey !== l.sleeperLeagueId
+                        ? ` · group “${l.groupKey}”`
+                        : ""}
+                      {(l.entryFeeCents ?? 0) > 0
+                        ? ` · ${fillCounts.get(l.sleeperLeagueId) ?? 0}/${l.capacity} paid`
+                        : ""}
+                      {l.joinUrl ? " · invite ✓" : (l.entryFeeCents ?? 0) > 0 ? " · ⚠ no invite" : ""}
                     </div>
                   </div>
                 </div>
@@ -175,6 +236,54 @@ export default async function AdminFantasyPage() {
                     type="number"
                     defaultValue={l.sort}
                     className="mt-1 block w-20 rounded-lg border-2 border-ink bg-white px-3 py-1.5"
+                  />
+                </label>
+                <label className="font-medium">
+                  Fee ($)
+                  <input
+                    name="entry_fee"
+                    inputMode="decimal"
+                    defaultValue={l.entryFeeCents ? (l.entryFeeCents / 100).toString() : ""}
+                    placeholder="free"
+                    className="mt-1 block w-24 rounded-lg border-2 border-ink bg-white px-3 py-1.5"
+                  />
+                </label>
+                <label className="font-medium">
+                  Group
+                  <input
+                    name="group_key"
+                    defaultValue={
+                      l.groupKey && l.groupKey !== l.sleeperLeagueId ? l.groupKey : ""
+                    }
+                    placeholder="own group"
+                    className="mt-1 block w-28 rounded-lg border-2 border-ink bg-white px-3 py-1.5"
+                  />
+                </label>
+                <label className="font-medium">
+                  Product
+                  <input
+                    name="product_name"
+                    defaultValue={l.productName ?? ""}
+                    placeholder="(product name)"
+                    className="mt-1 block w-48 rounded-lg border-2 border-ink bg-white px-3 py-1.5"
+                  />
+                </label>
+                <label className="font-medium">
+                  Cap
+                  <input
+                    name="capacity"
+                    type="number"
+                    defaultValue={l.capacity}
+                    className="mt-1 block w-20 rounded-lg border-2 border-ink bg-white px-3 py-1.5"
+                  />
+                </label>
+                <label className="font-medium w-full">
+                  Sleeper invite URL
+                  <input
+                    name="join_url"
+                    defaultValue={l.joinUrl ?? ""}
+                    placeholder="https://sleeper.com/i/…"
+                    className="mt-1 block w-full rounded-lg border-2 border-ink bg-white px-3 py-1.5"
                   />
                 </label>
                 <button

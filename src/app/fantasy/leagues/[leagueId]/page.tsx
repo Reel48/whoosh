@@ -5,10 +5,13 @@ import { getNflState } from "@/lib/sleeper/client";
 import { getLeagueOverview } from "@/lib/fantasy/leagues";
 import { getWeekMatchups } from "@/lib/fantasy/matchups";
 import { getLink } from "@/lib/fantasy/link";
+import { hasLeagueAccess } from "@/lib/fantasy/entitlements";
 import { currentScoringWeek, weekLabel } from "@/lib/fantasy/format";
 import { StandingsTable } from "@/components/fantasy/StandingsTable";
 import { MatchupCard } from "@/components/fantasy/MatchupCard";
 import { TeamAvatar } from "@/components/fantasy/TeamAvatar";
+import { LeaguePaywall } from "@/components/fantasy/LeaguePaywall";
+import { InviteCard } from "@/components/fantasy/InviteCard";
 
 export const dynamic = "force-dynamic";
 
@@ -32,12 +35,43 @@ export default async function LeagueDetailPage({
   const sp = await searchParams;
   const view: View = VIEWS.some((v) => v.key === sp.view) ? (sp.view as View) : "standings";
 
-  const [overview, link, state] = await Promise.all([
-    getLeagueOverview(leagueId).catch(() => null),
+  const overview = await getLeagueOverview(leagueId).catch(() => null);
+  if (!overview) notFound();
+
+  // Per-league paywall: a priced league requires a paid entitlement seating the
+  // member here. Free/legacy leagues (no fee) stay open to any signed-in member.
+  const cfg = overview.config;
+  const requiresPayment = (cfg.entryFeeCents ?? 0) > 0;
+  const access = requiresPayment
+    ? await hasLeagueAccess(session.id, leagueId, cfg.season).catch(() => false)
+    : true;
+
+  if (!access) {
+    return (
+      <main className="ftb-page ftb-page--wide">
+        <Link href="/fantasy/leagues" className="ftb-link">
+          ← All leagues
+        </Link>
+        <header className="ftb-welcome ftb-mt-sm">
+          <TeamAvatar url={overview.avatarUrl} name={overview.displayName} size={44} />
+          <div className="ftb-welcome__name">
+            <p className="text-eyebrow">{overview.season} season</p>
+            <h1 className="text-h1">{cfg.productName?.trim() || overview.displayName}</h1>
+          </div>
+        </header>
+        <LeaguePaywall
+          groupKey={cfg.groupKey}
+          feeCents={cfg.entryFeeCents ?? 0}
+          productName={cfg.productName?.trim() || overview.displayName}
+        />
+      </main>
+    );
+  }
+
+  const [link, state] = await Promise.all([
     getLink(session.id).catch(() => null),
     getNflState().catch(() => null),
   ]);
-  if (!overview) notFound();
 
   const mineRosterId =
     link != null
@@ -62,6 +96,10 @@ export default async function LeagueDetailPage({
           <h1 className="text-h1">{overview.displayName}</h1>
         </div>
       </header>
+
+      {requiresPayment && cfg.joinUrl && (
+        <InviteCard joinUrl={cfg.joinUrl} leagueName={overview.displayName} />
+      )}
 
       <div className="ftb-tabs ftb-mt">
         {VIEWS.map((v) => (

@@ -5,6 +5,7 @@ import { creditLedger } from "@/lib/wb/ledger";
 import { WB_PER_USD } from "@/lib/wb/purchase";
 import { pendingReferralFor, markReferralRewarded } from "@/lib/wb/referrals";
 import { pushNotification } from "@/lib/wb/notifications";
+import { assignEntitlement } from "@/lib/fantasy/entitlements";
 
 // Both parties get this when a referred user converts to Premium.
 const REFERRAL_REWARD_WB_CENTS = 5000; // $50 WB
@@ -104,6 +105,55 @@ export async function POST(req: Request) {
             });
           } else {
             console.warn("wb_purchase checkout had no wb_cents", session.id);
+          }
+          break;
+        }
+
+        // Fantasy league buy-in (one-time) → seat the buyer in a league within
+        // the purchased group. Idempotent via the DB function (dedupes on the
+        // checkout session id), so the success-page finalizer can race this
+        // safely. Does NOT grant the Premium role — league access is standalone.
+        if (session.metadata?.kind === "league_entry") {
+          const groupKey = session.metadata.group_key;
+          const season = session.metadata.season;
+          const username = session.metadata.discord_username ?? "";
+          if (!groupKey || !season) {
+            console.warn("league_entry checkout missing group_key/season", session.id);
+            break;
+          }
+          const paymentIntentId =
+            typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : session.payment_intent?.id ?? null;
+          const ent = await assignEntitlement({
+            discordUserId: userId,
+            discordUsername: username,
+            groupKey,
+            season,
+            amountCents: session.amount_total ?? 0,
+            stripeSessionId: session.id,
+            stripePaymentIntentId: paymentIntentId,
+          });
+          if (ent?.status === "active" && ent.assignedLeagueId) {
+            await pushNotification({
+              userId,
+              kind: "system",
+              title: "You're in!",
+              body: "Your league spot is confirmed — open it to grab your Sleeper invite.",
+              href: `/fantasy/leagues/${ent.assignedLeagueId}`,
+              metadata: { session_id: session.id, group_key: groupKey },
+            }).catch(() => {});
+          } else {
+            // group full → seated as `unassigned`; commissioner resolves manually.
+            await pushNotification({
+              userId,
+              kind: "system",
+              title: "Payment received",
+              body: "Your buy-in is in. We're finalizing your league spot and will follow up shortly.",
+              href: "/fantasy/leagues",
+              metadata: { session_id: session.id, group_key: groupKey, status: ent?.status ?? "unknown" },
+            }).catch(() => {});
+            console.warn(`league_entry could not seat ${userId} in group ${groupKey} (${ent?.status})`);
           }
           break;
         }

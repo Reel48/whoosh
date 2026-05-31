@@ -2,7 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getPoolDetail } from "@/lib/fantasy/pools";
+import { hasLeagueAccess } from "@/lib/fantasy/entitlements";
 import { TeamAvatar } from "@/components/fantasy/TeamAvatar";
+import { LeaguePaywall } from "@/components/fantasy/LeaguePaywall";
+import { InviteCard } from "@/components/fantasy/InviteCard";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +25,35 @@ export default async function PoolDetailPage({
 
   const isSurvivor = pool.kind === "survivor";
 
+  // Per-pool paywall, mirroring the H2H leagues.
+  const cfg = pool.config;
+  const requiresPayment = (cfg.entryFeeCents ?? 0) > 0;
+  const access = requiresPayment
+    ? await hasLeagueAccess(session.id, leagueId, cfg.season).catch(() => false)
+    : true;
+
+  if (!access) {
+    return (
+      <main className="ftb-page ftb-page--wide">
+        <Link href="/fantasy/leagues" className="ftb-link">
+          ← All leagues
+        </Link>
+        <header className="ftb-welcome ftb-mt-sm">
+          <TeamAvatar url={pool.logoUrl} name={pool.displayName} size={44} />
+          <div className="ftb-welcome__name">
+            <p className="text-eyebrow">Fantasy · {KIND_LABEL[pool.kind] ?? "Pool"}</p>
+            <h1 className="text-h1">{cfg.productName?.trim() || pool.displayName}</h1>
+          </div>
+        </header>
+        <LeaguePaywall
+          groupKey={cfg.groupKey}
+          feeCents={cfg.entryFeeCents ?? 0}
+          productName={cfg.productName?.trim() || pool.displayName}
+        />
+      </main>
+    );
+  }
+
   return (
     <main className="ftb-page ftb-page--wide">
       <Link href="/fantasy/leagues" className="ftb-link">
@@ -36,6 +68,10 @@ export default async function PoolDetailPage({
         </div>
         <span className="badge badge-accent">{KIND_LABEL[pool.kind] ?? "Pool"}</span>
       </header>
+
+      {requiresPayment && cfg.joinUrl && (
+        <InviteCard joinUrl={cfg.joinUrl} leagueName={pool.displayName} />
+      )}
 
       {/* Summary + link out — picks/standings live on Sleeper. */}
       <section className="card ftb-mt-lg">
