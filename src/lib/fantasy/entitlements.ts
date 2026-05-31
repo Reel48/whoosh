@@ -101,7 +101,8 @@ export async function assignEntitlement(input: AssignInput): Promise<Entitlement
     p_season: input.season,
     p_amount_cents: input.amountCents,
     p_session_id: input.stripeSessionId,
-    p_payment_intent_id: input.stripePaymentIntentId ?? null,
+    // Nullable `text` param under-typed as non-null by the type generator.
+    p_payment_intent_id: (input.stripePaymentIntentId ?? null) as string,
   });
   if (error) throw new Error(`assignEntitlement failed: ${error.message}`);
   const row = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | null;

@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import type { TablesInsert } from "@/lib/database.types";
 import {
   fetchOddsForSport,
   getEnabledSports,
@@ -126,7 +127,7 @@ async function upsertOutcomes(
   }
 
   let count = 0;
-  const toInsert: Record<string, unknown>[] = [];
+  const toInsert: TablesInsert<"bet_outcome">[] = [];
   for (const o of outcomes) {
     const id = byKey.get(o.outcomeKey);
     if (id) {
