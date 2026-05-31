@@ -191,13 +191,8 @@ function RankList<T extends Entry>({
             <div className="flex items-center gap-2 min-w-0 sm:gap-3">
               <Avatar
                 username={e.discordUsername}
-                size={28}
-                className="border-theme border-ink flex-none sm:hidden"
-              />
-              <Avatar
-                username={e.discordUsername}
                 size={32}
-                className="border-theme border-ink flex-none hidden sm:block"
+                className="border-theme border-ink flex-none"
               />
               <div className="min-w-0">
                 {/* Badge lives as a sibling of the truncated username — if it
