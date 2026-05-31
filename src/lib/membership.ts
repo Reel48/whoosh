@@ -23,14 +23,17 @@ export const PREMIUM_CACHE_TAG = "membership:premium";
  * granted yet — fall back to a Stripe subscription lookup keyed by `user_id`.
  */
 async function _isPremium(userId: string): Promise<boolean> {
+  let discordId: string | null = null;
   try {
-    const discordId = await getLinkedDiscordId(userId);
+    discordId = await getLinkedDiscordId(userId);
     if (discordId && (await hasPremiumRole(discordId))) return true;
   } catch {
     // Discord may be down or unlinked — fall through to Stripe.
   }
   try {
-    const sub = await findSubscriptionForUser(userId);
+    // Pass the linked Discord id so legacy subs (keyed by discord_user_id only)
+    // are still recognized.
+    const sub = await findSubscriptionForUser(userId, discordId);
     return sub?.status === "active" || sub?.status === "trialing";
   } catch {
     return false;

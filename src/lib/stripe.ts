@@ -36,18 +36,25 @@ export type SubscriptionSummary = {
 
 /**
  * Find the most relevant subscription for an app user, preferring active ones.
- * Uses Stripe's Search API to query the `user_id` metadata we set at checkout
- * time. Returns null if none exists.
+ * Uses Stripe's Search API. New subscriptions carry `metadata.user_id`; legacy
+ * ones (created before the auth migration) carry only `metadata.discord_user_id`,
+ * so when the caller passes the user's linked Discord id we match either — that
+ * keeps existing subscribers recognized as Premium. Returns null if none exists.
  *
  * Note: Stripe Search has eventual consistency (a few seconds). Brand-new
  * subscriptions may not appear for a moment after payment.
  */
 export async function findSubscriptionForUser(
   userId: string,
+  discordUserId?: string | null,
 ): Promise<SubscriptionSummary | null> {
-  const safe = userId.replace(/"/g, ""); // metadata values shouldn't contain quotes anyway
+  const safeUser = userId.replace(/"/g, ""); // metadata values shouldn't contain quotes anyway
+  const parts = [`metadata["user_id"]:"${safeUser}"`];
+  if (discordUserId) {
+    parts.push(`metadata["discord_user_id"]:"${discordUserId.replace(/"/g, "")}"`);
+  }
   const res = await stripe().subscriptions.search({
-    query: `metadata["user_id"]:"${safe}"`,
+    query: parts.join(" OR "),
     limit: 10,
   });
   if (res.data.length === 0) return null;
@@ -91,6 +98,33 @@ function statusRank(s: Stripe.Subscription.Status): number {
     default:
       return 5;
   }
+}
+
+/**
+ * Stamp `metadata.user_id` onto a user's legacy subscription(s) (those created
+ * with only `discord_user_id`). Makes future renewal crediting + role revoke
+ * resolve to the correct app account, and lets direct user_id lookups work.
+ * Idempotent: skips subs that already carry `user_id`. Returns the Stripe
+ * customer id when found (for persisting onto the profile). Best-effort.
+ */
+export async function backfillSubscriptionUserId(
+  userId: string,
+  discordUserId: string,
+): Promise<string | null> {
+  const safe = discordUserId.replace(/"/g, "");
+  const res = await stripe().subscriptions.search({
+    query: `metadata["discord_user_id"]:"${safe}"`,
+    limit: 10,
+  });
+  let customerId: string | null = null;
+  for (const sub of res.data) {
+    customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+    if (sub.metadata?.user_id === userId) continue;
+    await stripe().subscriptions.update(sub.id, {
+      metadata: { ...sub.metadata, user_id: userId },
+    });
+  }
+  return customerId;
 }
 
 /** Create a Stripe Customer Portal session and return its URL. */

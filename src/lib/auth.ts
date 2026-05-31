@@ -1,5 +1,6 @@
 import "server-only";
 import { supabase } from "@/lib/supabase";
+import { backfillSubscriptionUserId } from "@/lib/stripe";
 
 /**
  * Server-side profile + account-link helpers, built on the service-role client.
@@ -181,6 +182,17 @@ export async function syncDiscordIdentityAndClaim(userId: string): Promise<strin
   if (claimErr) {
     // Non-fatal: the link still succeeded; log for follow-up.
     console.warn(`claim_legacy_wallet failed for ${userId}:`, claimErr.message);
+  }
+
+  // Heal legacy subscriptions: stamp user_id onto any Stripe sub created with
+  // only discord_user_id (pre-migration), and persist the customer id. This is
+  // what makes an existing subscriber show as Premium + get renewals credited
+  // to their (now claimed) wallet. Best-effort — never block the link.
+  try {
+    const customerId = await backfillSubscriptionUserId(userId, link.discordUserId);
+    if (customerId) await setStripeCustomerId(userId, customerId);
+  } catch (e) {
+    console.warn(`subscription backfill failed for ${userId}:`, e);
   }
 
   return link.discordUserId;

@@ -19,7 +19,7 @@ async function handle(req: Request) {
     );
   }
 
-  const sub = await findSubscriptionForUser(session.id);
+  const sub = await findSubscriptionForUser(session.id, session.discordUserId);
   if (!sub) {
     return NextResponse.redirect(new URL("/account?error=no_subscription", req.url));
   }
