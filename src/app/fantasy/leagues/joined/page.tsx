@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Stripe from "stripe";
 import { getSession } from "@/lib/session";
 import { assignEntitlement } from "@/lib/fantasy/entitlements";
+import { creditCheckoutSession } from "@/lib/wb/stripeCredits";
 import { getLeagueConfig } from "@/lib/fantasy/leagues";
 import { InviteCard } from "@/components/fantasy/InviteCard";
 
@@ -61,6 +62,9 @@ export default async function JoinedPage({
         } else if (ent) {
           status = "unassigned";
         }
+        // Credit the fantasy WB match now (idempotent — webhook/reconciler also
+        // do this) so the buyer's balance reflects it immediately.
+        await creditCheckoutSession(stripe, cs).catch(() => {});
       }
     } catch (e) {
       console.error("Joined finalize failed:", e);

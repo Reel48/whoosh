@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listSubscriptions, type SubscriptionListItem } from "@/lib/stripe";
 import type Stripe from "stripe";
+import { reconcileWbAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ function formatDate(unix: number) {
   });
 }
 
-type SearchParams = Promise<{ filter?: string }>;
+type SearchParams = Promise<{ filter?: string; reconciled?: string; scanned?: string }>;
 
 export default async function AdminSubscribersPage({
   searchParams,
@@ -37,6 +38,7 @@ export default async function AdminSubscribersPage({
   const params = await searchParams;
   const filterKey = params.filter ?? "active";
   const filter = FILTERS.find((f) => f.key === filterKey) ?? FILTERS[0];
+  const reconciled = params.reconciled;
 
   let subs: SubscriptionListItem[] = [];
   let error: string | null = null;
@@ -60,7 +62,7 @@ export default async function AdminSubscribersPage({
             {filter.label.toLowerCase()}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {FILTERS.map((f) => (
             <Link
               key={f.key}
@@ -74,8 +76,27 @@ export default async function AdminSubscribersPage({
               {f.label}
             </Link>
           ))}
+          <form action={reconcileWbAction}>
+            <button
+              type="submit"
+              title="Credit any missed Stripe → Whoosh Bucks (premium, purchases, fantasy). Idempotent."
+              className="rounded-full border-2 border-ink bg-pigment-green px-3 py-1 text-xs font-bold uppercase tracking-wider text-white-smoke hover:opacity-90"
+            >
+              Reconcile WB
+            </button>
+          </form>
         </div>
       </div>
+
+      {reconciled !== undefined && (
+        <div className="mt-6 rounded-xl border-2 border-ink bg-white-smoke px-4 py-3 text-sm font-medium">
+          {reconciled === "err"
+            ? "Reconcile failed — check server logs."
+            : `Reconcile complete — ${reconciled} new credit${reconciled === "1" ? "" : "s"} applied${
+                params.scanned ? ` (${params.scanned} paid objects scanned)` : ""
+              }.`}
+        </div>
+      )}
 
       {error && (
         <div className="mt-6 rounded-xl border-2 border-ink bg-imperial-red px-4 py-3 text-sm font-medium text-white-smoke">

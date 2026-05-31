@@ -4,7 +4,7 @@ import { revalidateTag } from "next/cache";
 import { addPremiumRole, removePremiumRole, GUILD_MEMBER_CACHE_TAG } from "@/lib/discord";
 import { PREMIUM_CACHE_TAG } from "@/lib/membership";
 import { creditLedger } from "@/lib/wb/ledger";
-import { WB_PER_USD } from "@/lib/wb/purchase";
+import { creditCheckoutSession, creditInvoicePremiumMatch } from "@/lib/wb/stripeCredits";
 import { pendingReferralFor, markReferralRewarded } from "@/lib/wb/referrals";
 import { pushNotification } from "@/lib/wb/notifications";
 import { assignEntitlement } from "@/lib/fantasy/entitlements";
@@ -104,22 +104,11 @@ export async function POST(req: Request) {
         }
 
         // Whoosh Bucks one-time purchase — credit ledger, do NOT grant Premium.
+        // Idempotent + amount recomputed from amount_total in the shared helper.
         if (session.metadata?.kind === "wb_purchase") {
-          const wbCents = Number(session.metadata.wb_cents ?? session.amount_total ?? 0);
-          const username = session.metadata.discord_username ?? "";
-          if (wbCents > 0) {
-            await creditLedger({
-              discordUserId: userId,
-              discordUsername: username,
-              amountCents: wbCents,
-              kind: "purchase",
-              refKind: "stripe_event",
-              refId: event.id,
-              memo: `Bought $${Math.round(wbCents / 100).toLocaleString("en-US")} of Whoosh Bucks`,
-              metadata: { session_id: session.id },
-            });
-          } else {
-            console.warn("wb_purchase checkout had no wb_cents", session.id);
+          const r = await creditCheckoutSession(stripe, session);
+          if (!r.credited && r.reason && r.reason !== "duplicate") {
+            console.warn("wb_purchase not credited", session.id, r.reason);
           }
           break;
         }
@@ -170,6 +159,11 @@ export async function POST(req: Request) {
             }).catch(() => {});
             console.warn(`league_entry could not seat ${userId} in group ${groupKey} (${ent?.status})`);
           }
+          // Fantasy WB match (2.5 WB per $1) — credited regardless of seating,
+          // since they paid. Idempotent by checkout session id.
+          await creditCheckoutSession(stripe, session).catch((e) =>
+            console.warn("league_entry WB credit failed (non-fatal)", session.id, e),
+          );
           break;
         }
 
@@ -234,67 +228,14 @@ export async function POST(req: Request) {
         break;
       }
       case "invoice.paid": {
-        // Premium match: credit WB equal to the invoice amount for any
-        // subscription invoice that maps back to a Discord user. Forward-only —
-        // past invoices are not replayed.
-        //
-        // The invoice's shape depends on the Stripe account/endpoint API
-        // version (constructEvent does NOT reshape the payload), so resolve the
-        // subscription across both shapes:
-        //   - newer (>=2025-03-31.basil): invoice.parent.subscription_details
-        //   - older: top-level invoice.subscription (string id)
-        // Then read discord_user_id from the metadata snapshot, falling back to
-        // fetching the subscription if the snapshot doesn't carry it.
+        // Premium match: 10 WB per $1 on every paid subscription invoice (first
+        // payment AND renewals). Resolution + crediting live in the shared
+        // helper, idempotent by invoice id and reused by the reconciler.
         const invoice = event.data.object as Stripe.Invoice;
-
-        let subscriptionId: string | undefined;
-        let subMeta: Record<string, string> = {};
-
-        const parent = (invoice as { parent?: Stripe.Invoice.Parent | null }).parent ?? null;
-        if (parent?.type === "subscription_details" && parent.subscription_details) {
-          const sd = parent.subscription_details;
-          subscriptionId =
-            typeof sd.subscription === "string" ? sd.subscription : sd.subscription?.id;
-          subMeta = (sd.metadata ?? {}) as Record<string, string>;
-        } else {
-          const legacy = (invoice as { subscription?: string | { id: string } }).subscription;
-          subscriptionId = typeof legacy === "string" ? legacy : legacy?.id;
+        const r = await creditInvoicePremiumMatch(stripe, invoice);
+        if (!r.credited && r.reason && r.reason !== "duplicate") {
+          console.warn("invoice.paid not credited", invoice.id, r.reason);
         }
-
-        // Subscription invoice but no metadata snapshot → fetch the live sub.
-        if (subscriptionId && !subMeta.discord_user_id) {
-          try {
-            const sub = await stripe.subscriptions.retrieve(subscriptionId);
-            subMeta = (sub.metadata ?? {}) as Record<string, string>;
-          } catch (e) {
-            console.warn("invoice.paid: failed to fetch subscription", subscriptionId, e);
-          }
-        }
-
-        const userId =
-          (invoice.metadata?.discord_user_id as string | undefined) ?? subMeta.discord_user_id;
-        const username =
-          (invoice.metadata?.discord_username as string | undefined) ??
-          subMeta.discord_username ??
-          "";
-        if (!userId) {
-          console.warn("invoice.paid without discord_user_id metadata", invoice.id);
-          break;
-        }
-        const usdCents = invoice.amount_paid ?? 0;
-        if (usdCents <= 0) break;
-        // 1 USD = WB_PER_USD WB → scale invoice USD cents up to WB cents.
-        const wbCents = usdCents * WB_PER_USD;
-        await creditLedger({
-          discordUserId: userId,
-          discordUsername: username,
-          amountCents: wbCents,
-          kind: "premium_match",
-          refKind: "stripe_event",
-          refId: event.id,
-          memo: `Premium match for invoice ${invoice.id}`,
-          metadata: { invoice_id: invoice.id, subscription_id: subscriptionId, usd_cents: usdCents },
-        });
         break;
       }
       case "customer.subscription.deleted": {

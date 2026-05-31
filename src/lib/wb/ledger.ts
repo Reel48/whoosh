@@ -4,6 +4,7 @@ import type { Json } from "@/lib/database.types";
 export type LedgerKind =
   | "purchase"
   | "premium_match"
+  | "fantasy_match"
   | "interest"
   | "transfer_in"
   | "transfer_out"

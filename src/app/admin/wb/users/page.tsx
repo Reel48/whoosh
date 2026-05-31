@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 const KIND_LABEL: Record<LedgerKind, string> = {
   purchase: "Purchase",
   premium_match: "Premium match",
+  fantasy_match: "Fantasy match",
   interest: "Interest",
   transfer_in: "Received",
   transfer_out: "Sent",
