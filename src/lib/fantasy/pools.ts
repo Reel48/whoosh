@@ -64,16 +64,20 @@ export async function listPoolSummaries(): Promise<PoolSummary[]> {
         getLeague(c.sleeperLeagueId).catch(() => null),
         getRosters(c.sleeperLeagueId).catch(() => []),
       ]);
+      // Sleeper keeps every roster *slot* from prior seasons even after members
+      // are removed, so rosters.length over-counts. Only rosters with an
+      // owner_id are actually claimed — that's the real number signed up.
+      const claimed = rosters.filter((r) => r.owner_id);
       const aliveCount =
         c.kind === "survivor"
-          ? rosters.filter((r) => r.metadata?.is_eliminated !== "true").length
+          ? claimed.filter((r) => r.metadata?.is_eliminated !== "true").length
           : null;
       return {
         config: c,
         kind: c.kind,
         displayName: c.name?.trim() || league?.name || "Pool",
         logoUrl: c.logoUrl ?? avatarThumbUrl(league?.avatar ?? null),
-        totalEntries: rosters.length || league?.total_rosters || 0,
+        totalEntries: claimed.length,
         aliveCount,
         sleeperUrl: sleeperUrl(c.sleeperLeagueId),
       };
@@ -95,12 +99,15 @@ export async function getPoolDetail(sleeperLeagueId: string): Promise<PoolDetail
   // config.kind is "pickem" | "survivor" here (standard returned above).
   const kind = config.kind;
   const byUser = usersById(users);
+  // Only claimed rosters are real participants — Sleeper retains empty slots
+  // from prior seasons (see listPoolSummaries).
+  const claimed = rosters.filter((r) => r.owner_id);
   // Same as the H2H leagues: linked member's Discord PFP → Sleeper avatar → monogram.
-  const ownerAvatars = await resolveOwnerAvatars(rosters.map((r) => r.owner_id)).catch(
+  const ownerAvatars = await resolveOwnerAvatars(claimed.map((r) => r.owner_id)).catch(
     () => new Map<string, string>(),
   );
 
-  const entries: PoolEntry[] = rosters.map((r) => {
+  const entries: PoolEntry[] = claimed.map((r) => {
     const user = r.owner_id ? byUser.get(r.owner_id) : undefined;
     return {
       rosterId: r.roster_id,
