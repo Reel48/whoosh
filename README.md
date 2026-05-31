@@ -53,6 +53,17 @@ npx supabase db reset   # applies every migration from scratch, then supabase/se
 
 `db reset` is also the way to verify a fresh, in-order apply of all migrations.
 
+## Tests
+
+- `npm test` — fast unit tests (`*.test.ts`). No database needed; safe for CI.
+- `npm run test:integration` — money-engine invariant tests (`*.itest.ts`) that
+  run the real `src/lib/wb/*` RPC wrappers against a **local** Supabase stack.
+  Start the stack first (`npx supabase start && npx supabase db reset`). These
+  cover ledger idempotency, no-negative-balance/overspend rejection, supply
+  conservation across transfers, bet settlement payout math, and dividend
+  crediting. Config: `vitest.integration.config.ts` (points at 127.0.0.1 with
+  the default local keys — never production).
+
 ## Roadmap
 
 - Connect Whoosh's own Stripe account for subscription checkout
