@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
 import { ensureWallet } from "@/lib/wb/ledger";
 import { placeWager } from "@/lib/wb/bets";
 import { evaluateAchievements } from "@/lib/wb/achievements";
+import { requireSession } from "@/lib/api/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,10 +25,8 @@ function back(req: Request, next: string, params: Record<string, string>): NextR
  * Bucks (matching the Capital events form, which treats the field as WB).
  */
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.redirect(new URL("/api/auth/discord?next=/fantasy/matchups", req.url), 303);
-  }
+  const session = await requireSession(req, "/fantasy/matchups");
+  if (session instanceof NextResponse) return session;
   await ensureWallet(session.id, session.username);
 
   let eventId = 0;

@@ -1,20 +1,17 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
 import { ensureWallet } from "@/lib/wb/ledger";
 import { placeWager } from "@/lib/wb/bets";
 import { evaluateAchievements } from "@/lib/wb/achievements";
+import { redirectError, redirectOk, requireSession } from "@/lib/api/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const DEST = "/capital/events";
+
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.redirect(
-      new URL("/api/auth/discord?next=/capital/events", req.url),
-      303,
-    );
-  }
+  const session = await requireSession(req, DEST);
+  if (session instanceof NextResponse) return session;
   await ensureWallet(session.id, session.username);
 
   let eventId = 0;
@@ -28,25 +25,18 @@ export async function POST(req: Request) {
     stakeCents =
       typeof raw === "string" && raw.trim() !== "" ? Math.round(Number(raw) * 100) : 0;
   } catch {
-    return back(req, "Could not parse request.");
+    return redirectError(req, DEST, "Could not parse request.");
   }
 
-  if (!eventId || !outcomeId) return back(req, "Missing event or outcome.");
+  if (!eventId || !outcomeId) return redirectError(req, DEST, "Missing event or outcome.");
   if (!Number.isFinite(stakeCents) || stakeCents <= 0) {
-    return back(req, "Enter a positive stake.");
+    return redirectError(req, DEST, "Enter a positive stake.");
   }
 
   const result = await placeWager(session.id, eventId, outcomeId, stakeCents);
-  if (!result.ok) return back(req, result.error);
+  if (!result.ok) return redirectError(req, DEST, result.error);
 
   await evaluateAchievements(session.id).catch(() => {});
 
-  return NextResponse.redirect(new URL("/capital/events?wager=ok", req.url), 303);
-}
-
-function back(req: Request, msg: string) {
-  return NextResponse.redirect(
-    new URL(`/capital/events?error=${encodeURIComponent(msg)}`, req.url),
-    303,
-  );
+  return redirectOk(req, DEST, "wager=ok");
 }

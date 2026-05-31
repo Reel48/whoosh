@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
 import { setLink, clearLink } from "@/lib/fantasy/link";
+import { requireSession } from "@/lib/api/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,10 +18,8 @@ function back(req: Request, next: string, params: Record<string, string>): NextR
 }
 
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.redirect(new URL("/api/auth/discord?next=/fantasy", req.url), 303);
-  }
+  const session = await requireSession(req, "/fantasy");
+  if (session instanceof NextResponse) return session;
 
   let username = "";
   let next = "/fantasy";

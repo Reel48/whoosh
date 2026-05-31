@@ -1,21 +1,18 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
 import { ensureWallet } from "@/lib/wb/ledger";
 import { getQuote } from "@/lib/wb/quotes";
 import { placeOrder } from "@/lib/wb/invest";
 import { evaluateAchievements } from "@/lib/wb/achievements";
+import { redirectError, redirectOk, requireSession } from "@/lib/api/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const DEST = "/capital/invest";
+
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.redirect(
-      new URL("/api/auth/discord?next=/capital/invest", req.url),
-      303,
-    );
-  }
+  const session = await requireSession(req, DEST);
+  if (session instanceof NextResponse) return session;
   await ensureWallet(session.id, session.username);
 
   let symbol = "";
@@ -36,16 +33,16 @@ export async function POST(req: Request) {
       shares = Number(sh);
     }
   } catch {
-    return back(req, "Could not parse request.");
+    return redirectError(req, DEST, "Could not parse request.");
   }
 
-  if (!symbol) return back(req, "Symbol is required.");
+  if (!symbol) return redirectError(req, DEST, "Symbol is required.");
   if ((amountCents <= 0 || !Number.isFinite(amountCents)) && (!shares || !Number.isFinite(shares))) {
-    return back(req, "Enter either a USD amount or a share count.");
+    return redirectError(req, DEST, "Enter either a USD amount or a share count.");
   }
 
   const quote = await getQuote(symbol);
-  if (!quote) return back(req, `No quote available for ${symbol}.`);
+  if (!quote) return redirectError(req, DEST, `No quote available for ${symbol}.`);
 
   // Convert dollar amount → fractional shares (6 dp). For sells, prefer share
   // count if provided so the user can close out a position cleanly.
@@ -55,19 +52,12 @@ export async function POST(req: Request) {
   } else {
     orderShares = Math.round((amountCents / quote.priceCents) * 1_000_000) / 1_000_000;
   }
-  if (orderShares <= 0) return back(req, "Order size too small.");
+  if (orderShares <= 0) return redirectError(req, DEST, "Order size too small.");
 
   const result = await placeOrder(session.id, symbol, side, orderShares, quote.priceCents);
-  if (!result.ok) return back(req, result.error);
+  if (!result.ok) return redirectError(req, DEST, result.error);
 
   await evaluateAchievements(session.id).catch(() => {});
 
-  return NextResponse.redirect(new URL("/capital/invest?order=ok", req.url), 303);
-}
-
-function back(req: Request, msg: string) {
-  return NextResponse.redirect(
-    new URL(`/capital/invest?error=${encodeURIComponent(msg)}`, req.url),
-    303,
-  );
+  return redirectOk(req, DEST, "order=ok");
 }
