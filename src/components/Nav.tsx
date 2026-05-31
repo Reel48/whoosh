@@ -12,7 +12,6 @@ const DISCORD_INVITE = "https://discord.gg/zzP8nFFzQt";
 
 export async function Nav() {
   const session = await getSession();
-  const isAdmin = session?.isAdmin ?? false;
   const inServer = session?.discordUserId
     ? await isGuildMember(session.discordUserId).catch(() => false)
     : false;
@@ -39,15 +38,6 @@ export async function Nav() {
 
         <div className="flex items-center gap-5 text-sm font-semibold sm:gap-7">
           <NavLinks />
-
-          {isAdmin && (
-            <Link
-              href="/admin"
-              className="hidden rounded-full border-2 border-ink bg-ink px-3 py-1 text-xs font-bold uppercase tracking-wider text-white-smoke hover:opacity-90 sm:inline"
-            >
-              Admin
-            </Link>
-          )}
 
           {session && <NotificationsBell />}
 
@@ -79,7 +69,6 @@ export async function Nav() {
 
           <MobileMenu
             signedIn={!!session}
-            isAdmin={isAdmin}
             username={session?.username ?? null}
           />
         </div>

@@ -160,6 +160,23 @@ export default async function AccountPage({
           </form>
         </div>
 
+        {session.isAdmin && (
+          <Link
+            href="/admin"
+            className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-ink p-6 text-white-smoke transition-opacity hover:opacity-90"
+          >
+            <div className="min-w-0">
+              <h2 className="font-heading text-xl font-bold">Admin dashboard</h2>
+              <p className="mt-1 text-sm font-medium text-white-smoke/70">
+                Manage subscribers, Whoosh Bucks, and fantasy leagues.
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full border-2 border-white-smoke px-4 py-2 text-sm font-bold">
+              Open →
+            </span>
+          </Link>
+        )}
+
         {/* Sign-in methods + profile management */}
         <div className="mt-6 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
           <h2 className="font-heading text-xl font-bold">Sign-in &amp; profile</h2>

@@ -8,7 +8,6 @@ import { signOut } from "@/app/auth/actions";
 
 type Props = {
   signedIn: boolean;
-  isAdmin: boolean;
   username: string | null;
 };
 
@@ -27,7 +26,7 @@ const SIGNED_IN_LINKS = [
   { href: "/account", label: "Account" },
 ];
 
-export function MobileMenu({ signedIn, isAdmin, username }: Props) {
+export function MobileMenu({ signedIn, username }: Props) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const lastPathnameRef = useRef(pathname);
@@ -125,14 +124,6 @@ export function MobileMenu({ signedIn, isAdmin, username }: Props) {
               </a>
             ))}
 
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="mt-2 rounded-2xl border-2 border-ink bg-ink px-4 py-3 text-center text-sm font-bold uppercase tracking-wider text-white-smoke"
-              >
-                Admin
-              </Link>
-            )}
 
             <div className="my-4 h-px bg-ink/15" />
 

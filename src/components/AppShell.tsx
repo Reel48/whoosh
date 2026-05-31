@@ -39,7 +39,6 @@ export async function AppShell({
   children: React.ReactNode;
 }) {
   const session = await getSession();
-  const isAdmin = session?.isAdmin ?? false;
 
   const current = section ? SECTIONS[section] : null;
 
@@ -77,15 +76,6 @@ export async function AppShell({
           )}
 
           <div className="flex flex-1 items-center justify-end gap-3">
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="hidden rounded-theme border-theme border-ink bg-ink px-3 py-1 text-xs font-bold uppercase tracking-wider text-white hover:opacity-90 sm:inline"
-              >
-                Admin
-              </Link>
-            )}
-
             {session && <NotificationsBell />}
 
             {session && (
