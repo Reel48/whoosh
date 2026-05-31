@@ -80,7 +80,7 @@ export default async function CapitalHome() {
     getBiggestWinsLeaderboard(3, 7).catch(() => []),
     getReferralStats(session.id).catch(() => null),
     listEarned(session.id).catch(() => []),
-    findSubscriptionForUser(session.id).catch(() => null),
+    findSubscriptionForUser(session.id, session.discordUserId).catch(() => null),
   ]);
 
   // Legacy members hold the Discord Premium role from the old payment

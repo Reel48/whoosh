@@ -69,7 +69,7 @@ export default async function AccountPage({
           return false;
         })
       : Promise.resolve(false),
-    findSubscriptionForUser(session.id).catch((e) => {
+    findSubscriptionForUser(session.id, session.discordUserId).catch((e) => {
       console.error("Stripe subscription lookup failed:", e);
       return null;
     }),
