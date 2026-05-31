@@ -1,8 +1,17 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { hasPremiumRole } from "@/lib/discord";
 import { findSubscriptionForDiscordUser } from "@/lib/stripe";
 import { getSession, type Session } from "@/lib/session";
+
+/**
+ * Tag for the cross-request premium-decision cache. The Stripe webhook calls
+ * `revalidateTag(PREMIUM_CACHE_TAG)` after a role grant/revoke so a brand-new
+ * subscriber (or a just-canceled one) sees the change on their next request
+ * instead of waiting out the TTL.
+ */
+export const PREMIUM_CACHE_TAG = "membership:premium";
 
 /**
  * Single source of truth for "is this user a Whoosh Premium member?"
@@ -12,9 +21,6 @@ import { getSession, type Session } from "@/lib/session";
  * (e.g. brand-new subscriber whose webhook hasn't fired or whose Discord
  * grant is still propagating), falls back to a Stripe subscription
  * lookup so they're treated as premium immediately on checkout success.
- *
- * Wrapped in `react cache()` so multiple call sites within one render
- * (e.g. Nav + page) share a single result.
  */
 async function _isPremium(userId: string): Promise<boolean> {
   try {
@@ -30,7 +36,22 @@ async function _isPremium(userId: string): Promise<boolean> {
   }
 }
 
-export const isPremium = cache(_isPremium);
+/**
+ * The premium decision is read on every signed-in app navigation (each section
+ * `layout.tsx`). Without a cache, users whose Premium role isn't granted yet
+ * hit the uncached Stripe Search API on every page load. Layer a 60s
+ * cross-request cache (keyed per-userId by `unstable_cache`) over the live
+ * check, tagged so the webhook can invalidate it on a grant/revoke. The
+ * staleness window (≤60s) is tighter than the existing 5-min guild-member
+ * cache, so this never widens the access window. React `cache()` on top dedups
+ * the multiple call sites within a single render.
+ */
+const _isPremiumCached = unstable_cache(_isPremium, ["membership:premium"], {
+  revalidate: 60,
+  tags: [PREMIUM_CACHE_TAG],
+});
+
+export const isPremium = cache(_isPremiumCached);
 
 /**
  * Gate for signed-in app sections. Returns the session for a premium member,
