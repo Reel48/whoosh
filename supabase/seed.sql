@@ -1,0 +1,5 @@
+-- Local seed data for `supabase db reset` (development only — never applied to remote).
+--
+-- The migrations in supabase/migrations/ build the full schema and all Postgres
+-- functions. This file is for optional local fixtures (a test wallet, a demo
+-- bet event, etc.) when working against a local stack. Left empty by default.
