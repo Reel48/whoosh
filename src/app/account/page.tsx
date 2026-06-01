@@ -6,6 +6,7 @@ import { findSubscriptionForUser } from "@/lib/stripe";
 import { signOut, updateHandle, updateEmail, updatePassword } from "@/app/auth/actions";
 import { getAuthMethods } from "@/lib/auth";
 import { LinkDiscordButton } from "@/components/account/LinkDiscordButton";
+import { NotificationsBell } from "@/components/NotificationsBell";
 import { Avatar } from "@/components/Avatar";
 import { Bolt } from "@/components/Bolt";
 import { ensureWallet } from "@/lib/wb/ledger";
@@ -146,7 +147,7 @@ export default async function AccountPage({
             <h1 className="truncate font-heading text-2xl font-black tracking-tight">
               @{session.username}
             </h1>
-            <p className="mt-1 text-sm font-medium text-ink/80">
+            <p className="mt-1 truncate text-sm font-medium text-ink/80">
               {authMethods.email ?? "No email set"}
             </p>
           </div>
@@ -158,6 +159,17 @@ export default async function AccountPage({
               Sign out
             </button>
           </form>
+        </div>
+
+        {/* Notifications — moved off the navbar; the bell opens the dropdown. */}
+        <div className="mt-6 flex items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink">
+          <div className="min-w-0">
+            <h2 className="font-heading text-lg font-bold">Notifications</h2>
+            <p className="mt-1 text-sm font-medium text-ink/70">
+              Bet settlements, dividends, transfers, and renewals.
+            </p>
+          </div>
+          <NotificationsBell />
         </div>
 
         {session.isAdmin && (

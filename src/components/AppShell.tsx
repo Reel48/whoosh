@@ -4,7 +4,6 @@ import { getSession } from "@/lib/session";
 import { getTotalEquityCents } from "@/lib/wb/dashboard";
 import { formatWb } from "@/lib/wb/format";
 import { Avatar } from "./Avatar";
-import { NotificationsBell } from "./NotificationsBell";
 import { SectionSubNav } from "./app/SectionSubNav";
 import { MobileRouteStrip } from "./MobileRouteStrip";
 import { BottomTabBar } from "./BottomTabBar";
@@ -98,8 +97,6 @@ export async function AppShell({
                 </span>
               </Link>
             )}
-
-            {session && <NotificationsBell />}
 
             {session && (
               <Link
