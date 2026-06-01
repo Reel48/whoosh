@@ -17,7 +17,7 @@ export default async function NewsLayout({
 }) {
   await requireSession("/news");
   return (
-    <div data-theme="news" className="flex flex-1 flex-col bg-white-smoke text-ink">
+    <div data-theme="news" className="flex flex-1 flex-col bg-white text-ink">
       <AppShell section="news">{children}</AppShell>
     </div>
   );
