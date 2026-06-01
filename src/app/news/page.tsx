@@ -1,7 +1,6 @@
 import { requireSession } from "@/lib/membership";
 import { fetchFeed, resolveSport, SPORTS } from "@/lib/news/espn";
 import { getUserSwipes, getWhooshFeed, getMyKeptArticles } from "@/lib/news/engagement";
-import { SportSelector } from "@/components/news/SportSelector";
 import { SwipeFeed } from "@/components/news/SwipeFeed";
 import { WhooshFeed } from "@/components/news/WhooshFeed";
 import { KeptList } from "@/components/news/KeptList";
@@ -28,7 +27,6 @@ export default async function NewsHome({
     const mine = view === "mine";
     return (
       <main className="flex flex-1 flex-col py-2">
-        <SportSelector active={mine ? "mine" : "whoosh"} />
         {mine ? (
           <KeptList entries={await getMyKeptArticles(session.id)} />
         ) : (
@@ -47,7 +45,6 @@ export default async function NewsHome({
 
   return (
     <main className="flex flex-1 flex-col py-2">
-      <SportSelector active={sport} />
       <SwipeFeed sport={sport} articles={visible} />
     </main>
   );

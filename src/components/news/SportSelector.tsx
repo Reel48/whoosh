@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { SPORT_LIST, type SportKey } from "@/lib/news/espn";
+import { useSearchParams } from "next/navigation";
+import { SPORT_LIST, SPORTS, type SportKey } from "@/lib/news/espn";
 import { FeedMenu } from "./FeedMenu";
 
 const ACTIVE = "border-ink bg-ink text-white";
@@ -13,8 +16,21 @@ export type FeedActive = SportKey | "whoosh" | "mine";
  * without scrolling), then Whoosh Feed (community) and My Keeps (the viewer's
  * kept articles), then one per sport. Each sport sets `?sport=<key>`; My Keeps
  * is `?view=mine`; Whoosh Feed is bare /news.
+ *
+ * The active feed is derived from the URL (rather than passed in) so the
+ * selector can live in the section layout's sticky reveal bar alongside the
+ * score ticker, instead of inside each page.
  */
-export function SportSelector({ active }: { active: FeedActive }) {
+export function SportSelector() {
+  const params = useSearchParams();
+  const sport = params.get("sport");
+  const active: FeedActive =
+    sport && sport in SPORTS
+      ? (sport as SportKey)
+      : params.get("view") === "mine"
+        ? "mine"
+        : "whoosh";
+
   return (
     // The hamburger stays pinned at the far left while the chips scroll. It sits
     // outside the overflow-x-auto row so its dropdown isn't clipped by the
