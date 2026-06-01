@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SECTIONS, type IconKey, type SectionKey } from "@/lib/sections";
+import type { SectionKey } from "@/lib/sections";
 
 type IconProps = { className?: string };
 
@@ -15,74 +15,20 @@ function HomeIcon({ className }: IconProps) {
     </svg>
   );
 }
-function WalletIcon({ className }: IconProps) {
+function CapitalIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="3" y="6" width="18" height="13" rx="2" />
-      <path d="M16 12h3" />
-      <path d="M3 10h15" />
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v10M14.5 9.3C14 8.5 13 8 12 8c-1.4 0-2.5.8-2.5 2s1.1 1.8 2.5 2 2.5.8 2.5 2-1.1 2-2.5 2c-1 0-2-.5-2.5-1.3" />
     </svg>
   );
 }
-function InvestIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="3 17 9 11 13 15 21 7" />
-      <polyline points="14 7 21 7 21 14" />
-    </svg>
-  );
-}
-function EventsIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="4" y="4" width="16" height="16" rx="3" />
-      <circle cx="9" cy="9" r="1.2" fill="currentColor" />
-      <circle cx="15" cy="15" r="1.2" fill="currentColor" />
-      <circle cx="15" cy="9" r="1.2" fill="currentColor" />
-      <circle cx="9" cy="15" r="1.2" fill="currentColor" />
-    </svg>
-  );
-}
-function BetsIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 7h16M4 12h16M4 17h10" />
-    </svg>
-  );
-}
-function OverviewIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="3" y="3" width="7" height="9" rx="1.5" />
-      <rect x="14" y="3" width="7" height="5" rx="1.5" />
-      <rect x="14" y="12" width="7" height="9" rx="1.5" />
-      <rect x="3" y="16" width="7" height="5" rx="1.5" />
-    </svg>
-  );
-}
-function LeaguesIcon({ className }: IconProps) {
+function FantasyIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M7 4h10v3a5 5 0 0 1-10 0V4z" />
       <path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3" />
       <path d="M12 12v4M9 20h6M10 16h4l1 4H9l1-4z" />
-    </svg>
-  );
-}
-function MatchupsIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 6h6v12H4zM14 6h6v12h-6z" />
-      <path d="M11 12h2" />
-    </svg>
-  );
-}
-function RankingsIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M8 21h8M12 17v4" />
-      <path d="M7 4h10v4a5 5 0 0 1-10 0V4z" />
-      <path d="M7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3" />
     </svg>
   );
 }
@@ -95,58 +41,43 @@ function NewsIcon({ className }: IconProps) {
     </svg>
   );
 }
-function AccountIcon({ className }: IconProps) {
+function PoolIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21c1-4 4-6 8-6s7 2 8 6" />
+      <path d="M12 3c3 3.5 4.5 6 4.5 8.5a4.5 4.5 0 0 1-9 0C7.5 9 9 6.5 12 3z" />
     </svg>
   );
 }
-
-const ICONS: Record<IconKey, (p: IconProps) => React.JSX.Element> = {
-  wallet: WalletIcon,
-  invest: InvestIcon,
-  events: EventsIcon,
-  bets: BetsIcon,
-  overview: OverviewIcon,
-  leagues: LeaguesIcon,
-  matchups: MatchupsIcon,
-  rankings: RankingsIcon,
-  news: NewsIcon,
-};
 
 type Tab = {
   href: string;
   label: string;
   Icon: (p: IconProps) => React.JSX.Element;
-  /** Matches when pathname equals href or is nested under it. */
-  prefix?: boolean;
+  /** The section this tab represents (null = the Home hub). */
+  section: SectionKey | null;
 };
 
+const TABS: Tab[] = [
+  { href: "/home", label: "Home", Icon: HomeIcon, section: null },
+  { href: "/capital", label: "Capital", Icon: CapitalIcon, section: "capital" },
+  { href: "/fantasy", label: "Fantasy", Icon: FantasyIcon, section: "fantasy" },
+  { href: "/news", label: "News", Icon: NewsIcon, section: "news" },
+  { href: "/pool", label: "Pool", Icon: PoolIcon, section: "pool" },
+];
+
 /**
- * Persistent bottom tab bar for signed-in mobile users — SECTION-INTERNAL.
- * It never links to other sections; the only way out is the Home tab (the
- * hub). Layout: Home · the current section's primary tabs · Account.
+ * Persistent bottom tab bar for signed-in mobile users — the GLOBAL section
+ * switcher. Home (the hub) plus the four sections, all one tap apart. The
+ * current section's own pages live in the route strip under the header, not
+ * here. Highlights the active section (passed from AppShell, which derives it
+ * server-side) so it's correct on first paint.
  *
- * Sits above the iPhone home indicator (safe-area padding) and auto-hides
- * when the keyboard is open. Hidden on sm+ — desktop uses the header back
- * button + sub-nav. Only rendered inside a section (see AppShell).
+ * Sits above the iPhone home indicator (safe-area padding) and auto-hides when
+ * the keyboard is open. Hidden on sm+ — desktop uses the header switcher.
  */
-export function BottomTabBar({ section }: { section: SectionKey }) {
+export function BottomTabBar({ activeSection }: { activeSection: SectionKey | null }) {
   const pathname = usePathname();
   const [keyboardOpen, setKeyboardOpen] = useState(false);
-
-  const tabs: Tab[] = [
-    { href: "/home", label: "Home", Icon: HomeIcon },
-    ...SECTIONS[section].tabs.map((t) => ({
-      href: t.href,
-      label: t.label,
-      Icon: ICONS[t.icon],
-      prefix: true,
-    })),
-    { href: "/account", label: "Account", Icon: AccountIcon, prefix: true },
-  ];
 
   // Mark the body so the global stylesheet reserves space at the bottom.
   useEffect(() => {
@@ -171,17 +102,23 @@ export function BottomTabBar({ section }: { section: SectionKey }) {
 
   return (
     <nav
-      aria-label="Section"
+      aria-label="Sections"
       className="fixed inset-x-0 bottom-0 z-30 border-t border-ink/10 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden"
     >
       <ul
         className="mx-auto grid w-full max-w-3xl"
-        style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${TABS.length}, minmax(0, 1fr))` }}
       >
-        {tabs.map((t) => {
-          const active = t.prefix
-            ? pathname === t.href || pathname.startsWith(`${t.href}/`)
-            : pathname === t.href;
+        {TABS.map((t) => {
+          // The Home tab matches only the hub; section tabs match their section
+          // anywhere within it. Prefer the server-derived activeSection so the
+          // highlight is right before hydration.
+          const active =
+            t.section === null
+              ? pathname === t.href
+              : activeSection === t.section ||
+                pathname === t.href ||
+                pathname.startsWith(`${t.href}/`);
           return (
             <li key={t.href}>
               <Link

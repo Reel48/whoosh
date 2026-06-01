@@ -13,25 +13,9 @@
 
 export type SectionKey = "capital" | "fantasy" | "pool" | "news";
 
-/** Icon keys resolved to SVGs in the client nav components. */
-export type IconKey =
-  | "wallet"
-  | "invest"
-  | "events"
-  | "bets"
-  | "overview"
-  | "leagues"
-  | "matchups"
-  | "rankings"
-  | "news";
-
 export type NavItem = {
   href: string;
   label: string;
-};
-
-export type TabItem = NavItem & {
-  icon: IconKey;
 };
 
 export type Section = {
@@ -44,12 +28,6 @@ export type Section = {
   tagline: string;
   /** Sub-pages shown in the desktop sub-nav and mobile route strip. */
   nav: NavItem[];
-  /**
-   * Curated subset shown in the mobile bottom tab bar (between the Home and
-   * Account tabs). Empty for placeholder sections. Kept small (≤3) so the bar
-   * stays uncluttered — the full set lives in `nav`.
-   */
-  tabs: TabItem[];
   /** True once the section has real content; false renders a "coming soon". */
   live: boolean;
 };
@@ -67,11 +45,6 @@ export const SECTIONS: Record<SectionKey, Section> = {
       { href: "/capital/events", label: "Events" },
       { href: "/capital/bets", label: "My bets" },
     ],
-    tabs: [
-      { href: "/capital/wallet", label: "Wallet", icon: "wallet" },
-      { href: "/capital/invest", label: "Invest", icon: "invest" },
-      { href: "/capital/events", label: "Events", icon: "events" },
-    ],
     live: true,
   },
   fantasy: {
@@ -85,11 +58,6 @@ export const SECTIONS: Record<SectionKey, Section> = {
       { href: "/fantasy/rankings", label: "Rankings" },
       { href: "/fantasy/matchups", label: "Matchups" },
     ],
-    tabs: [
-      { href: "/fantasy/leagues", label: "Leagues", icon: "leagues" },
-      { href: "/fantasy/rankings", label: "Rankings", icon: "rankings" },
-      { href: "/fantasy/matchups", label: "Matchups", icon: "matchups" },
-    ],
     live: true,
   },
   pool: {
@@ -98,7 +66,6 @@ export const SECTIONS: Record<SectionKey, Section> = {
     href: "/pool",
     tagline: "Pool resources with the crew. Coming soon.",
     nav: [{ href: "/pool", label: "Overview" }],
-    tabs: [],
     live: false,
   },
   news: {
@@ -109,16 +76,15 @@ export const SECTIONS: Record<SectionKey, Section> = {
     // Single page: the sport selector lives in the page body, so there's no
     // sub-nav (SectionSubNav/MobileRouteStrip render null for one nav item).
     nav: [{ href: "/news", label: "Overview" }],
-    tabs: [],
     live: true,
   },
 };
 
 /**
- * Sections shown as cards on the /home hub. Capital is intentionally omitted —
- * it's reached via the Total Equity pill in the app navbar (AppShell), not a
- * hub card. The Capital section itself (SECTIONS.capital) stays fully defined
- * so its pages, sub-nav, and bottom tab bar keep working.
+ * Sections shown as cards on the /home hub. Capital is intentionally omitted as
+ * a hub card — it's reached via its entry in the global SectionSwitcher (which
+ * also shows live Total Equity). The Capital section itself (SECTIONS.capital)
+ * stays fully defined so its pages and sub-nav keep working.
  */
 export const SECTION_LIST: Section[] = [
   SECTIONS.fantasy,

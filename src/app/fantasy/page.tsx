@@ -10,6 +10,7 @@ import { LeagueCard } from "@/components/fantasy/LeagueCard";
 import { CrossLeagueTable } from "@/components/fantasy/CrossLeagueTable";
 import { PoolCard } from "@/components/fantasy/PoolCard";
 import { LinkSleeperForm } from "@/components/fantasy/LinkSleeperForm";
+import { SectionHero } from "@/components/ui/SectionHero";
 import { weekLabel } from "@/lib/fantasy/format";
 
 export const dynamic = "force-dynamic";
@@ -55,13 +56,20 @@ export default async function FantasyHome({
 
   return (
     <main className="ftb-page ftb-page--wide">
-      <header className="ftb-welcome">
-        <div className="ftb-welcome__name">
-          <p className="text-eyebrow">Fantasy Football</p>
-          <h1 className="text-h1">@{session.username}</h1>
-        </div>
-        {state && <span className="badge badge-accent">{weekLabel(state)}</span>}
-      </header>
+      <SectionHero
+        accent="sky"
+        eyebrow="Fantasy Football"
+        title={`@${session.username}`}
+        avatarUrl={session.avatarUrl}
+        username={session.username}
+        aside={
+          state ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-ink px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white-smoke">
+              {weekLabel(state)}
+            </span>
+          ) : undefined
+        }
+      />
 
       {banner && (
         <div className={`alert alert-${banner.tone} ftb-mt`}>

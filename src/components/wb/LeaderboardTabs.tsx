@@ -9,12 +9,25 @@ import type {
   StreakEntry,
 } from "@/lib/wb/leaderboard";
 
+/**
+ * Shared leaderboard, rendered in two skins:
+ *   - "marketing" (default): the public landing + account pages — Tailwind
+ *     utilities on the shared theme tokens (bg-surface, border-ink, …).
+ *   - "capital": the signed-in Capital section — the vendored design-system
+ *     component classes (.card, .cap-tab, .cap-rank, …) from
+ *     src/styles/capital. Pass variant="capital" from inside [data-theme="capital"].
+ * The logic (tab state, formatting, ranking rows) lives once; only the
+ * presentational class names and a couple of copy strings differ by variant.
+ */
+type Variant = "marketing" | "capital";
+
 type Props = {
   holders: LeaderboardEntry[];
   traders: TraderEntry[];
   wins: BiggestWinEntry[];
   streaks: StreakEntry[];
   highlightUserId?: string | null;
+  variant?: Variant;
 };
 
 type Tab = "holders" | "traders" | "wins" | "streaks";
@@ -35,50 +48,99 @@ function fmtMoney(cents: number, opts: { signed?: boolean } = {}): string {
   })}`;
 }
 
+/** Per-variant presentation. Keeps both skins pixel-identical to their forks. */
+type Skin = {
+  root: string;
+  head: string;
+  title: string;
+  subtitle: string;
+  tabsWrap: string;
+  tab: (active: boolean) => string;
+  footnote: string;
+  footnoteStyle?: React.CSSProperties;
+  /** Color props for a signed/positive/negative number. */
+  tone: (n: number) => { className?: string; style?: React.CSSProperties };
+  winsEmpty: string;
+  streaksEmpty: string;
+};
+
+const SKINS: Record<Variant, Skin> = {
+  marketing: {
+    root: "rounded-theme shadow-theme border-theme border-ink bg-surface p-4 sm:p-8",
+    head: "flex flex-wrap items-baseline justify-between gap-3",
+    title: "font-display text-xl font-bold text-ink",
+    subtitle: "text-xs font-bold uppercase tracking-wider text-ink/60",
+    tabsWrap: "mt-4 flex flex-wrap gap-1.5",
+    tab: (active) =>
+      `chip-tap tap-press cursor-pointer rounded-full border-theme border-ink px-4 text-sm font-bold transition-colors ${
+        active
+          ? "bg-ink text-white-smoke"
+          : "bg-surface text-ink hover:bg-ink hover:text-white-smoke"
+      }`,
+    footnote: "mt-4 text-xs text-ink/60",
+    tone: (n) =>
+      n > 0 ? { className: "text-pigment-green" } : n < 0 ? { className: "text-imperial-red" } : {},
+    winsEmpty: "No big wins yet. Lay a bet in /capital/events to qualify.",
+    streaksEmpty: "No active streaks. Open /capital/wallet to claim today's check-in.",
+  },
+  capital: {
+    root: "card",
+    head: "cap-card-head",
+    title: "text-h3",
+    subtitle: "text-caption",
+    tabsWrap: "cap-tabs",
+    tab: (active) => `cap-tab ${active ? "is-active" : ""}`,
+    footnote: "text-caption",
+    footnoteStyle: { marginTop: "var(--space-4)" },
+    tone: (n) =>
+      n > 0
+        ? { style: { color: "var(--positive-text)" } }
+        : n < 0
+          ? { style: { color: "var(--negative-text)" } }
+          : {},
+    winsEmpty: "No big wins yet. Lay a bet in Events to qualify.",
+    streaksEmpty: "No active streaks. Claim today's check-in in Wallet.",
+  },
+};
+
 export function LeaderboardTabs({
   holders,
   traders,
   wins,
   streaks,
   highlightUserId,
+  variant = "marketing",
 }: Props) {
   const [tab, setTab] = useState<Tab>("holders");
   const subtitle = TABS.find((t) => t.id === tab)!.subtitle;
+  const skin = SKINS[variant];
 
   return (
-    <div className="rounded-theme shadow-theme border-theme border-ink bg-surface p-4 sm:p-8">
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h2 className="font-display text-xl font-bold text-ink">Leaderboard</h2>
-        <p className="text-xs font-bold uppercase tracking-wider text-ink/60">
-          {subtitle}
-        </p>
+    <div className={skin.root}>
+      <div className={skin.head}>
+        <h2 className={skin.title}>Leaderboard</h2>
+        <p className={skin.subtitle}>{subtitle}</p>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-1.5" role="tablist">
-        {TABS.map((t) => {
-          const active = t.id === tab;
-          return (
-            <button
-              key={t.id}
-              role="tab"
-              type="button"
-              aria-selected={active}
-              onClick={() => setTab(t.id)}
-              className={`chip-tap tap-press cursor-pointer rounded-full border-theme border-ink px-4 text-sm font-bold transition-colors ${
-                active
-                  ? "bg-ink text-white-smoke"
-                  : "bg-surface text-ink hover:bg-ink hover:text-white-smoke"
-              }`}
-            >
-              {t.label}
-            </button>
-          );
-        })}
+      <div className={skin.tabsWrap} role="tablist">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            type="button"
+            aria-selected={t.id === tab}
+            onClick={() => setTab(t.id)}
+            className={skin.tab(t.id === tab)}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      <div className="mt-5">
+      <div className={variant === "marketing" ? "mt-5" : undefined}>
         {tab === "holders" && (
           <RankList
+            variant={variant}
             entries={holders}
             highlightUserId={highlightUserId}
             empty="No one's on the board yet. Buy or earn WB to show up."
@@ -87,21 +149,14 @@ export function LeaderboardTabs({
         )}
         {tab === "traders" && (
           <RankList
+            variant={variant}
             entries={traders}
             highlightUserId={highlightUserId}
             empty="No trades in the last 7 days. Place an order to qualify."
             renderRight={(e) => {
               const t = e as TraderEntry;
               return (
-                <span
-                  className={
-                    t.realizedPlCents > 0
-                      ? "text-pigment-green"
-                      : t.realizedPlCents < 0
-                        ? "text-imperial-red"
-                        : ""
-                  }
-                >
+                <span {...skin.tone(t.realizedPlCents)}>
                   {t.realizedPlCents > 0 ? "▲ " : t.realizedPlCents < 0 ? "▼ " : ""}
                   {fmtMoney(t.realizedPlCents, { signed: true })}
                 </span>
@@ -112,11 +167,12 @@ export function LeaderboardTabs({
         )}
         {tab === "wins" && (
           <RankList
+            variant={variant}
             entries={wins}
             highlightUserId={highlightUserId}
-            empty="No big wins yet. Lay a bet in /capital/events to qualify."
+            empty={skin.winsEmpty}
             renderRight={(e) => (
-              <span className="text-pigment-green">
+              <span {...skin.tone(1)}>
                 ▲ {fmtMoney((e as BiggestWinEntry).payoutCents, { signed: true })}
               </span>
             )}
@@ -131,9 +187,10 @@ export function LeaderboardTabs({
         )}
         {tab === "streaks" && (
           <RankList
+            variant={variant}
             entries={streaks}
             highlightUserId={highlightUserId}
-            empty="No active streaks. Open /capital/wallet to claim today's check-in."
+            empty={skin.streaksEmpty}
             renderRight={(e) => {
               const s = e as StreakEntry;
               return (
@@ -146,7 +203,7 @@ export function LeaderboardTabs({
         )}
       </div>
 
-      <p className="mt-4 text-xs text-ink/60">
+      <p className={skin.footnote} style={skin.footnoteStyle}>
         Updates every minute. Some boards exclude users with no qualifying activity.
       </p>
     </div>
@@ -160,12 +217,14 @@ type Entry = {
 };
 
 function RankList<T extends Entry>({
+  variant,
   entries,
   highlightUserId,
   renderRight,
   renderSub,
   empty,
 }: {
+  variant: Variant;
   entries: T[];
   highlightUserId?: string | null;
   renderRight: (e: T) => React.ReactNode;
@@ -173,8 +232,42 @@ function RankList<T extends Entry>({
   empty: string;
 }) {
   if (entries.length === 0) {
-    return <p className="text-sm text-ink/60">{empty}</p>;
+    return variant === "capital" ? (
+      <p className="text-body-sm" style={{ marginTop: "var(--space-5)" }}>
+        {empty}
+      </p>
+    ) : (
+      <p className="text-sm text-ink/60">{empty}</p>
+    );
   }
+
+  if (variant === "capital") {
+    return (
+      <ol className="cap-rank">
+        {entries.map((e) => {
+          const isMe = highlightUserId && e.discordUserId === highlightUserId;
+          return (
+            <li
+              key={`${e.rank}-${e.discordUserId}`}
+              className={`cap-rank__row ${isMe ? "is-me" : ""}`}
+            >
+              <span className="cap-rank__n">{e.rank}</span>
+              <Avatar username={e.discordUsername} size={32} />
+              <div className="cap-rank__who">
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+                  <span className="cap-rank__name">@{e.discordUsername}</span>
+                  {isMe && <span className="badge badge-info badge-sm">you</span>}
+                </div>
+                {renderSub && <div className="text-caption">{renderSub(e)}</div>}
+              </div>
+              <span className="cap-rank__val">{renderRight(e)}</span>
+            </li>
+          );
+        })}
+      </ol>
+    );
+  }
+
   return (
     <ol className="divide-y-2 divide-ink border-y-2 border-ink">
       {entries.map((e) => {

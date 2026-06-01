@@ -4,33 +4,26 @@ import { getSession } from "@/lib/session";
 import { getTotalEquityCents } from "@/lib/wb/dashboard";
 import { formatWb } from "@/lib/wb/format";
 import { Avatar } from "./Avatar";
+import { SectionSwitcher } from "./SectionSwitcher";
 import { SectionSubNav } from "./app/SectionSubNav";
 import { MobileRouteStrip } from "./MobileRouteStrip";
 import { BottomTabBar } from "./BottomTabBar";
 import { SECTIONS, type SectionKey } from "@/lib/sections";
 
-function BackArrow({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
-  );
-}
-
 /**
- * Chrome for the signed-in app sections. The sections are deliberately
- * isolated: once inside one, the only way to another is back through the
- * /home hub — there is NO cross-section switcher anywhere in the shell.
+ * Chrome for the signed-in app. Every surface (the /home hub and all four
+ * sections) shares one persistent navigation:
  *
- * - Inside a section (`section` set): the header shows a "Home" back button
- *   and the section title; the section's own pages appear in the desktop
- *   sub-nav, mobile route strip, and bottom tab bar. No links to other
- *   sections.
- * - On the /home hub (`section` omitted): just the logo + account. The hub
- *   page body is where sections are chosen. No sub-nav, no bottom bar.
+ * - Header: the Whoosh wordmark (→ hub) + a cross-section switcher so any
+ *   section is one click away. Capital's switcher entry shows live Total
+ *   Equity. Account chip on the right.
+ * - Desktop sub-nav + mobile route strip: the CURRENT section's pages (only
+ *   rendered when inside a section).
+ * - Mobile bottom bar: the global section switcher (Home + the four sections).
  *
- * Each section's `layout.tsx` wraps this in a `data-theme` scope so all of
- * the chrome adopts that section's styling.
+ * (This replaced the old forced-isolation model, where the only path between
+ * sections was back through the hub.) Each section's `layout.tsx` wraps this in
+ * a `data-theme` scope so the chrome adopts that section's styling.
  */
 export async function AppShell({
   section,
@@ -40,11 +33,13 @@ export async function AppShell({
   children: React.ReactNode;
 }) {
   const session = await getSession();
-  // Total Equity for the navbar Capital pill (cheap; quotes are cached). Null
-  // on failure so the header still renders.
+  // Total Equity for the Capital switcher entry (cheap; quotes are cached).
+  // Null on failure so the header still renders.
   const equityCents = session
     ? await getTotalEquityCents(session.id).catch(() => null)
     : null;
+  const equityLabel =
+    equityCents != null ? formatWb(equityCents).replace(/^\$/, "") : null;
 
   const current = section ? SECTIONS[section] : null;
 
@@ -52,52 +47,20 @@ export async function AppShell({
     <>
       <header className="sticky top-0 z-30 border-b border-ink/10 bg-white/95 backdrop-blur">
         <nav className="mx-auto flex w-full max-w-6xl items-center gap-4 px-6 py-4">
-          {current ? (
-            // Inside a section: a single way out — back to the hub.
-            <div className="flex min-w-0 items-center gap-3">
-              <Link
-                href="/home"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-theme border-theme border-ink/15 px-3 py-1.5 text-sm font-display font-bold text-ink transition-colors hover:bg-ink/5"
-              >
-                <BackArrow className="h-4 w-4" />
-                Home
-              </Link>
-              <span className="hidden h-5 w-px bg-ink/15 sm:block" />
-              <span className="truncate font-display text-base font-black tracking-tight text-ink">
-                {current.label}
-              </span>
-            </div>
-          ) : (
-            // On the hub: the wordmark.
-            <Link href="/home" className="block shrink-0" aria-label="Whoosh — home">
-              <Image
-                src="/whoosh-wordmark-ink.svg"
-                alt="Whoosh"
-                width={1440}
-                height={368}
-                className="h-6 w-auto"
-                priority
-              />
-            </Link>
-          )}
+          <Link href="/home" className="block shrink-0" aria-label="Whoosh — home">
+            <Image
+              src="/whoosh-wordmark-ink.svg"
+              alt="Whoosh"
+              width={1440}
+              height={368}
+              className="h-6 w-auto"
+              priority
+            />
+          </Link>
+
+          <SectionSwitcher equityLabel={equityLabel} />
 
           <div className="flex flex-1 items-center justify-end gap-3">
-            {session && (
-              <Link
-                href="/capital"
-                aria-label="Capital — total equity"
-                title="Capital"
-                className="inline-flex items-center gap-1.5 rounded-theme border-theme border-ink/15 py-1 pl-1.5 pr-3 transition-colors hover:bg-ink/5"
-              >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-pigment-green text-sm font-black text-white-smoke">
-                  $
-                </span>
-                <span className="text-sm font-display font-bold tabular-nums text-ink">
-                  {equityCents != null ? formatWb(equityCents).replace(/^\$/, "") : "Capital"}
-                </span>
-              </Link>
-            )}
-
             {session && (
               <Link
                 href="/account"
@@ -111,7 +74,7 @@ export async function AppShell({
         </nav>
       </header>
 
-      {/* Section-internal navigation only — never other sections. */}
+      {/* The current section's own pages (desktop strip + mobile route strip). */}
       {current && (
         <>
           <SectionSubNav links={current.nav} />
@@ -121,9 +84,9 @@ export async function AppShell({
 
       {children}
 
-      {/* Bottom tab bar is section-internal (Home · section tabs · Account) and
-          only appears inside a section. */}
-      {current && <BottomTabBar section={current.key} />}
+      {/* Mobile bottom bar: the global section switcher, shown everywhere in the
+          signed-in app (hub + sections). */}
+      {session && <BottomTabBar activeSection={section ?? null} />}
     </>
   );
 }

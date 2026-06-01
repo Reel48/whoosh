@@ -1,29 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Inter_Tight, JetBrains_Mono, Sora, Quicksand } from "next/font/google";
+import { Inter, Inter_Tight } from "next/font/google";
 import "./globals.css";
 
-// Inter is the shared body/UI typeface across the whole site (marketing +
-// every section). Headings outside a themed section lean on Inter's heavier
-// weights (800/900) for the modernist label feel.
+// The whole site now runs on TWO typefaces:
+//   Inter        (--font-body) — shared body / UI text everywhere. Numerals use
+//                 Inter with tabular-nums (a deliberate earlier decision over a
+//                 mono face), so they line up in tables without a third family.
+//   Inter Tight  (--font-capital) — the brand DISPLAY face. It is the global
+//                 --font-display; every section uses it. Per-section character
+//                 comes from radius / density / accent color, NOT a separate
+//                 typeface. (Sora, Quicksand, and the unused JetBrains Mono were
+//                 dropped in the design-system unification.)
 const inter = Inter({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
-// Section typefaces. Each signed-in section overrides --font-display (see
-// globals.css [data-theme] scopes) to one of these. Colors stay shared; only
-// the typographic personality changes per section.
-//   Capital — Inter Tight (display) + JetBrains Mono (numbers), per the
-//             Whoosh Capital design system. Numbers always render in the mono
-//             face with tabular figures.
-//   Fantasy — Sora (display) + JetBrains Mono (numbers), per the Whoosh Fantasy
-//             design system. Mono carries scores/records with tabular figures.
-//   Pool    — Quicksand: soft, rounded, friendly.
 const interTight = Inter_Tight({ variable: "--font-capital", subsets: ["latin"] });
-const jetbrainsMono = JetBrains_Mono({ variable: "--font-capital-num", subsets: ["latin"] });
-const sora = Sora({ variable: "--font-fantasy", subsets: ["latin"], weight: ["500", "600", "700", "800"] });
-const quicksand = Quicksand({ variable: "--font-pool", subsets: ["latin"] });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://whoosh.business";
 
@@ -75,7 +69,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${interTight.variable} ${jetbrainsMono.variable} ${sora.variable} ${quicksand.variable} antialiased`}
+      className={`${inter.variable} ${interTight.variable} antialiased`}
       style={{ ["--font-heading" as string]: "var(--font-body)" }}
     >
       {/* min-h-dvh (dynamic viewport height), not the old html.h-full + body
