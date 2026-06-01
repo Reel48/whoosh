@@ -5,6 +5,7 @@ import { getTotalEquityCents } from "@/lib/wb/dashboard";
 import { formatWb } from "@/lib/wb/format";
 import { Avatar } from "./Avatar";
 import { SectionSwitcher } from "./SectionSwitcher";
+import { SectionChrome } from "./app/SectionChrome";
 import { SectionSubNav } from "./app/SectionSubNav";
 import { MobileRouteStrip } from "./MobileRouteStrip";
 import { BottomTabBar } from "./BottomTabBar";
@@ -81,21 +82,21 @@ export async function AppShell({
         </nav>
       </header>
 
-      {/* The optional banner (e.g. Capital's market ticker) and the section's
-          page-list nav (desktop strip + mobile route strip) ride together in
-          one sticky group pinned just under the header, so both stay visible
-          the entire time. */}
-      {(banner || subNavLinks) && (
-        <div className="sticky top-[65px] z-20">
-          {banner}
-          {subNavLinks && (
+      {/* The optional banner (e.g. Capital's market ticker) stays pinned just
+          under the header the entire time; the page-list nav (desktop strip +
+          mobile route strip) collapses away on scroll-down and returns on
+          scroll-up. */}
+      <SectionChrome
+        banner={banner}
+        nav={
+          subNavLinks ? (
             <>
               <SectionSubNav links={subNavLinks} />
               <MobileRouteStrip links={subNavLinks} />
             </>
-          )}
-        </div>
-      )}
+          ) : undefined
+        }
+      />
 
       {children}
 

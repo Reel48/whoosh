@@ -3,7 +3,7 @@ import { requireSession } from "@/lib/membership";
 import { AppShell } from "@/components/AppShell";
 import { ScoreTicker } from "@/components/news/ScoreTicker";
 import { SportSelector } from "@/components/news/SportSelector";
-import { NewsRevealBar } from "@/components/news/NewsRevealBar";
+import { SectionChrome } from "@/components/app/SectionChrome";
 
 export const dynamic = "force-dynamic";
 
@@ -23,21 +23,25 @@ export default async function NewsLayout({
   return (
     <div data-theme="news" className="flex flex-1 flex-col bg-white text-ink">
       <AppShell section="news">
-        {/* Ticker + feed selector ride together in a sticky bar that hides on
-            scroll-down and slides back the moment the reader scrolls up. */}
-        <NewsRevealBar>
-          <ScoreTicker />
-          <Suspense
-            fallback={
-              <div
-                className="mx-auto flex w-full max-w-4xl items-stretch gap-2 px-6 py-3"
-                aria-hidden
-              />
-            }
-          >
-            <SportSelector />
-          </Suspense>
-        </NewsRevealBar>
+        {/* The scoreboard ticker stays pinned the whole time; the sport/feed
+            selector collapses on scroll-down and returns on scroll-up. */}
+        <SectionChrome
+          banner={<ScoreTicker />}
+          nav={
+            <div className="border-b border-ink/10 bg-white">
+              <Suspense
+                fallback={
+                  <div
+                    className="mx-auto flex w-full max-w-4xl items-stretch gap-2 px-6 py-3"
+                    aria-hidden
+                  />
+                }
+              >
+                <SportSelector />
+              </Suspense>
+            </div>
+          }
+        />
         {children}
       </AppShell>
     </div>
