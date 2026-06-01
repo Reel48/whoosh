@@ -146,26 +146,27 @@ export default async function WalletPage({
         </div>
       )}
 
-      {/* KPI row */}
-      <section className="card-grid cap-mt">
-        <div className="kpi">
-          <div className="kpi__label">Total equity</div>
-          <div className="kpi__value">{formatMoney(allocation.totalEquityCents)}</div>
-          <div className={`kpi__delta ${returnPos ? "kpi__delta--positive" : "kpi__delta--negative"}`}>
+      {/* KPI strip — three compact columns in one card so it stays a single
+          row (even on a phone) instead of three tall stacked cards. */}
+      <section className="card cap-stat-row cap-mt">
+        <div className="cap-stat">
+          <span className="cap-stat__label">Total equity</span>
+          <span className="cap-stat__value">{formatMoney(allocation.totalEquityCents)}</span>
+          <span className={`cap-stat__delta ${returnPos ? "cap-stat__delta--pos" : "cap-stat__delta--neg"}`}>
             {returnPos ? "▲" : "▼"} {formatMoney(returns.totalReturnCents, { signed: true })} · {formatPct(returns.totalReturnFraction)}
-          </div>
+          </span>
         </div>
-        <div className="kpi">
-          <div className="kpi__label">Cash</div>
-          <div className="kpi__value">{formatMoney(allocation.cashCents)}</div>
-          <div className="kpi__delta">{apyHint ?? "—"}</div>
+        <div className="cap-stat">
+          <span className="cap-stat__label">Cash</span>
+          <span className="cap-stat__value">{formatMoney(allocation.cashCents)}</span>
+          <span className="cap-stat__delta">{apyHint ?? "—"}</span>
         </div>
-        <div className="kpi">
-          <div className="kpi__label">Invested</div>
-          <div className="kpi__value">{formatMoney(allocation.investedValueCents)}</div>
-          <div className="kpi__delta">
+        <div className="cap-stat">
+          <span className="cap-stat__label">Invested</span>
+          <span className="cap-stat__value">{formatMoney(allocation.investedValueCents)}</span>
+          <span className="cap-stat__delta">
             {positions.length > 0 ? `${positions.length} ${positions.length === 1 ? "position" : "positions"}` : "no positions"}
-          </div>
+          </span>
         </div>
       </section>
 
