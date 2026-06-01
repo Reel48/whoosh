@@ -63,6 +63,16 @@
   --theme-card-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
+/* Sports News — clean editorial: Inter Tight display, tight radius, hairline
+ * borders, a faint card shadow. Reads like a news index. */
+[data-theme="news"] {
+  --font-display: var(--font-capital);
+  --font-ui: var(--font-body);
+  --theme-border-width: 1px;
+  --theme-radius: 0.5rem;
+  --theme-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
 @theme inline {
   --color-ink: var(--ink);
   --color-white: var(--white);
