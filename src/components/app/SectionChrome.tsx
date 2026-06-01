@@ -41,18 +41,19 @@ function useHideOnScrollDown(): boolean {
 }
 
 /**
- * Sticky chrome that pins a section's secondary bar just under the AppShell
- * header. The `banner` (Capital's market ticker, the news scoreboard) stays
- * pinned the entire time; the `nav` (page-list / feed selector) slides up
- * behind the banner on scroll-down and slides back on scroll-up.
+ * Sticky chrome parked just under the AppShell header, holding a section's
+ * secondary bar — the `banner` (Capital's market ticker, the news scoreboard)
+ * and the `nav` (page-list / feed selector). The whole group slides up behind
+ * the header on scroll-down to give the page back its space, and slides back
+ * the moment the reader scrolls up.
  *
- * The reveal is a transform — not a height collapse — on purpose: a transform
- * doesn't change document height, so collapsing the nav near the bottom of a
- * short page can't clamp the scroll and re-trigger itself. The banner is opaque
- * and painted above the nav (z-10 over z-0), so the nav tucks fully behind it
- * (and the header). The wrapper is `pointer-events-none` with its children
- * re-enabled, so the space the nav vacates passes clicks through to the page
- * rather than blocking them with an invisible box.
+ * The hide is a transform — not a height collapse — on purpose: a transform
+ * doesn't change document height, so hiding the group near the bottom of a
+ * short page can't clamp the scroll and re-trigger itself. `translateY(-100%)`
+ * tucks the group up by its own height so its bottom edge lands at the header's
+ * (opaque, higher-z) bottom — fully hidden regardless of how tall it is. The
+ * transform is set inline rather than via a Tailwind translate utility because
+ * this build's CSS pipeline doesn't emit the negative translate class.
  */
 export function SectionChrome({
   banner,
@@ -65,19 +66,17 @@ export function SectionChrome({
   if (!banner && !nav) return null;
 
   return (
-    <div className="pointer-events-none sticky top-[65px] z-20">
-      {banner && <div className="pointer-events-auto relative z-10">{banner}</div>}
-      {nav && (
-        <div
-          className={`pointer-events-auto relative z-0 transition-transform duration-200 ease-out ${
-            hidden ? "-translate-y-full" : "translate-y-0"
-          }`}
-          aria-hidden={hidden}
-          inert={hidden || undefined}
-        >
-          {nav}
-        </div>
-      )}
+    <div
+      className="sticky top-[65px] z-20"
+      style={{
+        transform: hidden ? "translateY(-100%)" : "translateY(0)",
+        transition: "transform 200ms ease-out",
+      }}
+      aria-hidden={hidden}
+      inert={hidden || undefined}
+    >
+      {banner}
+      {nav}
     </div>
   );
 }
