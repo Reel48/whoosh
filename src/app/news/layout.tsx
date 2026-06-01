@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/membership";
 import { AppShell } from "@/components/AppShell";
+import { ScoreTicker } from "@/components/news/ScoreTicker";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,10 @@ export default async function NewsLayout({
   await requireSession("/news");
   return (
     <div data-theme="news" className="flex flex-1 flex-col bg-white text-ink">
-      <AppShell section="news">{children}</AppShell>
+      <AppShell section="news">
+        <ScoreTicker />
+        {children}
+      </AppShell>
     </div>
   );
 }
