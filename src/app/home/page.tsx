@@ -6,8 +6,6 @@ import { Bolt } from "@/components/Bolt";
 import { ScoreTicker } from "@/components/news/ScoreTicker";
 import { SECTION_LIST, type Section } from "@/lib/sections";
 import { getGuildOnlineCount, isGuildMember } from "@/lib/discord";
-import { getNflState } from "@/lib/sleeper/client";
-import { weekLabel } from "@/lib/fantasy/format";
 import { getLink } from "@/lib/fantasy/link";
 import { getCrossLeagueScoreboard } from "@/lib/fantasy/rankings";
 import { fetchFeed, DEFAULT_SPORT } from "@/lib/news/espn";
@@ -46,12 +44,11 @@ function greetingFor(date: Date): string {
 export default async function Home() {
   const session = await requireSession("/home");
 
-  const [onlineCount, inServer, nflState, link, board, topArticle] = await Promise.all([
+  const [onlineCount, inServer, link, board, topArticle] = await Promise.all([
     getGuildOnlineCount().catch(() => null),
     session.discordUserId
       ? isGuildMember(session.discordUserId).catch(() => false)
       : Promise.resolve(false),
-    getNflState().catch(() => null),
     getLink(session.id).catch(() => null),
     getCrossLeagueScoreboard().catch(() => ({ rows: [], leagues: [] })),
     fetchFeed(DEFAULT_SPORT)
@@ -61,7 +58,6 @@ export default async function Home() {
 
   const greeting = greetingFor(new Date());
   const discordLabel = inServer ? "Open the Discord" : "Join the Discord";
-  const week = nflState ? weekLabel(nflState) : null;
 
   // Fantasy snapshot for that section's card.
   const myRow = link ? board.rows.find((r) => r.ownerId === link.sleeperUserId) ?? null : null;
@@ -83,9 +79,14 @@ export default async function Home() {
 
   return (
     <AppShell>
-      {/* Hero — vivid color block, marketing language. */}
-      <section className="border-b-2 border-ink bg-blue">
-        <div className="relative mx-auto w-full max-w-5xl overflow-hidden px-6 py-12 sm:py-16">
+      {/* Hero — lime color block; the whole band opens the Discord. */}
+      <section className="border-b-2 border-ink bg-lime">
+        <a
+          href={DISCORD_INVITE}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group relative mx-auto block w-full max-w-5xl overflow-hidden px-6 py-12 transition-opacity hover:opacity-95 sm:py-16"
+        >
           <div className="hatch pointer-events-none absolute inset-0 text-ink/10" />
           <div className="relative">
             <div className="flex items-center gap-3.5">
@@ -105,33 +106,27 @@ export default async function Home() {
               </div>
             </div>
 
-            <p className="mt-6 max-w-md text-lg font-medium leading-relaxed text-ink/80">
-              Here&rsquo;s what&rsquo;s happening across Whoosh today.
+            <p className="mt-6 flex max-w-md items-center gap-1.5 text-lg font-medium leading-relaxed text-ink/80">
+              Sports takes, what to watch, market moves, and the banter in
+              between — it&rsquo;s all in the Discord.
+              <span
+                aria-hidden="true"
+                className="font-heading font-black text-ink transition-transform group-hover:translate-x-1"
+              >
+                →
+              </span>
             </p>
 
-            <div className="mt-7 flex flex-wrap items-center gap-2.5">
-              {week && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-white-smoke px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-ink">
-                  <Bolt className="h-3.5 w-3.5" /> {week}
-                </span>
-              )}
-              {onlineCount != null && onlineCount > 0 && (
+            {onlineCount != null && onlineCount > 0 && (
+              <div className="mt-7">
                 <span className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-white-smoke px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-ink">
                   <span className="inline-flex h-2 w-2 rounded-full border border-ink bg-pigment-green" />
                   {onlineCount.toLocaleString()} online now
                 </span>
-              )}
-              <a
-                href={DISCORD_INVITE}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="chip-tap tap-press inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-ink px-5 py-1.5 text-sm font-bold text-white-smoke transition-opacity hover:opacity-90"
-              >
-                <Bolt className="h-4 w-4" /> {discordLabel}
-              </a>
-            </div>
+              </div>
+            )}
           </div>
-        </div>
+        </a>
       </section>
 
       {/* Live scores — self-contained; renders nothing on a quiet day. */}
@@ -154,7 +149,7 @@ export default async function Home() {
                 key={s.key}
                 href={s.href}
                 data-theme={s.key}
-                className="group flex flex-col gap-4 rounded-theme border-theme border-ink/10 bg-surface p-7 shadow-theme transition-transform hover:-translate-y-1"
+                className="group flex flex-col gap-4 rounded-theme border-theme border-ink/10 bg-white p-7 shadow-theme transition-transform hover:-translate-y-1"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="inline-flex items-center gap-2.5">
