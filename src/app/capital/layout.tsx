@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/membership";
 import { AppShell } from "@/components/AppShell";
+import { MarketTicker } from "@/components/capital/MarketTicker";
 import "@/styles/capital/index.css";
 import "@/styles/capital/app.css";
 
@@ -21,7 +22,10 @@ export default async function CapitalLayout({
   await requireSession("/capital");
   return (
     <div data-theme="capital" className="flex flex-1 flex-col">
-      <AppShell section="capital">{children}</AppShell>
+      <AppShell section="capital">
+        <MarketTicker />
+        {children}
+      </AppShell>
     </div>
   );
 }
