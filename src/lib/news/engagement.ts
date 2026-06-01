@@ -104,3 +104,31 @@ export async function getWhooshFeed(limit = 50): Promise<WhooshEntry[]> {
     points: r.points,
   }));
 }
+
+/** The signed-in user's kept (right-swiped) articles, newest kept first. */
+export async function getMyKeptArticles(userId: string, limit = 50): Promise<WhooshEntry[]> {
+  const { data, error } = await supabase()
+    .from("news_swipe")
+    .select(
+      "espn_id, updated_at, news_article!inner(espn_id, sport, title, description, link, author, image_url, pub_date, points)",
+    )
+    .eq("user_id", userId)
+    .eq("direction", "right")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(`getMyKeptArticles failed: ${error.message}`);
+  return (data ?? []).map((r) => {
+    const a = r.news_article;
+    return {
+      espnId: a.espn_id,
+      sport: a.sport as SportKey,
+      title: a.title,
+      description: a.description,
+      link: a.link,
+      author: a.author,
+      imageUrl: a.image_url,
+      pubDate: a.pub_date,
+      points: a.points,
+    };
+  });
+}

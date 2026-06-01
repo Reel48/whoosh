@@ -12,8 +12,6 @@ const SLOP = 8;
 type Props = {
   sport: SportKey;
   articles: Article[];
-  /** guids the user has already kept (render green on load). */
-  initialKept: Record<string, boolean>;
 };
 
 type SwipeResponse = { ok: boolean; points?: number };
@@ -47,21 +45,14 @@ function payload(sport: SportKey, a: Article) {
 }
 
 /**
- * The swipeable sport feed. Each article is a card the user can drag left to
- * trash (removed from their feed) or right to keep (stays, turns green, +1
- * point). Keep/Trash buttons do the same for desktop and keyboard users. Writes
- * are optimistic with a background POST and an Undo toast.
+ * The swipeable sport feed. Drag a card right to keep it (records +1 point) or
+ * left to trash it; either way the card leaves the feed — a keep means "read it,
+ * decided." Writes are optimistic with a background POST and an Undo toast. Kept
+ * articles resurface in the Whoosh Feed and My Keeps.
  */
-export function SwipeFeed({ sport, articles, initialKept }: Props) {
+export function SwipeFeed({ sport, articles }: Props) {
   const byGuid = new Map(articles.map((a) => [a.guid, a]));
   const [order, setOrder] = useState<string[]>(() => articles.map((a) => a.guid));
-  // guid -> points (number) when kept; null = kept but count unknown (on load).
-  const [kept, setKept] = useState<Record<string, number | null>>(() => {
-    const k: Record<string, number | null> = {};
-    for (const g of Object.keys(initialKept)) if (initialKept[g]) k[g] = null;
-    return k;
-  });
-  const [pending, setPending] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<{ msg: string; onUndo: () => void } | null>(null);
   const toastTimer = useRef<number | undefined>(undefined);
 
@@ -80,50 +71,18 @@ export function SwipeFeed({ sport, articles, initialKept }: Props) {
     });
   }
 
-  function clearKept(guid: string) {
-    setKept((k) => {
-      if (!(guid in k)) return k;
-      const next = { ...k };
-      delete next[guid];
-      return next;
-    });
-  }
-
-  // Undo a keep: revert to idle (un-swiped) and delete the swipe server-side.
-  function undoKeep(guid: string) {
-    clearKept(guid);
-    void postSwipe({ action: "undo", guid });
-  }
-
-  async function keep(guid: string) {
+  async function commit(guid: string, direction: "left" | "right") {
     const article = byGuid.get(guid);
-    if (!article || pending[guid]) return;
-    setKept((k) => ({ ...k, [guid]: k[guid] ?? null })); // optimistic green
-    setPending((p) => ({ ...p, [guid]: true }));
-    const points = await postSwipe({ action: "swipe", direction: "right", article: payload(sport, article) });
-    setPending((p) => ({ ...p, [guid]: false }));
-    if (points == null) {
-      clearKept(guid);
-      showToast("Couldn't save — try again", () => {});
-      return;
-    }
-    setKept((k) => ({ ...k, [guid]: points }));
-    showToast("Kept · +1 point", () => undoKeep(guid));
-  }
-
-  async function trash(guid: string) {
-    const article = byGuid.get(guid);
-    if (!article || pending[guid]) return;
+    if (!article) return;
     const idx = order.indexOf(guid);
     setOrder((o) => o.filter((g) => g !== guid)); // card has already animated out
-    clearKept(guid);
-    const points = await postSwipe({ action: "swipe", direction: "left", article: payload(sport, article) });
+    const points = await postSwipe({ action: "swipe", direction, article: payload(sport, article) });
     if (points == null) {
       reinsert(guid, idx);
       showToast("Couldn't save — try again", () => {});
       return;
     }
-    showToast("Removed", () => {
+    showToast(direction === "right" ? "Kept · +1 point" : "Removed", () => {
       reinsert(guid, idx);
       void postSwipe({ action: "undo", guid });
     });
@@ -156,11 +115,8 @@ export function SwipeFeed({ sport, articles, initialKept }: Props) {
             <SwipeCard
               key={guid}
               article={article}
-              keptPoints={guid in kept ? kept[guid] : undefined}
-              pending={!!pending[guid]}
-              onKeep={() => keep(guid)}
-              onTrash={() => trash(guid)}
-              onUndoKeep={() => undoKeep(guid)}
+              onKeep={() => commit(guid, "right")}
+              onTrash={() => commit(guid, "left")}
             />
           );
         })}
@@ -189,19 +145,14 @@ export function SwipeFeed({ sport, articles, initialKept }: Props) {
 
 type CardProps = {
   article: Article;
-  /** undefined = idle; null = kept (count unknown); number = kept with point total. */
-  keptPoints: number | null | undefined;
-  pending: boolean;
   onKeep: () => void;
   onTrash: () => void;
-  onUndoKeep: () => void;
 };
 
-function SwipeCard({ article, keptPoints, pending, onKeep, onTrash, onUndoKeep }: CardProps) {
-  const isKept = keptPoints !== undefined;
+function SwipeCard({ article, onKeep, onTrash }: CardProps) {
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const [exiting, setExiting] = useState(false);
+  const [exitDir, setExitDir] = useState<"left" | "right" | null>(null);
   const startX = useRef(0);
   const liveDx = useRef(0);
   const moved = useRef(0);
@@ -211,23 +162,25 @@ function SwipeCard({ article, keptPoints, pending, onKeep, onTrash, onUndoKeep }
   const byline = [article.author, date].filter(Boolean).join(" · ");
   const hero = article.images[0] ?? null;
 
-  function commitTrash() {
-    setExiting(true);
-    window.setTimeout(onTrash, 220);
+  function commit(direction: "left" | "right") {
+    setExitDir(direction);
+    window.setTimeout(direction === "right" ? onKeep : onTrash, 220);
   }
 
-  // Drag is disabled once a card is kept (it's decided; undo via toast/button).
-  const draggable = !isKept && !exiting && !pending;
+  const draggable = !exitDir;
 
   function onPointerDown(e: React.PointerEvent) {
     if (!draggable) return;
-    if ((e.target as HTMLElement).closest("button")) return; // not from action buttons
     active.current = true;
     startX.current = e.clientX;
     liveDx.current = 0;
     moved.current = 0;
     setDragging(true);
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      /* setPointerCapture can throw for synthetic/stale pointers — harmless. */
+    }
   }
   function onPointerMove(e: React.PointerEvent) {
     if (!active.current) return;
@@ -242,10 +195,9 @@ function SwipeCard({ article, keptPoints, pending, onKeep, onTrash, onUndoKeep }
     setDragging(false);
     const dx = liveDx.current;
     if (dx > THRESHOLD) {
-      setDragX(0);
-      onKeep();
+      commit("right");
     } else if (dx < -THRESHOLD) {
-      commitTrash();
+      commit("left");
     } else {
       setDragX(0);
     }
@@ -256,13 +208,19 @@ function SwipeCard({ article, keptPoints, pending, onKeep, onTrash, onUndoKeep }
     if (moved.current > SLOP) e.preventDefault();
   }
 
-  const dir = dragX > 0 ? "right" : dragX < 0 ? "left" : null;
-  const revealOpacity = Math.min(1, Math.abs(dragX) / THRESHOLD);
+  const dir = exitDir ?? (dragX > 0 ? "right" : dragX < 0 ? "left" : null);
+  const revealOpacity = exitDir ? 1 : Math.min(1, Math.abs(dragX) / THRESHOLD);
+  const transform =
+    exitDir === "right"
+      ? "translateX(120%)"
+      : exitDir === "left"
+        ? "translateX(-120%)"
+        : `translateX(${dragX}px)`;
 
   return (
     <div className="relative overflow-hidden rounded-theme">
-      {/* Swipe-direction underlay revealed as the card is dragged. */}
-      {dir && !isKept && (
+      {/* Swipe-direction underlay revealed as the card is dragged / exits. */}
+      {dir && (
         <div
           className={`absolute inset-0 flex items-center rounded-theme ${
             dir === "right" ? "justify-start bg-pigment-green pl-6" : "justify-end bg-imperial-red pr-6"
@@ -282,14 +240,12 @@ function SwipeCard({ article, keptPoints, pending, onKeep, onTrash, onUndoKeep }
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         style={{
-          transform: exiting ? "translateX(-120%)" : `translateX(${dragX}px)`,
+          transform,
           transition: dragging ? "none" : "transform 0.22s ease, opacity 0.22s ease",
-          opacity: exiting ? 0 : 1,
+          opacity: exitDir ? 0 : 1,
           touchAction: "pan-y",
         }}
-        className={`relative rounded-theme border-theme shadow-theme ${
-          isKept ? "border-pigment-green/40 bg-pigment-green/10" : "border-ink/10 bg-surface"
-        }`}
+        className="relative rounded-theme border-theme border-ink/10 bg-surface shadow-theme"
       >
         <div className="p-5">
           <header className="flex items-center gap-3">
@@ -298,12 +254,6 @@ function SwipeCard({ article, keptPoints, pending, onKeep, onTrash, onUndoKeep }
               <p className="font-display text-sm font-bold text-ink">ESPN</p>
               {byline && <p className="truncate text-xs text-ink/55">{byline}</p>}
             </div>
-            {isKept && (
-              <span className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-pigment-green px-3 py-1 text-xs font-bold text-white">
-                <CheckIcon className="h-3.5 w-3.5" />
-                Kept{typeof keptPoints === "number" ? ` · ${keptPoints}` : ""}
-              </span>
-            )}
           </header>
 
           <a
@@ -335,58 +285,7 @@ function SwipeCard({ article, keptPoints, pending, onKeep, onTrash, onUndoKeep }
             />
           </a>
         )}
-
-        {/* Actions — drag alternative for desktop / keyboard. */}
-        <div className="flex items-stretch border-t border-ink/10">
-          {isKept ? (
-            <button
-              type="button"
-              onClick={onUndoKeep}
-              disabled={pending}
-              className="flex-1 py-3 text-sm font-bold text-ink/60 transition-colors hover:bg-ink/5 disabled:opacity-50"
-            >
-              Undo keep
-            </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={commitTrash}
-                disabled={pending}
-                className="flex flex-1 items-center justify-center gap-1.5 py-3 text-sm font-bold text-imperial-red transition-colors hover:bg-imperial-red/10 disabled:opacity-50"
-              >
-                <TrashIcon className="h-4 w-4" />
-                Trash
-              </button>
-              <span className="w-px bg-ink/10" aria-hidden="true" />
-              <button
-                type="button"
-                onClick={onKeep}
-                disabled={pending}
-                className="flex flex-1 items-center justify-center gap-1.5 py-3 text-sm font-bold text-pigment-green transition-colors hover:bg-pigment-green/10 disabled:opacity-50"
-              >
-                <CheckIcon className="h-4 w-4" />
-                Keep
-              </button>
-            </>
-          )}
-        </div>
       </div>
     </div>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M20 6L9 17l-5-5" />
-    </svg>
-  );
-}
-function TrashIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
-    </svg>
   );
 }
