@@ -20,7 +20,9 @@ export type SportKey =
   | "golf"
   | "tennis"
   | "boxing"
-  | "ncb";
+  | "ncb"
+  | "racing"
+  | "mma";
 
 export type Sport = {
   key: SportKey;
@@ -44,6 +46,8 @@ export const SPORTS: Record<SportKey, Sport> = {
   // No site-API news path — served by the "now" API instead.
   boxing: { key: "boxing", label: "Boxing", nowSport: "boxing" },
   ncb: { key: "ncb", label: "College Basketball", apiPath: "basketball/mens-college-basketball" },
+  racing: { key: "racing", label: "Racing", nowSport: "racing" },
+  mma: { key: "mma", label: "UFC/MMA", nowSport: "mma" },
 };
 
 export const SPORT_LIST: Sport[] = Object.values(SPORTS);

@@ -108,6 +108,13 @@
  * so the same class renders differently depending on the [data-theme] scope
  * it sits inside — without ever touching color. Pair them with the shared
  * color utilities (bg-white, text-ink, border-ink/10, …). */
+/* Continuous horizontal glide for the live-scores ticker. The track renders its
+ * cards twice, so translating by -50% loops seamlessly. */
+@keyframes news-ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
 @layer utilities {
   .rounded-theme {
     border-radius: var(--theme-radius);
