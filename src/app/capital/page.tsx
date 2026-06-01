@@ -3,8 +3,8 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { findSubscriptionForUser } from "@/lib/stripe";
 import { Disclaimer } from "@/components/Disclaimer";
-import { Avatar } from "@/components/Avatar";
-import { ReferralCard } from "@/components/capital/ReferralCard";
+import { SectionHero } from "@/components/ui/SectionHero";
+import { ReferralCard } from "@/components/wb/ReferralCard";
 import { ensureWallet, getRecentLedger, type LedgerKind } from "@/lib/wb/ledger";
 import { loadDashboard } from "@/lib/wb/dashboard";
 import { hasClaimedToday, getUserStreak } from "@/lib/wb/bonus";
@@ -106,19 +106,21 @@ export default async function CapitalHome() {
 
   return (
     <main className="cap-page">
-      {/* Welcome */}
-      <header className="cap-welcome">
-        <Avatar avatarUrl={session.avatarUrl} username={session.username} size={44} />
-        <div className="cap-welcome__name">
-          <p className="text-eyebrow">Capital · Overview</p>
-          <h1 className="text-h2">@{session.username}</h1>
-        </div>
-        {streakDays > 0 && (
-          <span className="badge badge-warning">
-            <span className="dot" /> {streakDays}-day streak
-          </span>
-        )}
-      </header>
+      {/* Branded hero — the loud Whoosh identity over the refined dashboard. */}
+      <SectionHero
+        accent="volt"
+        eyebrow="Capital · Overview"
+        title={`@${session.username}`}
+        avatarUrl={session.avatarUrl}
+        username={session.username}
+        aside={
+          streakDays > 0 ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-ink px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white-smoke">
+              {streakDays}-day streak
+            </span>
+          ) : undefined
+        }
+      />
 
       {/* Legacy upgrade prompt */}
       {needsCheckout && (
@@ -286,7 +288,7 @@ export default async function CapitalHome() {
       {/* Referral */}
       {referral && (
         <div className="cap-mt-lg">
-          <ReferralCard stats={referral} />
+          <ReferralCard stats={referral} variant="capital" />
         </div>
       )}
 

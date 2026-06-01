@@ -11,7 +11,7 @@ import {
 } from "@/lib/wb/leaderboard";
 import { BalanceChart } from "@/components/wb/BalanceChart";
 import { AllocationBar } from "@/components/wb/AllocationBar";
-import { LeaderboardTabs } from "@/components/capital/LeaderboardTabs";
+import { LeaderboardTabs } from "@/components/wb/LeaderboardTabs";
 import { Disclaimer } from "@/components/Disclaimer";
 import { BuyWbForm } from "@/components/wb/BuyWbForm";
 import { hasClaimedToday, getUserStreak } from "@/lib/wb/bonus";
@@ -243,6 +243,7 @@ export default async function WalletPage({
       {/* Leaderboard */}
       <section className="cap-mt-lg" id="leaderboard">
         <LeaderboardTabs
+          variant="capital"
           holders={holders}
           traders={traders}
           wins={wins}

@@ -18,6 +18,154 @@
   --background: var(--white-smoke);
   --foreground: var(--ink);
 
+  /* =====================================================================
+   * UNIFIED DESIGN TOKENS (promoted from Whoosh Capital, now global)
+   *
+   * These scales were previously duplicated inside [data-theme="capital"]
+   * and [data-theme="fantasy"]. They now live here once, available to every
+   * surface (marketing, hub, and all sections) and to the shared ui/ library.
+   * Per-section [data-theme] blocks override ONLY what should differ
+   * (display font, radius scale, accent, density) — never the scale itself.
+   *
+   * The loud brand palette above (--blue, --lime, …) is the expressive layer;
+   * the chromatic ramps below are the same anchors with full tint/shade
+   * ladders for functional UI. --blue === --color-sky-500, etc.
+   * ------------------------------------------------------------------- */
+
+  /* Brand anchors (500) */
+  --color-sky-500: #0381ed;     /* primary · trust   (=--blue) */
+  --color-ember-500: #fc7b00;   /* accent · energy   (=--safety-orange) */
+  --color-volt-500: #cef932;    /* highlight · promo (=--lime) */
+  --color-solar-500: #fbd12c;   /* warning · caution (=--mango) */
+  --color-forest-500: #009640;  /* positive · gains  (=--pigment-green) */
+  --color-crimson-500: #ff0c31; /* negative · losses (=--imperial-red) */
+  --color-iris-500: #ae78d2;    /* data A            (=--lavender) */
+  --color-blossom-500: #ff9ff3; /* data B            (=--plum) */
+
+  /* Sky (primary) */
+  --color-sky-50: #e6f2fe; --color-sky-100: #bfdefb; --color-sky-200: #80bdf6;
+  --color-sky-300: #4da3f2; --color-sky-400: #1f8fef; --color-sky-600: #0269c2;
+  --color-sky-700: #014e91; --color-sky-800: #013560; --color-sky-900: #001a30;
+  /* Ember (accent) */
+  --color-ember-50: #fff1e0; --color-ember-100: #ffd8ad; --color-ember-200: #ffb870;
+  --color-ember-300: #fe9a38; --color-ember-600: #c66200; --color-ember-700: #944900;
+  --color-ember-800: #623100; --color-ember-900: #311800;
+  /* Volt (highlight) */
+  --color-volt-50: #f3fdcf; --color-volt-100: #e4fb99; --color-volt-200: #dafa72;
+  --color-volt-600: #a6cc27; --color-volt-700: #7e9c1d; --color-volt-800: #546813;
+  --color-volt-900: #2a340a;
+  /* Solar (warning) */
+  --color-solar-50: #fff7d7; --color-solar-100: #fee9a2; --color-solar-200: #fddc6d;
+  --color-solar-600: #c9a422; --color-solar-700: #977b19; --color-solar-800: #645210;
+  --color-solar-900: #322908;
+  /* Forest (positive) */
+  --color-forest-50: #d6f4e2; --color-forest-100: #9de3b9; --color-forest-200: #5fd08d;
+  --color-forest-600: #007832; --color-forest-700: #005a25; --color-forest-800: #003c18;
+  --color-forest-900: #001e0c;
+  /* Crimson (negative) */
+  --color-crimson-50: #ffd8df; --color-crimson-100: #ffa8b5; --color-crimson-200: #ff6177;
+  --color-crimson-600: #cc0826; --color-crimson-700: #99061c; --color-crimson-800: #660413;
+  --color-crimson-900: #330209;
+  /* Iris (data A) */
+  --color-iris-50: #f1e8fa; --color-iris-100: #ddc8f1; --color-iris-200: #c6a4e5;
+  --color-iris-600: #8b5dab; --color-iris-700: #674580; --color-iris-800: #432e55;
+  --color-iris-900: #20162a;
+  /* Blossom (data B) */
+  --color-blossom-50: #ffeefe; --color-blossom-100: #ffd0fa; --color-blossom-200: #ffb4f6;
+  --color-blossom-600: #d17ec8; --color-blossom-700: #9c5f95; --color-blossom-800: #683f63;
+  --color-blossom-900: #341f31;
+  /* Slate (neutral) */
+  --color-slate-0: #ffffff; --color-slate-50: #f7f8fa; --color-slate-100: #eef0f4;
+  --color-slate-200: #dde1e8; --color-slate-300: #c3cad4; --color-slate-400: #97a1b0;
+  --color-slate-500: #6b7787; --color-slate-600: #4d5666; --color-slate-700: #353c49;
+  --color-slate-800: #1f242e; --color-slate-900: #0e1118; --color-slate-950: #060810;
+
+  /* Semantic aliases — components use these, never raw scale values. */
+  --bg:            var(--color-slate-50);
+  --surface:       var(--color-slate-0);
+  --surface-alt:   var(--color-slate-100);
+  --border:        var(--color-slate-200);
+  --border-strong: var(--color-slate-300);
+  --text:          var(--color-slate-900);
+  --text-muted:    var(--color-slate-500);
+  --text-subtle:   var(--color-slate-400);
+  --text-inverse:  var(--color-slate-0);
+
+  --primary:       var(--color-sky-500);
+  --primary-bg:    var(--color-sky-600);   /* button bg — passes AA */
+  --primary-hover: var(--color-sky-700);
+  --primary-soft:  var(--color-sky-50);
+  --accent:        var(--color-ember-500);
+  --accent-hover:  var(--color-ember-600);
+  --positive:      var(--color-forest-500);
+  --positive-text: var(--color-forest-700);
+  --positive-bg:   var(--color-forest-50);
+  --negative:      var(--color-crimson-500);
+  --negative-bg-strong: var(--color-crimson-600);
+  --negative-text: var(--color-crimson-700);
+  --negative-bg:   var(--color-crimson-50);
+  --warning:       var(--color-solar-500);
+  --warning-text:  var(--color-solar-700);
+  --warning-bg:    var(--color-solar-50);
+  --highlight:     var(--color-volt-500);
+  --info-text:     var(--color-sky-800);
+  --info-bg:       var(--color-sky-50);
+
+  /* Chart series order (categorical) */
+  --chart-1: var(--color-sky-500);   --chart-2: var(--color-iris-500);
+  --chart-3: var(--color-ember-500); --chart-4: var(--color-blossom-500);
+  --chart-5: var(--color-volt-500);  --chart-6: var(--color-solar-500);
+  --chart-gain: var(--color-forest-500); --chart-loss: var(--color-crimson-500);
+  --focus-ring: 0 0 0 4px rgba(3, 129, 237, 0.25);
+
+  /* Type families. --font-display/--font-ui already declared below as the
+   * section-aware structural tokens; these add the Capital DS aliases so its
+   * component classes resolve outside an explicit override. */
+  --font-text: var(--font-body);
+  --font-mono: var(--font-body);
+
+  /* Font sizes / line-heights / tracking / weights */
+  --fs-display-1: 64px; --fs-display-2: 48px; --fs-h1: 36px; --fs-h2: 28px;
+  --fs-h3: 20px; --fs-body-lg: 18px; --fs-body: 16px; --fs-body-sm: 14px;
+  --fs-caption: 12px; --fs-micro: 11px;
+  --lh-display-1: 0.98; --lh-display-2: 1.02; --lh-h1: 1.10; --lh-h2: 1.15;
+  --lh-h3: 1.25; --lh-body: 1.55; --lh-caption: 1.40;
+  --ls-display-1: -0.030em; --ls-display-2: -0.025em; --ls-h1: -0.022em;
+  --ls-h2: -0.018em; --ls-h3: -0.012em; --ls-body: 0; --ls-caption: 0.08em;
+  --ls-eyebrow: 0.14em;
+  --fw-regular: 400; --fw-medium: 500; --fw-semi: 600; --fw-bold: 700;
+  --fw-extra: 800; --fw-black: 900;
+
+  /* Spacing (4px base grid) */
+  --space-0: 0; --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+  --space-12: 48px; --space-16: 64px; --space-20: 80px; --space-24: 96px;
+
+  /* Radius — sharp defaults (Capital's). Rounder sections override per-theme. */
+  --radius-xs: 4px; --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+  --radius-xl: 24px; --radius-2xl: 32px; --radius-full: 999px;
+
+  /* Grid */
+  --container-max: 1200px; --container-narrow: 720px; --container-wide: 1440px;
+  --gutter: 24px;
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgba(14, 17, 24, 0.04);
+  --shadow-sm: 0 2px 4px rgba(14, 17, 24, 0.06), 0 1px 2px rgba(14, 17, 24, 0.04);
+  --shadow-md: 0 6px 16px rgba(14, 17, 24, 0.08), 0 2px 4px rgba(14, 17, 24, 0.04);
+  --shadow-lg: 0 14px 40px rgba(14, 17, 24, 0.12), 0 4px 8px rgba(14, 17, 24, 0.04);
+  --shadow-xl: 0 28px 80px rgba(14, 17, 24, 0.18), 0 8px 16px rgba(14, 17, 24, 0.06);
+  --shadow-glow: 0 0 0 4px rgba(3, 129, 237, 0.25);
+  --shadow-glow-danger: 0 0 0 4px rgba(255, 12, 49, 0.25);
+
+  /* Motion — fast, confident, never bouncy. */
+  --dur-instant: 80ms; --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 320ms;
+  --dur-slower: 500ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
   /* ---------------------------------------------------------------------
    * Per-section STRUCTURAL design tokens (NOT color — colors are shared
    * globally). Defaults below reproduce today's Whoosh color-block look,
@@ -41,22 +189,23 @@
  * remap live there, scoped to [data-theme="capital"]. Nothing for Capital is
  * defined here. */
 
-/* Fantasy Football — owns its design system in a dedicated, scoped stylesheet
- * (src/styles/fantasy/index.css, imported by src/app/fantasy/layout.tsx): Sora
- * display + JetBrains Mono numerals, a slate neutral palette, soft shadows and
- * rounded cards. These are just the structural defaults the shared AppShell
- * chrome reads; the scoped stylesheet refines them and remaps the palette. */
+/* Fantasy Football — owns a scoped component stylesheet (src/styles/fantasy/
+ * index.css, imported by src/app/fantasy/layout.tsx): the shared Inter Tight
+ * display, Inter numerals (tabular), the global slate palette, soft shadows and
+ * rounder cards. These are just the structural defaults the shared AppShell
+ * chrome reads; the scoped stylesheet refines them. */
 [data-theme="fantasy"] {
-  --font-display: var(--font-fantasy);
+  --font-display: var(--font-capital); /* Inter Tight — the shared brand display */
   --font-ui: var(--font-body);
   --theme-border-width: 1px;
   --theme-radius: 14px;
   --theme-card-shadow: 0 2px 6px rgba(14, 17, 24, 0.06), 0 1px 2px rgba(14, 17, 24, 0.04);
 }
 
-/* Pool — soft, calm, aquatic: rounded display, generous radius, soft shadow. */
+/* Pool — soft, calm, aquatic: generous radius, soft shadow. Personality comes
+ * from radius + accent, not a separate typeface. */
 [data-theme="pool"] {
-  --font-display: var(--font-pool);
+  --font-display: var(--font-capital); /* Inter Tight — the shared brand display */
   --font-ui: var(--font-body);
   --theme-border-width: 1px;
   --theme-radius: 1.75rem;
@@ -125,6 +274,16 @@
   }
   .shadow-theme {
     box-shadow: var(--theme-card-shadow);
+  }
+}
+
+/* Respect user motion preference globally (promoted from the Capital DS). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

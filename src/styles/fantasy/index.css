@@ -17,64 +17,29 @@
   font-size: 15px;
   line-height: 1.5;
 
-  /* ===== tokens ===== */
+  /* ===== section overrides only =====
+     The color/slate/semantic/space/shadow scales are now the UNIFIED GLOBAL
+     tokens in src/app/globals.css. Fantasy keeps ONLY what genuinely differs:
+     a rounder radius scale, Inter numerals, its position/streak colors, and a
+     slightly springier motion. */
   & {
-    /* chromatic anchors + tints */
-    --color-sky-500: #0381ed; --color-ember-500: #fc7b00; --color-volt-500: #cef932;
-    --color-solar-500: #fbd12c; --color-forest-500: #009640; --color-crimson-500: #ff0c31;
-    --color-iris-500: #ae78d2; --color-blossom-500: #ff9ff3;
-    --color-sky-50: #e6f2fe; --color-sky-100: #bfdefb; --color-sky-600: #0269c2; --color-sky-700: #014e91; --color-sky-800: #013560;
-    --color-ember-50: #fff1e0; --color-ember-100: #ffd8ad; --color-ember-600: #c66200; --color-ember-700: #944900;
-    --color-volt-50: #f3fdcf; --color-volt-100: #e4fb99; --color-volt-200: #dafa72; --color-volt-600: #a6cc27;
-    --color-solar-50: #fff7d7; --color-solar-100: #fee9a2; --color-solar-700: #977b19;
-    --color-forest-50: #d6f4e2; --color-forest-100: #9de3b9; --color-forest-200: #5fd08d; --color-forest-600: #007832; --color-forest-700: #005a25;
-    --color-crimson-50: #ffd8df; --color-crimson-100: #ffa8b5; --color-crimson-600: #cc0826; --color-crimson-700: #99061c;
-    --color-iris-50: #f1e8fa; --color-iris-700: #674580;
-    --color-blossom-50: #ffeefe;
-    --color-slate-0: #fff; --color-slate-50: #f7f8fa; --color-slate-100: #eef0f4; --color-slate-200: #dde1e8;
-    --color-slate-300: #c3cad4; --color-slate-400: #97a1b0; --color-slate-500: #6b7787; --color-slate-600: #4d5666;
-    --color-slate-700: #353c49; --color-slate-800: #1f242e; --color-slate-900: #0e1118; --color-slate-950: #060810;
-
-    /* semantic */
-    --bg: var(--color-slate-50); --surface: #fff; --surface-alt: var(--color-slate-100);
-    --border: var(--color-slate-200); --border-strong: var(--color-slate-300);
-    --text: var(--color-slate-900); --text-muted: var(--color-slate-500); --text-inverse: #fff;
-    --primary: var(--color-sky-500); --primary-bg: var(--color-sky-600); --primary-hover: var(--color-sky-700);
-    --accent: var(--color-ember-500); --accent-hover: var(--color-ember-600);
-    --positive: var(--color-forest-500); --positive-text: var(--color-forest-700); --positive-bg: var(--color-forest-50);
-    --negative: var(--color-crimson-500); --negative-bg-strong: var(--color-crimson-600); --negative-text: var(--color-crimson-700); --negative-bg: var(--color-crimson-50);
-    --warning: var(--color-solar-500); --warning-text: var(--color-solar-700); --warning-bg: var(--color-solar-50);
-    --highlight: var(--color-volt-500); --info-text: var(--color-sky-800); --info-bg: var(--color-sky-50);
-
     /* fantasy position + streak colors */
     --pos-qb: var(--color-sky-500); --pos-rb: var(--color-forest-500); --pos-wr: var(--color-ember-500);
     --pos-te: var(--color-iris-500); --pos-k: var(--color-solar-500); --pos-def: var(--color-slate-700);
     --pos-flex: var(--color-blossom-500); --pos-bn: var(--color-slate-400); --pos-ir: var(--color-crimson-500);
     --streak-hot: var(--color-ember-500); --streak-cold: #4da3f2;
 
-    /* type — wired to the app's next/font variables */
-    --font-display: var(--font-fantasy), "Sora", "Inter Tight", system-ui, sans-serif;
-    --font-text: var(--font-body), "Inter", system-ui, sans-serif;
-    /* Per request: only titles use the display font. All other text — including
-       numerals that were JetBrains Mono — is Inter. tabular-nums on numeric
-       elements keeps columns aligned. */
+    /* type — display is the shared Inter Tight; numerals stay Inter (tabular-nums
+       keeps columns aligned). */
+    --font-display: var(--font-capital), "Inter Tight", system-ui, sans-serif;
     --font-mono: var(--font-text);
 
-    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
-    --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px;
+    /* rounder than the global default */
+    --radius-xs: 6px; --radius-sm: 10px; --radius-md: 14px; --radius-lg: 20px; --radius-xl: 28px;
 
-    --radius-xs: 6px; --radius-sm: 10px; --radius-md: 14px; --radius-lg: 20px; --radius-xl: 28px; --radius-full: 999px;
-
-    --shadow-xs: 0 1px 2px rgba(14, 17, 24, 0.05);
-    --shadow-sm: 0 2px 6px rgba(14, 17, 24, 0.06), 0 1px 2px rgba(14, 17, 24, 0.04);
-    --shadow-md: 0 8px 24px rgba(14, 17, 24, 0.08), 0 2px 4px rgba(14, 17, 24, 0.04);
-    --shadow-lg: 0 20px 48px rgba(14, 17, 24, 0.12), 0 4px 12px rgba(14, 17, 24, 0.06);
-    --shadow-glow: 0 0 0 4px rgba(3, 129, 237, 0.25);
-
+    /* springier motion */
     --dur-fast: 140ms; --dur-base: 240ms;
-    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
     --ease-pop: cubic-bezier(0.2, 1.5, 0.4, 1);
-    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   /* ===== numerics ===== */
