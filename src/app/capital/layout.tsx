@@ -22,8 +22,7 @@ export default async function CapitalLayout({
   await requireSession("/capital");
   return (
     <div data-theme="capital" className="flex flex-1 flex-col">
-      <AppShell section="capital">
-        <MarketTicker />
+      <AppShell section="capital" banner={<MarketTicker />}>
         {children}
       </AppShell>
     </div>

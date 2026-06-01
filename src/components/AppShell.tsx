@@ -27,9 +27,13 @@ import { SECTIONS, type SectionKey } from "@/lib/sections";
  */
 export async function AppShell({
   section,
+  banner,
   children,
 }: {
   section?: SectionKey;
+  /** Optional full-width strip rendered between the header and the section's
+   *  page-list nav (e.g. Capital's live market ticker). */
+  banner?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const session = await getSession();
@@ -73,6 +77,8 @@ export async function AppShell({
           </div>
         </nav>
       </header>
+
+      {banner}
 
       {/* The current section's own pages (desktop strip + mobile route strip). */}
       {current && (
