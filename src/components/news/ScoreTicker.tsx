@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Game } from "@/lib/news/scores";
+import { formatCentral } from "@/lib/datetime";
 
 /**
  * A thin live-scores strip pinned to the top of the news section that glides
@@ -81,6 +82,12 @@ function TeamRow({ abbr, logo, score, dim }: { abbr: string; logo: string | null
 function ScoreCard({ game }: { game: Game }) {
   const live = game.state === "in";
   const showScores = game.state !== "pre";
+  // ESPN's pre-game status string is in Eastern; reformat the kickoff in Central.
+  // Live/final details ("Q3 5:21", "Final") carry no clock time, so keep them.
+  const status =
+    game.state === "pre" && game.startsAt
+      ? `${formatCentral(game.startsAt, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" })} CT`
+      : game.detail;
   // Dim the loser in finished games.
   const aNum = Number(game.away.score);
   const hNum = Number(game.home.score);
@@ -99,7 +106,7 @@ function ScoreCard({ game }: { game: Game }) {
           }`}
         >
           {live && <span className="inline-block h-1.5 w-1.5 rounded-full bg-imperial-red" />}
-          {game.detail}
+          {status}
         </span>
       </div>
     </div>

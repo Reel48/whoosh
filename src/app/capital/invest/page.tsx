@@ -336,7 +336,7 @@ export default async function InvestPage({
               {orders.map((o) => (
                 <tr key={o.id}>
                   <td>{o.side === "buy" ? "Bought" : "Sold"} {fmtShares(o.shares)} {o.symbol} @ {fmtUsd(o.priceCents)}</td>
-                  <td className="text-body-sm">{new Date(o.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</td>
+                  <td className="text-body-sm">{new Date(o.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Chicago" })}</td>
                   <td className={`num ${o.side === "buy" ? "num--negative" : "num--positive"}`}>
                     {o.side === "buy" ? "−" : "+"}{fmtWb(o.totalCents)}
                   </td>

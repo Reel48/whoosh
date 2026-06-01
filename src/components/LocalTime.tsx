@@ -1,10 +1,4 @@
-"use client";
-
-import { useSyncExternalStore } from "react";
-
-// The local-zone value never changes after mount, so there's nothing to
-// subscribe to — return a no-op unsubscribe.
-const subscribe = () => () => {};
+import { formatCentral } from "@/lib/datetime";
 
 const DEFAULT_OPTS: Intl.DateTimeFormatOptions = {
   month: "short",
@@ -15,13 +9,10 @@ const DEFAULT_OPTS: Intl.DateTimeFormatOptions = {
 };
 
 /**
- * Render an ISO timestamp in the viewer's local time zone.
- *
- * Server components format on the server (UTC on Vercel), which is why game
- * times looked wrong. We can't know the visitor's zone on the server, so the
- * SSR/first-render output is pinned to Central time (America/Chicago) — that's
- * both deterministic (no hydration mismatch) and the desired default. After
- * mount we re-format using the browser's actual zone.
+ * Render an ISO timestamp in the site's display zone — U.S. Central time
+ * (America/Chicago), the same everywhere for every viewer. Deterministic on the
+ * server and client, so there's no hydration mismatch. `timeZoneName: "short"`
+ * shows the CST/CDT label.
  */
 export function LocalTime({
   iso,
@@ -32,21 +23,9 @@ export function LocalTime({
   options?: Intl.DateTimeFormatOptions;
   prefix?: string;
 }) {
-  const opts = { ...DEFAULT_OPTS, ...options };
-  const fmt = (timeZone?: string) =>
-    new Date(iso).toLocaleString("en-US", timeZone ? { ...opts, timeZone } : opts);
-
-  // useSyncExternalStore gives a deterministic server/hydration value (Central)
-  // and the viewer's real local zone after hydration — no setState-in-effect,
-  // no hydration mismatch. The store never changes, so subscribe is a no-op.
-  const text = useSyncExternalStore(
-    subscribe,
-    () => fmt(undefined), // client: browser's local zone
-    () => fmt("America/Chicago"), // server + first hydration render
-  );
-
+  const text = formatCentral(iso, { ...DEFAULT_OPTS, ...options });
   return (
-    <time dateTime={iso} suppressHydrationWarning>
+    <time dateTime={iso}>
       {prefix}
       {text}
     </time>
