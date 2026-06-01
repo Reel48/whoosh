@@ -160,7 +160,7 @@ export function FeedMenu({ active }: { active: FeedActive }) {
                 type="button"
                 aria-label="Close"
                 onClick={close}
-                className="rounded-theme p-1 text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
+                className="rounded-theme p-1 text-ink/60 outline-none transition-colors hover:bg-ink/5 hover:text-ink focus-visible:bg-ink/5 focus-visible:text-ink"
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path
