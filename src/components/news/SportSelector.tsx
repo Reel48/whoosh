@@ -3,13 +3,16 @@ import { SPORT_LIST, type SportKey } from "@/lib/news/espn";
 
 const ACTIVE = "border-ink bg-ink text-white";
 const IDLE = "border-ink/15 bg-surface text-ink hover:bg-ink/5";
+const CHIP = "shrink-0 rounded-theme border-theme px-4 py-1.5 font-display text-sm font-bold transition-colors";
+
+export type FeedActive = SportKey | "whoosh" | "mine";
 
 /**
- * Horizontally scrollable row of chips. The first chip is the Whoosh Feed (the
- * community leaderboard at bare /news); the rest each set `?sport=<key>` and
- * open that sport's swipeable feed. `active` is null on the Whoosh Feed.
+ * Horizontally scrollable row of chips: Whoosh Feed (community) and My Keeps
+ * (the viewer's kept articles) up front, then one per sport. Each sport sets
+ * `?sport=<key>`; My Keeps is `?view=mine`; Whoosh Feed is bare /news.
  */
-export function SportSelector({ active }: { active: SportKey | null }) {
+export function SportSelector({ active }: { active: FeedActive }) {
   return (
     <nav
       aria-label="Choose a feed"
@@ -17,12 +20,17 @@ export function SportSelector({ active }: { active: SportKey | null }) {
     >
       <Link
         href="/news"
-        aria-current={active === null ? "page" : undefined}
-        className={`shrink-0 rounded-theme border-theme px-4 py-1.5 font-display text-sm font-bold transition-colors ${
-          active === null ? ACTIVE : IDLE
-        }`}
+        aria-current={active === "whoosh" ? "page" : undefined}
+        className={`${CHIP} ${active === "whoosh" ? ACTIVE : IDLE}`}
       >
         Whoosh Feed
+      </Link>
+      <Link
+        href="/news?view=mine"
+        aria-current={active === "mine" ? "page" : undefined}
+        className={`${CHIP} ${active === "mine" ? ACTIVE : IDLE}`}
+      >
+        My Keeps
       </Link>
       {SPORT_LIST.map((s) => {
         const isActive = s.key === active;
@@ -31,9 +39,7 @@ export function SportSelector({ active }: { active: SportKey | null }) {
             key={s.key}
             href={`/news?sport=${s.key}`}
             aria-current={isActive ? "page" : undefined}
-            className={`shrink-0 rounded-theme border-theme px-4 py-1.5 font-display text-sm font-bold transition-colors ${
-              isActive ? ACTIVE : IDLE
-            }`}
+            className={`${CHIP} ${isActive ? ACTIVE : IDLE}`}
           >
             {s.label}
           </Link>
