@@ -4,7 +4,6 @@ import { getUserSwipes, getWhooshFeed, getMyKeptArticles } from "@/lib/news/enga
 import { SportSelector } from "@/components/news/SportSelector";
 import { SwipeFeed } from "@/components/news/SwipeFeed";
 import { WhooshFeed } from "@/components/news/WhooshFeed";
-import { FeedToggle } from "@/components/news/FeedToggle";
 import { KeptList } from "@/components/news/KeptList";
 
 export const dynamic = "force-dynamic";
@@ -29,8 +28,7 @@ export default async function NewsHome({
     const mine = view === "mine";
     return (
       <main className="flex flex-1 flex-col py-2">
-        <SportSelector active={null} />
-        <FeedToggle active={mine ? "mine" : "community"} />
+        <SportSelector active={mine ? "mine" : "whoosh"} />
         {mine ? (
           <KeptList entries={await getMyKeptArticles(session.id)} />
         ) : (
