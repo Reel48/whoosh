@@ -216,7 +216,7 @@
   .cap-stat__label { font-size: 12px; color: var(--text-muted); font-weight: var(--fw-medium); }
   .cap-stat__value {
     font-weight: var(--fw-extra);
-    font-size: 22px;
+    font-size: 20px;
     line-height: 1.15;
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
@@ -234,7 +234,7 @@
   @media (max-width: 400px) {
     .cap-stat-row { gap: var(--space-2); padding: var(--space-3); }
     .cap-stat + .cap-stat { padding-left: var(--space-2); }
-    .cap-stat__value { font-size: 17px; }
+    .cap-stat__value { font-size: 16px; }
   }
 
   .cap-tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }

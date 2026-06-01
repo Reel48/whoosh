@@ -118,22 +118,22 @@ export default async function InvestPage({
         </div>
       )}
 
-      {/* KPI row */}
-      <section className="card-grid cap-mt">
-        <div className="kpi">
-          <div className="kpi__label">Total equity</div>
-          <div className="kpi__value">{fmtWb(totalEquity)}</div>
-          <div className="kpi__delta">Cash + positions</div>
+      {/* KPI strip — three compact columns in one card (matches the wallet). */}
+      <section className="card cap-stat-row cap-mt">
+        <div className="cap-stat">
+          <span className="cap-stat__label">Total equity</span>
+          <span className="cap-stat__value">{fmtWb(totalEquity)}</span>
+          <span className="cap-stat__delta">Cash + positions</span>
         </div>
-        <div className="kpi">
-          <div className="kpi__label">Cash (WB)</div>
-          <div className="kpi__value">{fmtWb(balance)}</div>
-          <div className="kpi__delta">Available to invest</div>
+        <div className="cap-stat">
+          <span className="cap-stat__label">Cash (WB)</span>
+          <span className="cap-stat__value">{fmtWb(balance)}</span>
+          <span className="cap-stat__delta">Available to invest</span>
         </div>
-        <div className="kpi">
-          <div className="kpi__label">Positions value</div>
-          <div className="kpi__value">{fmtWb(portfolioValue)}</div>
-          <div className="kpi__delta">{positions.length} held</div>
+        <div className="cap-stat">
+          <span className="cap-stat__label">Positions value</span>
+          <span className="cap-stat__value">{fmtWb(portfolioValue)}</span>
+          <span className="cap-stat__delta">{positions.length} held</span>
         </div>
       </section>
 
@@ -278,7 +278,7 @@ export default async function InvestPage({
           </div>
         ) : (
           <div className="cap-tbl-scroll">
-          <table className="tbl">
+          <table className="tbl cap-tbl--tight">
             <thead>
               <tr><th>Symbol</th><th className="num">Shares</th><th className="num">Market value</th><th className="num">P/L</th></tr>
             </thead>
