@@ -10,6 +10,31 @@
 [data-theme="capital"] {
 
 
+/* ===== typography classes =====
+   These were lost when the token scales were promoted to globals.css; restored
+   here so headers render in the display face at their proper size and BODY text
+   reads as muted/smaller — making the header/body hierarchy obvious on cards.
+   Header weights are bumped to extra-bold so a card title clearly outweighs its
+   body copy. */
+.text-display-1 { font-family: var(--font-display); font-weight: var(--fw-black); font-size: var(--fs-display-1); line-height: var(--lh-display-1); letter-spacing: var(--ls-display-1); }
+.text-display-2 { font-family: var(--font-display); font-weight: var(--fw-extra); font-size: var(--fs-display-2); line-height: var(--lh-display-2); letter-spacing: var(--ls-display-2); }
+.text-h1 { font-family: var(--font-display); font-weight: var(--fw-black); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); }
+.text-h2 { font-family: var(--font-display); font-weight: var(--fw-extra); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); }
+.text-h3 { font-family: var(--font-display); font-weight: var(--fw-extra); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); }
+.text-body-lg { font-size: var(--fs-body-lg); line-height: var(--lh-body); }
+.text-body    { font-size: var(--fs-body);    line-height: var(--lh-body); }
+.text-body-sm { font-size: var(--fs-body-sm); line-height: var(--lh-body); color: var(--text-muted); }
+.text-caption {
+  font-size: var(--fs-caption); line-height: var(--lh-caption); letter-spacing: var(--ls-caption);
+  text-transform: uppercase; font-weight: var(--fw-semi); color: var(--text-muted);
+}
+.text-eyebrow {
+  font-family: var(--font-text); font-size: var(--fs-caption); font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--primary);
+}
+.text-num, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: var(--fw-semi); }
+.text-num-display { font-family: var(--font-text); font-weight: var(--fw-extra); font-size: 32px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
 /* ===== components/buttons.css ===== */
 /* ============================================================
    Whoosh Capital · Buttons
