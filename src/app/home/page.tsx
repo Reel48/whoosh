@@ -3,7 +3,6 @@ import { requireSession } from "@/lib/membership";
 import { AppShell } from "@/components/AppShell";
 import { Avatar } from "@/components/Avatar";
 import { Bolt } from "@/components/Bolt";
-import { ScoreTicker } from "@/components/news/ScoreTicker";
 import { SECTION_LIST, type Section } from "@/lib/sections";
 import { getGuildOnlineCount, isGuildMember } from "@/lib/discord";
 import { getLink } from "@/lib/fantasy/link";
@@ -68,8 +67,8 @@ export default async function Home() {
 
   return (
     <AppShell>
-      {/* Hero — lime color block; the whole band opens the Discord. */}
-      <section className="mt-10 border-b-2 border-t-2 border-ink bg-lime sm:mt-14">
+      {/* Hero — blue color block; the whole band opens the Discord. */}
+      <section className="border-b-2 border-ink bg-blue">
         <a
           href={DISCORD_INVITE}
           target="_blank"
@@ -107,9 +106,6 @@ export default async function Home() {
         </a>
       </section>
 
-      {/* Live scores — self-contained; renders nothing on a quiet day. */}
-      <ScoreTicker />
-
       {/* Calm body — live section cards. */}
       <main className="mx-auto w-full max-w-5xl px-6 py-10 sm:py-14">
         <div className="grid gap-5 sm:grid-cols-2">
@@ -120,7 +116,7 @@ export default async function Home() {
                 key={s.key}
                 href={s.href}
                 data-theme={s.key}
-                className="group flex flex-col gap-4 rounded-theme border-theme border-ink/10 bg-white p-7 shadow-theme transition-transform hover:-translate-y-1"
+                className="group flex flex-col gap-4 rounded-3xl border-theme border-ink/10 bg-white p-7 shadow-theme transition-transform hover:-translate-y-1"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="inline-flex items-center gap-2.5">
