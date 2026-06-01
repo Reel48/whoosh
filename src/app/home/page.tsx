@@ -9,8 +9,6 @@ import { getGuildOnlineCount, isGuildMember } from "@/lib/discord";
 import { getLink } from "@/lib/fantasy/link";
 import { getCrossLeagueScoreboard } from "@/lib/fantasy/rankings";
 import { fetchFeed, DEFAULT_SPORT } from "@/lib/news/espn";
-import { formatCentral } from "@/lib/datetime";
-
 export const dynamic = "force-dynamic";
 
 export const metadata = {
@@ -26,14 +24,6 @@ const SECTION_ACCENT: Record<string, { dot: string; text: string }> = {
   news: { dot: "bg-safety-orange", text: "text-safety-orange" },
   pool: { dot: "bg-lavender", text: "text-lavender" },
 };
-
-function greetingFor(date: Date): string {
-  // Hour in Central (h23 so midnight is "0", not "24").
-  const hour = Number(formatCentral(date, { hour: "numeric", hourCycle: "h23" }));
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-}
 
 /**
  * Signed-in command center. The post-login landing: a vivid color-block hero
@@ -56,7 +46,6 @@ export default async function Home() {
       .catch(() => null),
   ]);
 
-  const greeting = greetingFor(new Date());
   const discordLabel = inServer ? "Open the Discord" : "Join the Discord";
 
   // Fantasy snapshot for that section's card.
@@ -80,7 +69,7 @@ export default async function Home() {
   return (
     <AppShell>
       {/* Hero — lime color block; the whole band opens the Discord. */}
-      <section className="border-b-2 border-ink bg-lime">
+      <section className="mt-10 border-b-2 border-t-2 border-ink bg-lime sm:mt-14">
         <a
           href={DISCORD_INVITE}
           target="_blank"
@@ -98,24 +87,13 @@ export default async function Home() {
               />
               <div className="min-w-0">
                 <p className="text-xs font-heading font-bold uppercase tracking-[0.22em] text-ink/70">
-                  {greeting}
+                  Hello
                 </p>
                 <p className="truncate font-heading text-3xl font-black tracking-tight text-ink sm:text-4xl">
                   @{session.username}
                 </p>
               </div>
             </div>
-
-            <p className="mt-6 flex max-w-md items-center gap-1.5 text-lg font-medium leading-relaxed text-ink/80">
-              Sports takes, what to watch, market moves, and the banter in
-              between — it&rsquo;s all in the Discord.
-              <span
-                aria-hidden="true"
-                className="font-heading font-black text-ink transition-transform group-hover:translate-x-1"
-              >
-                →
-              </span>
-            </p>
 
             {onlineCount != null && onlineCount > 0 && (
               <div className="mt-7">
@@ -134,14 +112,7 @@ export default async function Home() {
 
       {/* Calm body — live section cards. */}
       <main className="mx-auto w-full max-w-5xl px-6 py-10 sm:py-14">
-        <h2 className="font-heading text-2xl font-black tracking-tight sm:text-3xl">
-          Where to today?
-        </h2>
-        <p className="mt-2 max-w-xl text-base font-medium text-ink/60">
-          Jump into a section — your Capital wallet is always a tap away up top.
-        </p>
-
-        <div className="mt-8 grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           {SECTION_LIST.map((s) => {
             const accent = SECTION_ACCENT[s.key] ?? { dot: "bg-ink", text: "text-ink" };
             return (
