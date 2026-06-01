@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/session";
-import { hasAdminRole } from "@/lib/discord";
 import { supabase } from "@/lib/supabase";
 import { getLeague, getNflState } from "@/lib/sleeper/client";
 import { listActiveLeagues, detectLeagueKind } from "@/lib/fantasy/leagues";
@@ -12,7 +11,7 @@ import { ensureMatchupEvents, settleFinishedWeeks } from "@/lib/fantasy/wagers";
 async function requireAdmin(): Promise<string> {
   const session = await getSession();
   if (!session) throw new Error("Not signed in.");
-  if (!(await hasAdminRole(session.id))) throw new Error("Not an admin.");
+  if (!session.isAdmin) throw new Error("Not an admin.");
   return session.id;
 }
 
