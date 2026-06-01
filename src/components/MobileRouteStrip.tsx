@@ -9,9 +9,10 @@ import type { NavItem } from "@/lib/sections";
  * showing the current section's pages with an active-route indicator. Driven
  * by the section config (passed as `links`) rather than a hardcoded list.
  *
- * Stays pinned at `top-[65px]` the entire time — it never hides on scroll,
- * matching the always-sticky desktop SectionSubNav. Hidden on sm+ (desktop
- * uses SectionSubNav). Single-page sections render nothing.
+ * Its sticky positioning is provided by the AppShell wrapper that groups it
+ * with the banner, so it stays pinned under the header the entire time and
+ * never hides on scroll. Hidden on sm+ (desktop uses SectionSubNav).
+ * Single-page sections render nothing.
  */
 export function MobileRouteStrip({ links }: { links: NavItem[] }) {
   const pathname = usePathname();
@@ -21,7 +22,7 @@ export function MobileRouteStrip({ links }: { links: NavItem[] }) {
   const rootHref = links[0]?.href;
 
   return (
-    <div className="sticky top-[65px] z-20 border-b border-ink/10 bg-white/95 backdrop-blur sm:hidden">
+    <div className="border-b border-ink/10 bg-white/95 backdrop-blur sm:hidden">
       <nav
         className="mx-auto flex w-full max-w-6xl gap-2 overflow-x-auto px-4 py-2"
         aria-label="Section pages"

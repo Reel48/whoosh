@@ -46,6 +46,9 @@ export async function AppShell({
     equityCents != null ? formatWb(equityCents).replace(/^\$/, "") : null;
 
   const current = section ? SECTIONS[section] : null;
+  // The page-list nav only renders for multi-page sections; single-page
+  // sections (e.g. news) leave it null.
+  const subNavLinks = current && current.nav.length > 1 ? current.nav : null;
 
   return (
     <>
@@ -78,14 +81,20 @@ export async function AppShell({
         </nav>
       </header>
 
-      {banner}
-
-      {/* The current section's own pages (desktop strip + mobile route strip). */}
-      {current && (
-        <>
-          <SectionSubNav links={current.nav} />
-          <MobileRouteStrip links={current.nav} />
-        </>
+      {/* The optional banner (e.g. Capital's market ticker) and the section's
+          page-list nav (desktop strip + mobile route strip) ride together in
+          one sticky group pinned just under the header, so both stay visible
+          the entire time. */}
+      {(banner || subNavLinks) && (
+        <div className="sticky top-[65px] z-20">
+          {banner}
+          {subNavLinks && (
+            <>
+              <SectionSubNav links={subNavLinks} />
+              <MobileRouteStrip links={subNavLinks} />
+            </>
+          )}
+        </div>
       )}
 
       {children}

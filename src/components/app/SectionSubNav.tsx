@@ -18,7 +18,7 @@ export function SectionSubNav({ links }: { links: NavItem[] }) {
   const rootHref = links[0]?.href;
 
   return (
-    <div className="sticky top-[65px] z-20 hidden border-b border-ink/10 bg-white/80 backdrop-blur sm:block">
+    <div className="hidden border-b border-ink/10 bg-white/80 backdrop-blur sm:block">
       <nav
         aria-label="Section pages"
         className="mx-auto flex w-full max-w-6xl gap-6 px-6 py-3 text-sm font-semibold"
