@@ -91,7 +91,7 @@ export default async function WalletPage({
     streakDays,
   ] = await Promise.all([
     loadDashboard(session.id),
-    getRecentLedger(session.id, 25),
+    getRecentLedger(session.id, 5),
     getCurrentRate().catch(() => null),
     getLeaderboard(10).catch(() => []),
     getTradersLeaderboard(10, 7).catch(() => []),
@@ -268,7 +268,7 @@ export default async function WalletPage({
         <section className="cap-mt-lg">
           <h2 className="text-h2 cap-section-title">Open positions</h2>
           <div className="cap-tbl-scroll">
-          <table className="tbl">
+          <table className="tbl cap-tbl--tight">
             <thead>
               <tr>
                 <th>Symbol</th>
@@ -343,7 +343,7 @@ export default async function WalletPage({
       {/* Activity */}
       <section className="cap-mt-lg">
         <div className="cap-card-head">
-          <h2 className="text-h2">Activity</h2>
+          <h2 className="text-h2">Recent activity</h2>
           {ledger.length > 0 && (
             <a href="/capital/wallet/activity" className="cap-link">See all →</a>
           )}

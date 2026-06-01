@@ -39,7 +39,7 @@ export const SECTIONS: Record<SectionKey, Section> = {
     href: "/capital",
     tagline: "Your wallet, investing, and house wagers — all in Whoosh Bucks.",
     nav: [
-      { href: "/capital", label: "Overview" },
+      // /capital redirects to the wallet, which is the section's dashboard.
       { href: "/capital/wallet", label: "Wallet" },
       { href: "/capital/invest", label: "Invest" },
       { href: "/capital/events", label: "Events" },

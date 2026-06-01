@@ -207,6 +207,13 @@
   .cap-tbl-scroll .tbl { min-width: 460px; }
   .tbl td.num { white-space: nowrap; }
 
+  /* Tighter columns for compact tables (e.g. open positions): trim horizontal
+   * cell padding and the scroll min-width so the columns sit closer together.
+   * Scoped to the modifier so other .tbl tables keep their default spacing. */
+  .cap-tbl-scroll .tbl.cap-tbl--tight { min-width: 340px; }
+  .tbl.cap-tbl--tight th,
+  .tbl.cap-tbl--tight td { padding-left: 10px; padding-right: 10px; }
+
   @media (max-width: 639px) {
     .tbl { font-size: 13px; }
     .tbl th, .tbl td { padding: 12px 10px; }
