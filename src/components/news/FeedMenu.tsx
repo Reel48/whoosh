@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { SPORT_LIST } from "@/lib/news/espn";
 import type { FeedActive } from "./SportSelector";
 
@@ -131,7 +132,7 @@ export function FeedMenu({ active }: { active: FeedActive }) {
         </svg>
       </button>
 
-      {mounted && (
+      {mounted && typeof document !== "undefined" && createPortal(
         <div
           className="fixed left-0 right-0 z-20"
           style={{ top: chrome.top, bottom: chrome.bottom }}
@@ -185,7 +186,8 @@ export function FeedMenu({ active }: { active: FeedActive }) {
               ))}
             </nav>
           </aside>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
