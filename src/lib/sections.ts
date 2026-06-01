@@ -11,7 +11,7 @@
  * components.
  */
 
-export type SectionKey = "capital" | "fantasy" | "pool";
+export type SectionKey = "capital" | "fantasy" | "pool" | "news";
 
 /** Icon keys resolved to SVGs in the client nav components. */
 export type IconKey =
@@ -22,7 +22,8 @@ export type IconKey =
   | "overview"
   | "leagues"
   | "matchups"
-  | "rankings";
+  | "rankings"
+  | "news";
 
 export type NavItem = {
   href: string;
@@ -100,6 +101,17 @@ export const SECTIONS: Record<SectionKey, Section> = {
     tabs: [],
     live: false,
   },
+  news: {
+    key: "news",
+    label: "Sports News",
+    href: "/news",
+    tagline: "The latest headlines from ESPN — pick your sport and read the feed.",
+    // Single page: the sport selector lives in the page body, so there's no
+    // sub-nav (SectionSubNav/MobileRouteStrip render null for one nav item).
+    nav: [{ href: "/news", label: "Overview" }],
+    tabs: [],
+    live: true,
+  },
 };
 
 /**
@@ -110,6 +122,7 @@ export const SECTIONS: Record<SectionKey, Section> = {
  */
 export const SECTION_LIST: Section[] = [
   SECTIONS.fantasy,
+  SECTIONS.news,
   SECTIONS.pool,
 ];
 
