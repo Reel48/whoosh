@@ -1,10 +1,13 @@
 /**
- * Thin read-only wrapper over ESPN's per-sport RSS feeds. Mirrors the
- * fetch-revalidate pattern in src/lib/sleeper/client.ts: no auth, no key, and
- * Next's per-fetch data cache (revalidate) serves repeat reads of the same
- * sport within the window. ESPN's feed is RSS 2.0 with a flat <item> list whose
- * fields are CDATA-wrapped — stable and shallow enough to parse without an XML
- * dependency (see parseFeed).
+ * Thin read-only wrapper over ESPN's JSON news APIs. Mirrors the
+ * fetch-revalidate pattern in src/lib/sleeper/client.ts (no auth, no key; Next's
+ * per-fetch data cache serves repeat reads within the window).
+ *
+ * We use the JSON APIs rather than ESPN's public RSS because RSS truncates
+ * headlines (its <title> is cut off with "…") and carries no images. Two JSON
+ * endpoints cover every sport, both returning the same article shape:
+ *  - site.api.espn.com/.../sports/<apiPath>/news  → { articles: [...] }
+ *  - now.core.api.espn.com/v1/sports/news?sport=  → { headlines: [...] }   (boxing)
  */
 
 export type SportKey =
@@ -23,21 +26,24 @@ export type Sport = {
   key: SportKey;
   /** Display label shown on the sport selector chips. */
   label: string;
-  /** ESPN feed slug — https://www.espn.com/espn/rss/<code>/news */
-  code: string;
+  /** site.api.espn.com path: /sports/<apiPath>/news. */
+  apiPath?: string;
+  /** now.core.api.espn.com sport slug, for sports without a site-API news path. */
+  nowSport?: string;
 };
 
 export const SPORTS: Record<SportKey, Sport> = {
-  nfl: { key: "nfl", label: "NFL", code: "nfl" },
-  ncf: { key: "ncf", label: "College Football", code: "ncf" },
-  nba: { key: "nba", label: "NBA", code: "nba" },
-  mlb: { key: "mlb", label: "MLB", code: "mlb" },
-  soccer: { key: "soccer", label: "Soccer", code: "soccer" },
-  nhl: { key: "nhl", label: "NHL", code: "nhl" },
-  golf: { key: "golf", label: "Golf", code: "golf" },
-  tennis: { key: "tennis", label: "Tennis", code: "tennis" },
-  boxing: { key: "boxing", label: "Boxing", code: "boxing" },
-  ncb: { key: "ncb", label: "College Basketball", code: "ncb" },
+  nfl: { key: "nfl", label: "NFL", apiPath: "football/nfl" },
+  ncf: { key: "ncf", label: "College Football", apiPath: "football/college-football" },
+  nba: { key: "nba", label: "NBA", apiPath: "basketball/nba" },
+  mlb: { key: "mlb", label: "MLB", apiPath: "baseball/mlb" },
+  soccer: { key: "soccer", label: "Soccer", apiPath: "soccer/all" },
+  nhl: { key: "nhl", label: "NHL", apiPath: "hockey/nhl" },
+  golf: { key: "golf", label: "Golf", apiPath: "golf/pga" },
+  tennis: { key: "tennis", label: "Tennis", apiPath: "tennis/atp" },
+  // No site-API news path — served by the "now" API instead.
+  boxing: { key: "boxing", label: "Boxing", nowSport: "boxing" },
+  ncb: { key: "ncb", label: "College Basketball", apiPath: "basketball/mens-college-basketball" },
 };
 
 export const SPORT_LIST: Sport[] = Object.values(SPORTS);
@@ -50,100 +56,88 @@ export function resolveSport(raw: string | undefined): SportKey {
 }
 
 export type Article = {
+  /** Full, untruncated headline. */
   title: string;
   description: string;
   link: string;
-  /** Raw RSS date string (e.g. "Mon, 1 Jun 2026 07:37:51 EST"); format in the UI. */
+  /** ISO date string from ESPN; formatted in the UI. */
   pubDate: string | null;
   author: string | null;
   guid: string;
-  /**
-   * Image URLs found on the item, shown at the bottom of the post. ESPN's news
-   * feeds don't currently carry per-item images, so this is usually empty — but
-   * we extract enclosure/media/embedded <img> so they appear if a feed adds them.
-   */
+  /** Image URLs for the post, shown at the bottom. Empty when none are provided. */
   images: string[];
 };
 
-/** Feed revalidation window (seconds). ESPN's own ttl is 30; 10 min is plenty. */
+/** Feed revalidation window (seconds). 10 min keeps headlines fresh enough. */
 const FEED_TTL = 600;
 
-function feedUrl(code: string): string {
-  return `https://www.espn.com/espn/rss/${code}/news`;
+type EspnImage = { url?: string };
+type EspnArticle = {
+  id?: number | string;
+  headline?: string;
+  description?: string;
+  byline?: string;
+  published?: string;
+  images?: EspnImage[];
+  links?: { web?: { href?: string } };
+};
+
+/** Map ESPN's JSON article shape (shared by both endpoints) to our Article. */
+function fromJson(a: EspnArticle): Article {
+  const link = a.links?.web?.href ?? "";
+  const images = Array.isArray(a.images)
+    ? [...new Set(a.images.map((im) => im?.url).filter((u): u is string => !!u && /^https?:/.test(u)))]
+    : [];
+  return {
+    title: (a.headline ?? "").trim(),
+    description: (a.description ?? "").trim(),
+    link,
+    pubDate: a.published ?? null,
+    author: a.byline?.trim() || null,
+    guid: String(a.id ?? link),
+    images,
+  };
 }
 
-/** Unwrap a CDATA section if present, then decode the common XML entities. */
-function clean(raw: string | undefined): string {
-  if (!raw) return "";
-  const cdata = raw.match(/<!\[CDATA\[([\s\S]*?)\]\]>/);
-  const text = cdata ? cdata[1] : raw;
-  return text
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .trim();
-}
-
-/** Inner content of the first <name ...>…</name> in `block` (namespace-safe). */
-function tag(block: string, name: string): string | undefined {
-  const safe = name.replace(/:/g, "\\:");
-  const m = block.match(new RegExp(`<${safe}[^>]*>([\\s\\S]*?)</${safe}>`, "i"));
-  return m?.[1];
-}
-
-/** Collect image URLs from an item: enclosure, media:*, and embedded <img>. */
-function extractImages(block: string): string[] {
-  const urls = new Set<string>();
-  // <enclosure url="…" type="image/…"> and <media:content|media:thumbnail url="…">
-  for (const m of block.matchAll(
-    /<(?:enclosure|media:content|media:thumbnail)\b[^>]*\burl="([^"]+)"[^>]*>/gi,
-  )) {
-    if (/image/i.test(m[0]) || /\.(jpe?g|png|gif|webp)(\?|$)/i.test(m[1])) urls.add(m[1]);
-  }
-  // <img src="…"> embedded in description / content:encoded (CDATA HTML).
-  for (const m of block.matchAll(/<img\b[^>]*\bsrc="([^"]+)"/gi)) urls.add(m[1]);
-  return [...urls];
-}
-
-/** Parse an ESPN RSS document into articles. Tolerant of missing optional tags. */
-export function parseFeed(xml: string): Article[] {
-  const items = xml.match(/<item\b[\s\S]*?<\/item>/gi) ?? [];
-  return items
-    .map((block): Article => {
-      const link = clean(tag(block, "link"));
-      return {
-        title: clean(tag(block, "title")),
-        description: clean(tag(block, "description")),
-        link,
-        pubDate: clean(tag(block, "pubDate")) || null,
-        author: clean(tag(block, "dc:creator")) || null,
-        guid: clean(tag(block, "guid")) || link,
-        images: extractImages(block),
-      };
-    })
-    .filter((a) => a.title && a.link);
-}
-
-/** Latest articles for a sport. Returns [] (and logs) on any failure. */
-export async function fetchFeed(sport: SportKey): Promise<Article[]> {
-  const { code } = SPORTS[sport];
+/** Fetch + map a JSON news endpoint. `key` is the array field ESPN nests under. */
+async function fetchJson(url: string, key: "articles" | "headlines"): Promise<Article[]> {
   let res: Response;
   try {
-    res = await fetch(feedUrl(code), { next: { revalidate: FEED_TTL } });
+    res = await fetch(url, { next: { revalidate: FEED_TTL } });
   } catch (e) {
-    console.error(`ESPN feed ${code} fetch failed:`, e);
+    console.error(`ESPN news fetch failed (${url}):`, e);
     return [];
   }
   if (!res.ok) {
-    console.error(`ESPN feed ${code}: ${res.status}`);
+    console.error(`ESPN news ${res.status} (${url})`);
     return [];
   }
   try {
-    return parseFeed(await res.text());
+    const data = (await res.json()) as Record<string, EspnArticle[] | undefined>;
+    return (data[key] ?? []).map(fromJson).filter((a) => a.title && a.link);
   } catch (e) {
-    console.error(`ESPN feed ${code} parse failed:`, e);
+    console.error(`ESPN news parse failed (${url}):`, e);
     return [];
   }
+}
+
+/**
+ * Latest articles for a sport, with full headlines + images. Returns [] (and
+ * logs) on any failure.
+ */
+export async function fetchFeed(sport: SportKey): Promise<Article[]> {
+  const s = SPORTS[sport];
+  if (s.apiPath) {
+    return fetchJson(
+      `https://site.api.espn.com/apis/site/v2/sports/${s.apiPath}/news?limit=50`,
+      "articles",
+    );
+  }
+  if (s.nowSport) {
+    return fetchJson(
+      `https://now.core.api.espn.com/v1/sports/news?sport=${s.nowSport}&limit=50`,
+      "headlines",
+    );
+  }
+  return [];
 }

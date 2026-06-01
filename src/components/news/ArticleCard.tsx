@@ -38,6 +38,9 @@ function EspnLogo() {
 export function ArticleCard({ article }: { article: Article }) {
   const date = formatDate(article.pubDate);
   const byline = [article.author, date].filter(Boolean).join(" · ");
+  // Show the hero image only — some articles carry a whole gallery, which would
+  // bury the feed. The full set is on the linked article.
+  const hero = article.images[0] ?? null;
 
   return (
     <a
@@ -65,21 +68,16 @@ export function ArticleCard({ article }: { article: Article }) {
         )}
       </div>
 
-      {/* Images at the bottom, when the feed provides them */}
-      {article.images.length > 0 && (
-        <div className="flex flex-col">
-          {article.images.map((src) => (
-            // Remote ESPN CDN images; plain <img> avoids next/image remotePatterns config.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={src}
-              src={src}
-              alt=""
-              loading="lazy"
-              className="w-full border-t border-ink/10 object-cover"
-            />
-          ))}
-        </div>
+      {/* Hero image at the bottom, when the feed provides one */}
+      {hero && (
+        // Remote ESPN CDN images; plain <img> avoids next/image remotePatterns config.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={hero}
+          alt=""
+          loading="lazy"
+          className="w-full border-t border-ink/10 object-cover"
+        />
       )}
     </a>
   );
