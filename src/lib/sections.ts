@@ -102,16 +102,20 @@ export const SECTIONS: Record<SectionKey, Section> = {
   },
 };
 
-/** Ordered list for the /home hub (the only place sections are switched). */
+/**
+ * Sections shown as cards on the /home hub. Capital is intentionally omitted —
+ * it's reached via the Total Equity pill in the app navbar (AppShell), not a
+ * hub card. The Capital section itself (SECTIONS.capital) stays fully defined
+ * so its pages, sub-nav, and bottom tab bar keep working.
+ */
 export const SECTION_LIST: Section[] = [
-  SECTIONS.capital,
   SECTIONS.fantasy,
   SECTIONS.pool,
 ];
 
 /** Which section (if any) a pathname belongs to, by URL prefix. */
 export function sectionForPath(pathname: string): SectionKey | null {
-  for (const s of SECTION_LIST) {
+  for (const s of Object.values(SECTIONS)) {
     if (pathname === s.href || pathname.startsWith(`${s.href}/`)) return s.key;
   }
   return null;

@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
+import { getTotalEquityCents } from "@/lib/wb/dashboard";
+import { formatWb } from "@/lib/wb/format";
 import { Avatar } from "./Avatar";
 import { NotificationsBell } from "./NotificationsBell";
 import { SectionSubNav } from "./app/SectionSubNav";
@@ -39,6 +41,11 @@ export async function AppShell({
   children: React.ReactNode;
 }) {
   const session = await getSession();
+  // Total Equity for the navbar Capital pill (cheap; quotes are cached). Null
+  // on failure so the header still renders.
+  const equityCents = session
+    ? await getTotalEquityCents(session.id).catch(() => null)
+    : null;
 
   const current = section ? SECTIONS[section] : null;
 
@@ -76,6 +83,22 @@ export async function AppShell({
           )}
 
           <div className="flex flex-1 items-center justify-end gap-3">
+            {session && (
+              <Link
+                href="/capital"
+                aria-label="Capital — total equity"
+                title="Capital"
+                className="inline-flex items-center gap-1.5 rounded-theme border-theme border-ink/15 py-1 pl-1.5 pr-3 transition-colors hover:bg-ink/5"
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-pigment-green text-sm font-black text-white-smoke">
+                  $
+                </span>
+                <span className="text-sm font-display font-bold tabular-nums text-ink">
+                  {equityCents != null ? formatWb(equityCents).replace(/^\$/, "") : "Capital"}
+                </span>
+              </Link>
+            )}
+
             {session && <NotificationsBell />}
 
             {session && (

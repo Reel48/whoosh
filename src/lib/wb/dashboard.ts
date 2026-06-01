@@ -159,6 +159,26 @@ function investingPl(
   return totalInvestBuy + totalInvestSell + currentInvestedValue;
 }
 
+/**
+ * Lightweight Total Equity (cash + invested mark-to-market + open wagers) for
+ * the navbar pill. Skips the lifetime-stats RPC and 90-day balance series that
+ * `loadDashboard` computes; quotes are served from the 60s symbol cache, so
+ * this is cheap enough to run in the app shell on every signed-in page.
+ */
+export async function getTotalEquityCents(userId: string): Promise<number> {
+  const [cashCents, openWagersCents, positionsRaw] = await Promise.all([
+    getBalance(userId),
+    getOpenWagerStake(userId),
+    getPositions(userId),
+  ]);
+  const positions = await enrichPositions(positionsRaw);
+  const investedValueCents = positions.reduce(
+    (acc, p) => acc + (p.marketValueCents ?? p.costBasisCents),
+    0,
+  );
+  return cashCents + investedValueCents + openWagersCents;
+}
+
 export async function loadDashboard(userId: string): Promise<DashboardData> {
   const [cashCents, lifetime, openWagersCents, positionsRaw, balanceSeries] =
     await Promise.all([

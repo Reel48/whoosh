@@ -51,10 +51,10 @@ export default async function Home() {
           Where to today?
         </h1>
         <p className="mt-3 max-w-xl text-lg font-medium text-ink/70">
-          Three sides of Whoosh, each its own world. Jump into one.
+          Jump into a section — your Capital wallet is always a tap away up top.
         </p>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-3">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2">
           {SECTION_LIST.map((s) => (
             <Link
               key={s.key}
