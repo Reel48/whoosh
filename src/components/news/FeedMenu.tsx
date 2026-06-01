@@ -104,7 +104,7 @@ export function FeedMenu({ active }: { active: FeedActive }) {
 
   const links: FeedLink[] = [
     { href: "/news", label: "Whoosh Feed", active: active === "whoosh" },
-    { href: "/news?view=mine", label: "My Boosts", active: active === "mine" },
+    { href: "/news?view=mine", label: "Boosted", active: active === "mine" },
     ...SPORT_LIST.map((s) => ({
       href: `/news?sport=${s.key}`,
       label: s.label,
