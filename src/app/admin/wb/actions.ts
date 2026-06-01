@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/session";
-import { hasAdminRole } from "@/lib/discord";
 import { setRate, accrueInterest, postInterest } from "@/lib/wb/interest";
 import { creditLedger } from "@/lib/wb/ledger";
 import { postDividend } from "@/lib/wb/dividend";
@@ -10,8 +9,7 @@ import { postDividend } from "@/lib/wb/dividend";
 async function requireAdmin(): Promise<string> {
   const session = await getSession();
   if (!session) throw new Error("Not signed in.");
-  const isAdmin = await hasAdminRole(session.id);
-  if (!isAdmin) throw new Error("Not an admin.");
+  if (!session.isAdmin) throw new Error("Not an admin.");
   return session.id;
 }
 

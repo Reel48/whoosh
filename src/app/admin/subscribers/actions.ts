@@ -3,13 +3,12 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/session";
-import { hasAdminRole } from "@/lib/discord";
 import { reconcileStripeCredits } from "@/lib/wb/reconcile";
 
 async function requireAdmin(): Promise<void> {
   const session = await getSession();
   if (!session) throw new Error("Not signed in.");
-  if (!(await hasAdminRole(session.id))) throw new Error("Not an admin.");
+  if (!session.isAdmin) throw new Error("Not an admin.");
 }
 
 /**
