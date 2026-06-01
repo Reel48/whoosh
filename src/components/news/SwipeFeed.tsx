@@ -82,7 +82,7 @@ export function SwipeFeed({ sport, articles }: Props) {
       showToast("Couldn't save — try again", () => {});
       return;
     }
-    showToast(direction === "right" ? "Kept · +1 point" : "Removed", () => {
+    showToast(direction === "right" ? "Boosted · +1 point" : "Removed", () => {
       reinsert(guid, idx);
       void postSwipe({ action: "undo", guid });
     });
@@ -95,7 +95,7 @@ export function SwipeFeed({ sport, articles }: Props) {
           <p className="font-display text-lg font-bold text-ink">You&apos;re all caught up</p>
           <p className="mt-2 text-sm text-ink/60">
             No more {sport.toUpperCase()} stories to sort. Check the Whoosh Feed to see what the
-            community kept, or pick another sport.
+            community boosted, or pick another sport.
           </p>
         </div>
       </div>
@@ -105,7 +105,7 @@ export function SwipeFeed({ sport, articles }: Props) {
   return (
     <div className="mx-auto w-full max-w-2xl px-6 pb-16">
       <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-ink/40">
-        Swipe right to keep · left to trash
+        Swipe right to boost · left to trash
       </p>
       <div className="grid gap-3">
         {order.map((guid) => {
@@ -229,7 +229,7 @@ function SwipeCard({ article, onKeep, onTrash }: CardProps) {
           aria-hidden="true"
         >
           <span className="font-display text-sm font-black uppercase tracking-wide text-white">
-            {dir === "right" ? "Keep ✓" : "Trash ✕"}
+            {dir === "right" ? "Boost ✓" : "Trash ✕"}
           </span>
         </div>
       )}

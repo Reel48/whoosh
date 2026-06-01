@@ -27,8 +27,8 @@ export function WhooshFeed({ entries }: { entries: WhooshEntry[] }) {
         <div className="rounded-theme border-theme border-ink/10 bg-surface p-10 text-center shadow-theme">
           <p className="font-display text-lg font-bold text-ink">The Whoosh Feed is warming up</p>
           <p className="mt-2 text-sm text-ink/60">
-            Head into a sport and swipe right on the stories worth keeping. The ones the community
-            keeps most show up here.
+            Head into a sport and swipe right to boost the stories worth reading. The ones the
+            community boosts most show up here.
           </p>
         </div>
       </div>

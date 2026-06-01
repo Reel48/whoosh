@@ -55,7 +55,7 @@ export function KeptList({ entries }: { entries: WhooshEntry[] }) {
     const idx = order.indexOf(id);
     setOrder((o) => o.filter((g) => g !== id));
     void post({ action: "undo", guid: id });
-    showToast("Removed from keeps", () => {
+    showToast("Removed from boosts", () => {
       setOrder((o) => {
         if (o.includes(id)) return o;
         const next = [...o];
@@ -71,9 +71,9 @@ export function KeptList({ entries }: { entries: WhooshEntry[] }) {
     return (
       <div className="mx-auto w-full max-w-2xl px-6 pb-16">
         <div className="rounded-theme border-theme border-ink/10 bg-surface p-10 text-center shadow-theme">
-          <p className="font-display text-lg font-bold text-ink">You haven&apos;t kept anything yet</p>
+          <p className="font-display text-lg font-bold text-ink">You haven&apos;t boosted anything yet</p>
           <p className="mt-2 text-sm text-ink/60">
-            Swipe right on stories worth saving and they&apos;ll collect here.
+            Swipe right to boost stories worth saving and they&apos;ll collect here.
           </p>
         </div>
       </div>

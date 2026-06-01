@@ -53,7 +53,7 @@ export function SportSelector() {
           aria-current={active === "mine" ? "page" : undefined}
           className={`${CHIP} ${active === "mine" ? ACTIVE : IDLE}`}
         >
-          My Keeps
+          My Boosts
         </Link>
         {SPORT_LIST.map((s) => {
           const isActive = s.key === active;
