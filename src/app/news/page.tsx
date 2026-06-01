@@ -1,38 +1,41 @@
 import { requireSession } from "@/lib/membership";
 import { fetchFeed, resolveSport, SPORTS } from "@/lib/news/espn";
-import { getUserSwipes, getWhooshFeed } from "@/lib/news/engagement";
+import { getUserSwipes, getWhooshFeed, getMyKeptArticles } from "@/lib/news/engagement";
 import { SportSelector } from "@/components/news/SportSelector";
 import { SwipeFeed } from "@/components/news/SwipeFeed";
 import { WhooshFeed } from "@/components/news/WhooshFeed";
+import { FeedToggle } from "@/components/news/FeedToggle";
+import { KeptList } from "@/components/news/KeptList";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Sports News — Whoosh" };
 
 /**
- * Sports News home. Bare /news shows the Whoosh Feed (global community
- * leaderboard of kept articles). /news?sport=<key> shows that sport's swipeable
- * feed: ESPN articles minus the ones this user has trashed, with already-kept
- * ones rendered green.
+ * Sports News home. Bare /news is the Whoosh Feed (Community = global kept
+ * articles; My Keeps = the viewer's own). /news?sport=<key> is that sport's
+ * swipeable feed — ESPN articles minus everything this user has already swiped
+ * (kept or trashed).
  */
 export default async function NewsHome({
   searchParams,
 }: {
-  searchParams: Promise<{ sport?: string }>;
+  searchParams: Promise<{ sport?: string; view?: string }>;
 }) {
   const session = await requireSession("/news");
-  const { sport: raw } = await searchParams;
+  const { sport: raw, view } = await searchParams;
 
-  // Bare /news (no sport) → Whoosh Feed.
+  // Bare /news (no valid sport) → Whoosh Feed (Community or My Keeps).
   if (raw === undefined || !(raw in SPORTS)) {
-    const entries = await getWhooshFeed();
-    const swipes = await getUserSwipes(session.id, entries.map((e) => e.espnId));
-    const keptIds = new Set(
-      [...swipes.entries()].filter(([, d]) => d === "right").map(([id]) => id),
-    );
+    const mine = view === "mine";
     return (
       <main className="flex flex-1 flex-col py-2">
         <SportSelector active={null} />
-        <WhooshFeed entries={entries} keptIds={keptIds} />
+        <FeedToggle active={mine ? "mine" : "community"} />
+        {mine ? (
+          <KeptList entries={await getMyKeptArticles(session.id)} />
+        ) : (
+          <WhooshFeed entries={await getWhooshFeed()} />
+        )}
       </main>
     );
   }
@@ -41,15 +44,13 @@ export default async function NewsHome({
   const articles = await fetchFeed(sport);
   const swipes = await getUserSwipes(session.id, articles.map((a) => a.guid));
 
-  // Drop trashed articles; mark kept ones for the green state.
-  const visible = articles.filter((a) => swipes.get(a.guid) !== "left");
-  const initialKept: Record<string, boolean> = {};
-  for (const a of visible) if (swipes.get(a.guid) === "right") initialKept[a.guid] = true;
+  // Drop anything already decided — kept or trashed — from the sport feed.
+  const visible = articles.filter((a) => !swipes.has(a.guid));
 
   return (
     <main className="flex flex-1 flex-col py-2">
       <SportSelector active={sport} />
-      <SwipeFeed sport={sport} articles={visible} initialKept={initialKept} />
+      <SwipeFeed sport={sport} articles={visible} />
     </main>
   );
 }
