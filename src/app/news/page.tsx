@@ -45,7 +45,10 @@ export default async function NewsHome({
 
   return (
     <main className="flex flex-1 flex-col py-2">
-      <SwipeFeed sport={sport} articles={visible} />
+      {/* Key by sport so switching sports remounts the feed with fresh state.
+          Without this, React reuses the instance and its `order` state keeps
+          the previous sport's GUIDs, leaving the feed blank until a refresh. */}
+      <SwipeFeed key={sport} sport={sport} articles={visible} />
     </main>
   );
 }
