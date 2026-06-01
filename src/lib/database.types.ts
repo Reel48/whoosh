@@ -508,6 +508,80 @@ export type Database = {
           },
         ]
       }
+      news_article: {
+        Row: {
+          author: string | null
+          created_at: string
+          description: string | null
+          espn_id: string
+          image_url: string | null
+          link: string
+          points: number
+          pub_date: string | null
+          sport: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          created_at?: string
+          description?: string | null
+          espn_id: string
+          image_url?: string | null
+          link: string
+          points?: number
+          pub_date?: string | null
+          sport: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          created_at?: string
+          description?: string | null
+          espn_id?: string
+          image_url?: string | null
+          link?: string
+          points?: number
+          pub_date?: string | null
+          sport?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      news_swipe: {
+        Row: {
+          created_at: string
+          direction: string
+          espn_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          espn_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          espn_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_swipe_espn_id_fkey"
+            columns: ["espn_id"]
+            isOneToOne: false
+            referencedRelation: "news_article"
+            referencedColumns: ["espn_id"]
+          },
+        ]
+      }
       notification: {
         Row: {
           body: string | null
@@ -966,6 +1040,10 @@ export type Database = {
         Args: { p_discord_user_id: string; p_new_user_id: string }
         Returns: boolean
       }
+      delete_news_swipe: {
+        Args: { p_espn_id: string; p_user: string }
+        Returns: number
+      }
       ensure_wallet: {
         Args: { p_user_id: string; p_username: string }
         Returns: undefined
@@ -1129,6 +1207,10 @@ export type Database = {
       }
       fn_wb_total_supply: { Args: never; Returns: number }
       normalize_handle: { Args: { input: string }; Returns: string }
+      record_news_swipe: {
+        Args: { p_article: Json; p_direction: string; p_user: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

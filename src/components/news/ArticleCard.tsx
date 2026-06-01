@@ -7,15 +7,15 @@ const DATE_FMT = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 });
 
-/** Format an RSS pubDate string; returns null if it's missing or unparseable. */
-function formatDate(pubDate: string | null): string | null {
+/** Format an RSS/ISO pubDate string; returns null if missing or unparseable. */
+export function formatArticleDate(pubDate: string | null): string | null {
   if (!pubDate) return null;
   const t = Date.parse(pubDate);
   return Number.isNaN(t) ? null : DATE_FMT.format(new Date(t));
 }
 
 /** ESPN brand avatar — the red rounded mark with the italic wordmark. */
-function EspnLogo() {
+export function EspnLogo() {
   return (
     <span
       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
@@ -36,7 +36,7 @@ function EspnLogo() {
  * article on espn.com in a new tab.
  */
 export function ArticleCard({ article }: { article: Article }) {
-  const date = formatDate(article.pubDate);
+  const date = formatArticleDate(article.pubDate);
   const byline = [article.author, date].filter(Boolean).join(" · ");
   // Show the hero image only — some articles carry a whole gallery, which would
   // bury the feed. The full set is on the linked article.
