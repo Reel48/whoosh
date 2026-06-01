@@ -67,7 +67,7 @@ export function SectionChrome({
 
   return (
     <div
-      className="sticky top-[65px] z-20"
+      className="sticky top-[71px] z-20"
       style={{
         transform: hidden ? "translateY(-100%)" : "translateY(0)",
         transition: "transform 200ms ease-out",

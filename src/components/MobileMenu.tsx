@@ -85,7 +85,7 @@ export function MobileMenu({ signedIn, username }: Props) {
       </button>
 
       {open && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 top-[65px] z-40 flex flex-col bg-white-smoke pb-[env(safe-area-inset-bottom)] sm:hidden">
+        <div className="fixed inset-0 top-[71px] z-40 flex flex-col bg-white-smoke pb-[env(safe-area-inset-bottom)] sm:hidden">
           <nav className="flex flex-col gap-2 overflow-y-auto px-6 py-8">
             {signedIn && (
               <>
