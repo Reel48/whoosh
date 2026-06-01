@@ -45,6 +45,7 @@ function formatDate(unix: number) {
     month: "long",
     day: "numeric",
     year: "numeric",
+    timeZone: "America/Chicago",
   });
 }
 

@@ -100,7 +100,7 @@ export function LeaderboardTabs({ holders, traders, wins, streaks, highlightUser
             <span style={POS}>▲ {fmtMoney((e as BiggestWinEntry).payoutCents, { signed: true })}</span>
           )}
           renderSub={(e) =>
-            new Date((e as BiggestWinEntry).createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+            new Date((e as BiggestWinEntry).createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Chicago" })
           }
         />
       )}

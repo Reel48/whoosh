@@ -18,6 +18,7 @@ function formatDate(unix: number) {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "America/Chicago",
   });
 }
 

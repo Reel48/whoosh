@@ -39,7 +39,7 @@ export function SupplyChart({ data }: { data: SupplyPoint[] }) {
   const fmt = (cents: number) =>
     `$${(cents / 100).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
   const fmtDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Chicago" });
 
   return (
     <svg

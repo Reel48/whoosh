@@ -124,6 +124,7 @@ export function LeaderboardTabs({
               new Date((e as BiggestWinEntry).createdAt).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
+                timeZone: "America/Chicago",
               })
             }
           />

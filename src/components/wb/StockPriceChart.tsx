@@ -145,5 +145,5 @@ export function StockPriceChart({ candles, refLineCents, refLineLabel }: Props) 
 
 function formatDate(epochSeconds: number): string {
   const d = new Date(epochSeconds * 1000);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" });
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit", timeZone: "America/Chicago" });
 }

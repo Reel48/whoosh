@@ -1,17 +1,12 @@
 import type { Article } from "@/lib/news/espn";
+import { formatCentral } from "@/lib/datetime";
 
-const DATE_FMT = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
-
-/** Format an RSS/ISO pubDate string; returns null if missing or unparseable. */
+/** Format an RSS/ISO pubDate string in Central time; null if missing/unparseable. */
 export function formatArticleDate(pubDate: string | null): string | null {
   if (!pubDate) return null;
   const t = Date.parse(pubDate);
-  return Number.isNaN(t) ? null : DATE_FMT.format(new Date(t));
+  if (Number.isNaN(t)) return null;
+  return formatCentral(t, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
 /** ESPN brand avatar — the red rounded mark with the italic wordmark. */

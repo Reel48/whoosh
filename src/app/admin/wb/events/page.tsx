@@ -63,7 +63,7 @@ function recommendedSports(month: number): string[] {
 function getSeasonalReminder(): { monthName: string; recommended: string[] } {
   const now = new Date();
   return {
-    monthName: now.toLocaleString("en-US", { month: "long" }),
+    monthName: now.toLocaleString("en-US", { month: "long", timeZone: "America/Chicago" }),
     recommended: recommendedSports(now.getMonth()),
   };
 }
