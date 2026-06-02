@@ -162,12 +162,16 @@ export default async function WalletPage({
         </div>
         <div className="cap-stat">
           <span className="cap-stat__label">Cash</span>
-          <span className="cap-stat__value">{formatMoney(allocation.cashCents)}</span>
+          <span className="cap-stat__value">
+            <Ticker valueCents={allocation.cashCents} />
+          </span>
           <span className="cap-stat__delta">{apyHint ?? "—"}</span>
         </div>
         <div className="cap-stat">
           <span className="cap-stat__label">Invested</span>
-          <span className="cap-stat__value">{formatMoney(allocation.investedValueCents)}</span>
+          <span className="cap-stat__value">
+            <Ticker valueCents={allocation.investedValueCents} />
+          </span>
           <span className="cap-stat__delta">
             {positions.length > 0 ? `${positions.length} ${positions.length === 1 ? "position" : "positions"}` : "no positions"}
           </span>
