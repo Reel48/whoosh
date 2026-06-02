@@ -150,7 +150,7 @@ export default async function WalletPage({
         <div className="cap-stat">
           <span className="cap-stat__label">Total equity</span>
           <span className="cap-stat__value">
-            <Ticker valueCents={allocation.totalEquityCents} format={(c) => formatMoney(c)} />
+            <Ticker valueCents={allocation.totalEquityCents} />
           </span>
           {dayChange != null ? (
             <span className={`cap-stat__delta ${dayPos ? "cap-stat__delta--pos" : "cap-stat__delta--neg"}`}>
