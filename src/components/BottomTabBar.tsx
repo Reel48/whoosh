@@ -145,7 +145,7 @@ export function BottomTabBar({ activeSection }: { activeSection: SectionKey | nu
                 <t.Icon className={`h-6 w-6 ${active ? "" : "opacity-80"}`} />
                 <span>{t.label}</span>
                 {active && (
-                  <span aria-hidden="true" className="absolute top-0 h-1 w-12 rounded-b-full bg-ink" />
+                  <span aria-hidden="true" className="absolute bottom-0 h-1 w-12 rounded-t-full bg-ink" />
                 )}
               </Link>
             </li>
