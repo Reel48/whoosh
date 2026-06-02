@@ -17,6 +17,7 @@ import { BuyWbForm } from "@/components/wb/BuyWbForm";
 import { hasClaimedToday, getUserStreak } from "@/lib/wb/bonus";
 import { formatWb } from "@/lib/wb/format";
 import { Ticker } from "@/components/ui/Ticker";
+import { Reveal } from "@/components/ui/Reveal";
 
 export const dynamic = "force-dynamic";
 
@@ -146,7 +147,8 @@ export default async function WalletPage({
 
       {/* KPI strip — three compact columns in one card so it stays a single
           row (even on a phone) instead of three tall stacked cards. */}
-      <section className="card cap-stat-row cap-mt">
+      <Reveal direction="right" className="cap-mt">
+      <section className="card cap-stat-row">
         <div className="cap-stat">
           <span className="cap-stat__label">Total equity</span>
           <span className="cap-stat__value">
@@ -177,9 +179,11 @@ export default async function WalletPage({
           </span>
         </div>
       </section>
+      </Reveal>
 
       {/* Daily check-in */}
-      <section className="card cap-mt cap-checkin">
+      <Reveal direction="right" className="cap-mt">
+      <section className="card cap-checkin">
         <div>
           <h2 className="text-h3">
             Daily check-in{streakDays > 0 ? ` · ${streakDays}-day streak` : ""}
@@ -196,9 +200,11 @@ export default async function WalletPage({
           </button>
         </form>
       </section>
+      </Reveal>
 
       {/* Allocation */}
-      <section className="card cap-mt-lg">
+      <Reveal direction="right" className="cap-mt-lg">
+      <section className="card">
         <h2 className="text-h3">Where your WB lives</h2>
         <p className="text-body-sm cap-mt-1">
           Cash earns the SPAXX-tied yield; investing and open bets each lock up part of your equity.
@@ -223,9 +229,11 @@ export default async function WalletPage({
           />
         </div>
       </section>
+      </Reveal>
 
       {/* Lifetime returns */}
-      <section className="card cap-mt-lg">
+      <Reveal direction="right" className="cap-mt-lg">
+      <section className="card">
         <h2 className="text-h3">Lifetime returns</h2>
         <p className="text-body-sm cap-mt-1">
           What&rsquo;s contributed to (or taken from) your stack since you joined.
@@ -248,9 +256,11 @@ export default async function WalletPage({
           </tbody>
         </table>
       </section>
+      </Reveal>
 
       {/* Leaderboard */}
-      <section className="cap-mt-lg" id="leaderboard">
+      <Reveal direction="right" className="cap-mt-lg">
+      <section id="leaderboard">
         <LeaderboardTabs
           variant="capital"
           holders={holders}
@@ -260,9 +270,11 @@ export default async function WalletPage({
           highlightUserId={session.id}
         />
       </section>
+      </Reveal>
 
       {/* Balance chart */}
-      <section className="chart-card cap-mt-lg">
+      <Reveal direction="right" className="cap-mt-lg">
+      <section className="chart-card">
         <div className="chart-card__head">
           <div>
             <h2 className="text-h3">Cash balance</h2>
@@ -271,10 +283,12 @@ export default async function WalletPage({
         </div>
         <BalanceChart data={dashboard.balanceSeries} />
       </section>
+      </Reveal>
 
       {/* Positions */}
       {positions.length > 0 && (
-        <section className="cap-mt-lg">
+        <Reveal direction="right" className="cap-mt-lg">
+        <section>
           <h2 className="text-h2 cap-section-title">Open positions</h2>
           <div className="cap-tbl-scroll">
           <table className="tbl cap-tbl--tight">
@@ -309,19 +323,23 @@ export default async function WalletPage({
             <a href="/capital/invest" className="cap-link">Invest</a> to buy or sell.
           </p>
         </section>
+        </Reveal>
       )}
 
       {/* Buy WB */}
-      <section className="card cap-mt-lg">
+      <Reveal direction="right" className="cap-mt-lg">
+      <section className="card">
         <h2 className="text-h3">Buy Whoosh Bucks</h2>
         <p className="text-body-sm cap-mt-1">
           Every $1 paid via Stripe = $10 of Whoosh Bucks. Bucks appear here when the charge clears.
         </p>
         <BuyWbForm />
       </section>
+      </Reveal>
 
       {/* Send WB */}
-      <section className="card cap-mt-lg">
+      <Reveal direction="right" className="cap-mt-lg">
+      <section className="card">
         <h2 className="text-h3">Send Whoosh Bucks</h2>
         <p className="text-body-sm cap-mt-1">
           Send to any Whoosh user by their Discord username. They must have signed in at least once.
@@ -348,9 +366,11 @@ export default async function WalletPage({
           <button type="submit" className="btn btn-primary cap-send__submit">Send</button>
         </form>
       </section>
+      </Reveal>
 
       {/* Activity */}
-      <section className="cap-mt-lg">
+      <Reveal direction="right" className="cap-mt-lg">
+      <section>
         <div className="cap-card-head">
           <h2 className="text-h2">Recent activity</h2>
           {ledger.length > 0 && (
@@ -388,6 +408,7 @@ export default async function WalletPage({
           </table>
         )}
       </section>
+      </Reveal>
 
       <Disclaimer />
     </main>
