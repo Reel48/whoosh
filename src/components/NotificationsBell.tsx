@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useDisclosureTransition } from "@/components/ui/useDisclosureTransition";
 
 type Item = {
   id: number;
@@ -42,6 +43,7 @@ export function NotificationsBell() {
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const { mounted, stateClass } = useDisclosureTransition(open);
 
   async function refresh() {
     try {
@@ -111,11 +113,14 @@ export function NotificationsBell() {
         )}
       </button>
 
-      {open && (
+      {mounted && (
         // On mobile: pin to the viewport (fixed) and span left-2..right-2 so the
         // dropdown never clips offscreen no matter where the bell sits in the nav.
         // On sm+: anchor to the bell with `absolute right-0`.
-        <div className="fixed left-2 right-2 top-[60px] z-40 mt-0 max-h-[80vh] overflow-hidden rounded-2xl border-2 border-ink bg-white-smoke shadow-xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 sm:max-h-none">
+        <div
+          data-origin="top-right"
+          className={`t-dropdown ${stateClass} fixed left-2 right-2 top-[60px] z-40 mt-0 max-h-[80vh] overflow-hidden rounded-2xl border-2 border-ink bg-white-smoke shadow-xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 sm:max-h-none`}
+        >
           <div className="flex items-baseline justify-between border-b-2 border-ink px-4 py-3">
             <p className="font-heading font-bold text-ink">Notifications</p>
             {loading && <span className="text-xs text-ink/60">refreshing…</span>}

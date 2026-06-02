@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
+import { useDisclosureTransition } from "@/components/ui/useDisclosureTransition";
 
 type Props = {
   signedIn: boolean;
@@ -28,6 +29,7 @@ const SIGNED_IN_LINKS = [
 
 export function MobileMenu({ signedIn, username }: Props) {
   const [open, setOpen] = useState(false);
+  const { mounted, stateClass } = useDisclosureTransition(open);
   const pathname = usePathname();
   const lastPathnameRef = useRef(pathname);
 
@@ -84,8 +86,11 @@ export function MobileMenu({ signedIn, username }: Props) {
         </svg>
       </button>
 
-      {open && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 top-[71px] z-40 flex flex-col bg-white-smoke pb-[env(safe-area-inset-bottom)] sm:hidden">
+      {mounted && typeof document !== "undefined" && createPortal(
+        <div
+          data-origin="top-right"
+          className={`t-dropdown ${stateClass} fixed inset-0 top-[71px] z-40 flex flex-col bg-white-smoke pb-[env(safe-area-inset-bottom)] sm:hidden`}
+        >
           <nav className="flex flex-col gap-2 overflow-y-auto px-6 py-8">
             {signedIn && (
               <>

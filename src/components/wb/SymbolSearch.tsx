@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useDisclosureTransition } from "@/components/ui/useDisclosureTransition";
 
 type Suggestion = { symbol: string; name: string; kind: "stock" | "crypto" };
 
@@ -35,6 +36,7 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [highlight, setHighlight] = useState(-1);
+  const { mounted, stateClass } = useDisclosureTransition(open);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const debounceRef = useRef<number | null>(null);
@@ -170,8 +172,13 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
         <button type="submit" className="btn btn-primary">Search</button>
       </form>
 
-      {open && (
-        <div id="symbol-search-listbox" role="listbox" className="cap-search__menu">
+      {mounted && (
+        <div
+          id="symbol-search-listbox"
+          role="listbox"
+          data-origin="top-center"
+          className={`t-dropdown ${stateClass} cap-search__menu`}
+        >
           {isEmpty && <div className="cap-search__menuhead">Popular</div>}
 
           {rows.map((row, i) => {
