@@ -40,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# transitions.dev skill — local dev reference only (snippets I copy from)
+.agents/
+.claude/skills/
+skills-lock.json
