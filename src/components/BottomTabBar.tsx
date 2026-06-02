@@ -109,6 +109,17 @@ export function BottomTabBar({ activeSection }: { activeSection: SectionKey | nu
 
   if (keyboardOpen) return null;
 
+  // Which tab is active. The Home tab matches only the hub; section tabs match
+  // their section anywhere within it. Prefer the server-derived activeSection so
+  // the highlight is right before hydration.
+  const isActive = (t: Tab) =>
+    t.section === null
+      ? pathname === t.href
+      : activeSection === t.section ||
+        pathname === t.href ||
+        pathname.startsWith(`${t.href}/`);
+  const activeIndex = TABS.findIndex(isActive);
+
   return (
     <div
       aria-hidden="true"
@@ -120,19 +131,27 @@ export function BottomTabBar({ activeSection }: { activeSection: SectionKey | nu
         className="pointer-events-auto border-t border-ink/10 bg-white pb-[env(safe-area-inset-bottom)]"
       >
         <ul
-        className="mx-auto grid w-full max-w-3xl"
+        className="relative mx-auto grid w-full max-w-3xl"
         style={{ gridTemplateColumns: `repeat(${TABS.length}, minmax(0, 1fr))` }}
       >
+        {/* Single active indicator that slides between tabs (spatial continuity)
+            rather than teleporting. One column wide; translated to the active
+            column. Hidden when no tab matches (activeIndex === -1). */}
+        {activeIndex >= 0 && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-0 left-0 flex justify-center"
+            style={{
+              width: `${100 / TABS.length}%`,
+              transform: `translateX(${activeIndex * 100}%)`,
+              transition: "transform 0.25s ease-out",
+            }}
+          >
+            <span className="h-1 w-12 rounded-t-full bg-ink" />
+          </span>
+        )}
         {TABS.map((t) => {
-          // The Home tab matches only the hub; section tabs match their section
-          // anywhere within it. Prefer the server-derived activeSection so the
-          // highlight is right before hydration.
-          const active =
-            t.section === null
-              ? pathname === t.href
-              : activeSection === t.section ||
-                pathname === t.href ||
-                pathname.startsWith(`${t.href}/`);
+          const active = isActive(t);
           return (
             <li key={t.href}>
               <Link
@@ -144,9 +163,6 @@ export function BottomTabBar({ activeSection }: { activeSection: SectionKey | nu
               >
                 <t.Icon className={`h-6 w-6 ${active ? "" : "opacity-80"}`} />
                 <span>{t.label}</span>
-                {active && (
-                  <span aria-hidden="true" className="absolute bottom-0 h-1 w-12 rounded-t-full bg-ink" />
-                )}
               </Link>
             </li>
           );

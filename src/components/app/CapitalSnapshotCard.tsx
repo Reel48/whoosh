@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { DashboardData } from "@/lib/wb/dashboard";
 import { formatWb } from "@/lib/wb/format";
+import { Ticker } from "@/components/ui/Ticker";
 
 /**
  * Featured Capital widget for the /home dashboard. Surfaces the member's Total
@@ -65,14 +66,15 @@ export function CapitalSnapshotCard({ data }: { data: DashboardData | null }) {
           </span>
           <p className="mt-3 text-xs font-bold uppercase tracking-[0.14em] text-ink/45">Total equity</p>
           <p className="font-display text-4xl font-black tracking-tight text-ink tabular-nums sm:text-5xl">
-            {formatWb(equity)}
+            <Ticker valueCents={equity} format={(c) => formatWb(c)} />
           </p>
           {hasDelta && (
             <p className="mt-1 flex flex-wrap items-baseline gap-x-2 text-sm font-bold tabular-nums">
               {day != null ? (
                 <>
                   <span style={{ color: dayColor }}>
-                    {dayPositive ? "▲" : "▼"} {formatWb(day, { signed: true })} today
+                    {dayPositive ? "▲" : "▼"}{" "}
+                    <Ticker valueCents={day} format={(c) => formatWb(c, { signed: true })} /> today
                   </span>
                   {returns.totalReturnCents !== 0 && (
                     <span className="font-semibold text-ink/45">· {allTime}</span>

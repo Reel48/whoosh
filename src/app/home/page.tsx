@@ -5,6 +5,7 @@ import { Bolt } from "@/components/Bolt";
 import { SectionHero } from "@/components/ui/SectionHero";
 import { ScoreTicker } from "@/components/news/ScoreTicker";
 import { CapitalSnapshotCard } from "@/components/app/CapitalSnapshotCard";
+import { Reveal } from "@/components/ui/Reveal";
 import { SECTIONS, type Section } from "@/lib/sections";
 import { getGuildOnlineCount, isGuildMember } from "@/lib/discord";
 import { getLink } from "@/lib/fantasy/link";
@@ -100,25 +101,33 @@ export default async function Home() {
 
         <main className="mx-auto w-full max-w-5xl px-6 py-8 sm:py-10">
           <div className="grid gap-5 sm:grid-cols-2">
-            {/* Featured Capital equity snapshot, spanning the full width. */}
-            <div className="sm:col-span-2">
+            {/* Featured Capital equity snapshot, spanning the full width. Cards
+                reveal in a short stagger as the dashboard arrives. */}
+            <Reveal index={0} className="sm:col-span-2">
               <CapitalSnapshotCard data={dashboard} />
-            </div>
+            </Reveal>
 
-            <SectionCard section={SECTIONS.fantasy} stat={statFor(SECTIONS.fantasy)} />
-            <SectionCard
-              section={SECTIONS.news}
-              stat={statFor(SECTIONS.news)}
-              thumbnail={topArticle?.images?.[0] ?? null}
-            />
-            <SectionCard section={SECTIONS.pool} stat={statFor(SECTIONS.pool)} />
+            <Reveal index={1} className="h-full">
+              <SectionCard section={SECTIONS.fantasy} stat={statFor(SECTIONS.fantasy)} />
+            </Reveal>
+            <Reveal index={2} className="h-full">
+              <SectionCard
+                section={SECTIONS.news}
+                stat={statFor(SECTIONS.news)}
+                thumbnail={topArticle?.images?.[0] ?? null}
+              />
+            </Reveal>
+            <Reveal index={3} className="h-full">
+              <SectionCard section={SECTIONS.pool} stat={statFor(SECTIONS.pool)} />
+            </Reveal>
 
             {/* Discord — one consolidated call to action. */}
+            <Reveal index={4} className="h-full">
             <a
               href={DISCORD_INVITE}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col gap-4 rounded-theme border-theme border-ink/10 bg-ink p-7 text-white-smoke shadow-theme transition-transform hover:-translate-y-1"
+              className="group flex h-full flex-col gap-4 rounded-theme border-theme border-ink/10 bg-ink p-7 text-white-smoke shadow-theme transition-transform hover:-translate-y-1"
             >
               <span className="flex items-center gap-2.5">
                 <span className="h-3 w-3 rounded-full border-2 border-white-smoke bg-safety-orange" />
@@ -138,6 +147,7 @@ export default async function Home() {
                 <Bolt className="h-4 w-4" /> {discordLabel}
               </span>
             </a>
+            </Reveal>
           </div>
         </main>
       </div>
@@ -163,7 +173,7 @@ function SectionCard({
     <Link
       href={s.href}
       data-theme={s.key}
-      className="group flex flex-col gap-4 rounded-theme border-theme border-ink/10 bg-white p-7 shadow-theme transition-transform hover:-translate-y-1"
+      className="group flex h-full flex-col gap-4 rounded-theme border-theme border-ink/10 bg-white p-7 shadow-theme transition-transform hover:-translate-y-1"
     >
       <div className="flex items-center justify-between gap-3">
         <span className="inline-flex items-center gap-2.5">

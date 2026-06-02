@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 type Props = {
@@ -14,6 +14,9 @@ type Props = {
   onCancel: () => void;
 };
 
+/** Matches the in/out transition duration below (ms). */
+const ANIM_MS = 220;
+
 /**
  * Bottom-sheet confirm modal. Replaces `window.confirm()` for any action
  * that benefits from a moment of "are you sure?" — Buy WB, sell position,
@@ -21,6 +24,11 @@ type Props = {
  *
  * Bottom-anchored on mobile for thumb-reach; centered on sm+. Tap the
  * scrim to dismiss; Escape key dismisses.
+ *
+ * The sheet slides up (mobile) / scales in (desktop) with the scrim fading in,
+ * and reverses on close. It stays mounted through the exit animation, then
+ * unmounts via a timeout (not `transitionend` — under prefers-reduced-motion the
+ * global rule zeroes the duration and the event may not fire reliably).
  */
 export function ConfirmSheet({
   open,
@@ -32,8 +40,35 @@ export function ConfirmSheet({
   onConfirm,
   onCancel,
 }: Props) {
+  // `render` keeps the sheet in the DOM through its exit; `visible` drives the
+  // in/out transition (flipped on a frame after mount, and before unmount).
+  const [render, setRender] = useState(open);
+  const [visible, setVisible] = useState(false);
+
   useEffect(() => {
-    if (!open) return;
+    // setState lives inside rAF / timeout callbacks (not the effect body) so it
+    // doesn't trigger a synchronous cascading render.
+    if (open) {
+      let inner = 0;
+      const outer = requestAnimationFrame(() => {
+        setRender(true);
+        inner = requestAnimationFrame(() => setVisible(true));
+      });
+      return () => {
+        cancelAnimationFrame(outer);
+        cancelAnimationFrame(inner);
+      };
+    }
+    const raf = requestAnimationFrame(() => setVisible(false));
+    const id = window.setTimeout(() => setRender(false), ANIM_MS);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(id);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!render) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onCancel();
     }
@@ -44,11 +79,9 @@ export function ConfirmSheet({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = orig;
     };
-  }, [open, onCancel]);
+  }, [render, onCancel]);
 
-  // Only opens via client interaction, so `open` is always false during SSR;
-  // the document guard keeps createPortal off the server render path too.
-  if (!open || typeof document === "undefined") return null;
+  if (!render || typeof document === "undefined") return null;
 
   return createPortal(
     <div
@@ -61,9 +94,17 @@ export function ConfirmSheet({
         type="button"
         aria-label="Dismiss"
         onClick={onCancel}
-        className="absolute inset-0 cursor-pointer bg-ink/40 backdrop-blur-sm"
+        className={`absolute inset-0 cursor-pointer bg-ink/40 backdrop-blur-sm transition-opacity duration-200 ease-out ${
+          visible ? "opacity-100" : "opacity-0"
+        }`}
       />
-      <div className="relative w-full max-w-md rounded-t-3xl border-2 border-ink bg-white-smoke p-6 pb-[max(env(safe-area-inset-bottom),24px)] shadow-2xl sm:rounded-3xl sm:pb-6">
+      <div
+        className={`relative w-full max-w-md rounded-t-3xl border-2 border-ink bg-white-smoke p-6 pb-[max(env(safe-area-inset-bottom),24px)] shadow-2xl transition-[transform,opacity] duration-200 ease-out will-change-transform sm:rounded-3xl sm:pb-6 ${
+          visible
+            ? "translate-y-0 opacity-100 sm:scale-100"
+            : "translate-y-full opacity-0 sm:translate-y-0 sm:scale-95"
+        }`}
+      >
         <h2 className="font-heading text-2xl font-black tracking-tight text-ink">
           {title}
         </h2>
