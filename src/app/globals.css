@@ -225,6 +225,21 @@
   --theme-surface: var(--white);
 }
 
+/* Home hub — the signed-in command center. Refined functional surface (the
+ * look the sections share) so the dashboard reads calm and cohesive: shared
+ * Inter Tight display, hairline borders, soft card shadow, rounder cards, white
+ * surfaces. The brand stays loud only in the SectionHero band on top (which
+ * uses the raw --color-*-500 anchors, independent of these structural tokens).
+ * Structural tokens only — no color overrides, per the section-theming rule. */
+[data-theme="home"] {
+  --font-display: var(--font-capital);
+  --font-ui: var(--font-body);
+  --theme-border-width: 1px;
+  --theme-radius: 18px;
+  --theme-card-shadow: 0 6px 16px rgba(14, 17, 24, 0.08), 0 2px 4px rgba(14, 17, 24, 0.04);
+  --theme-surface: var(--white);
+}
+
 @theme inline {
   --color-ink: var(--ink);
   --color-white: var(--white);

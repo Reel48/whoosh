@@ -22,6 +22,11 @@ export type EnrichedPosition = Position & {
   marketPriceCents: number | null;
   marketValueCents: number | null;
   unrealizedCents: number | null;
+  /** Previous session close (per share), or null when the quote lacks it. */
+  prevCloseCents: number | null;
+  /** Today's market move on this holding (shares × (price − prevClose)), or
+   *  null when there's no previous-close to compare against. */
+  dayChangeCents: number | null;
 };
 
 export type Allocation = {
@@ -66,6 +71,9 @@ export type DashboardData = {
   returns: ReturnsBreakdown;
   positions: EnrichedPosition[];
   balanceSeries: BalanceSeriesPoint[];
+  /** Today's market move across all holdings (sum of per-position day change).
+   *  Null when no holding has a previous-close to compare against. */
+  dayChangeCents: number | null;
 };
 
 async function getLifetimeStats(userId: string): Promise<LifetimeStats> {
@@ -126,16 +134,24 @@ async function enrichPositions(positions: Position[]): Promise<EnrichedPosition[
           marketPriceCents: null,
           marketValueCents: null,
           unrealizedCents: null,
+          prevCloseCents: null,
+          dayChangeCents: null,
         };
       }
       // 1 WB = $1, so q.priceCents (USD) is the same scale as
       // cost_basis_cents (WB). No conversion needed for mark-to-market.
       const mv = Math.round(p.shares * q.priceCents);
+      const dayChangeCents =
+        q.prevCloseCents != null
+          ? Math.round(p.shares * (q.priceCents - q.prevCloseCents))
+          : null;
       return {
         ...p,
         marketPriceCents: q.priceCents,
         marketValueCents: mv,
         unrealizedCents: mv - p.costBasisCents,
+        prevCloseCents: q.prevCloseCents,
+        dayChangeCents,
       };
     }),
   );
@@ -213,6 +229,15 @@ export async function loadDashboard(userId: string): Promise<DashboardData> {
   const denom = lifetime.totalPurchased + lifetime.totalPremiumMatch;
   const totalReturnFraction = denom > 0 ? totalReturnCents / denom : 0;
 
+  // Today's equity move = the market move on holdings (cash/wagers don't move
+  // intraday). Null when no holding carries a previous-close to compare with.
+  const dayContribs = positions
+    .map((p) => p.dayChangeCents)
+    .filter((c): c is number => c != null);
+  const dayChangeCents = dayContribs.length
+    ? dayContribs.reduce((a, c) => a + c, 0)
+    : null;
+
   return {
     allocation: {
       cashCents,
@@ -236,5 +261,6 @@ export async function loadDashboard(userId: string): Promise<DashboardData> {
     },
     positions,
     balanceSeries,
+    dayChangeCents,
   };
 }

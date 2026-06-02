@@ -7,6 +7,9 @@ const QUOTE_TTL_SECONDS = 60;
 export type Quote = {
   symbol: string;
   priceCents: number;
+  /** Previous session's close, for day-over-day change. Null when unknown
+   *  (older cached rows backfill on their next fetch). */
+  prevCloseCents: number | null;
   fetchedAt: string;
 };
 
@@ -39,7 +42,7 @@ function normalizeSymbol(s: string): string {
 async function readCachedQuote(symbol: string): Promise<Quote | null> {
   const { data, error } = await supabase()
     .from("symbol_quote")
-    .select("symbol, last_price_cents, fetched_at")
+    .select("symbol, last_price_cents, prev_close_cents, fetched_at")
     .eq("symbol", symbol)
     .maybeSingle();
   if (error) throw new Error(`readCachedQuote failed: ${error.message}`);
@@ -49,6 +52,7 @@ async function readCachedQuote(symbol: string): Promise<Quote | null> {
   return {
     symbol: data.symbol,
     priceCents: Number(data.last_price_cents),
+    prevCloseCents: data.prev_close_cents != null ? Number(data.prev_close_cents) : null,
     fetchedAt: data.fetched_at,
   };
 }
@@ -60,6 +64,7 @@ async function writeQuote(q: Quote): Promise<void> {
       {
         symbol: q.symbol,
         last_price_cents: q.priceCents,
+        prev_close_cents: q.prevCloseCents,
         fetched_at: q.fetchedAt,
       },
       { onConflict: "symbol" },
@@ -98,9 +103,11 @@ async function fetchFreshQuote(symbol: string): Promise<Quote | null> {
   };
   const price = json.c && json.c > 0 ? json.c : json.pc;
   if (!price || !Number.isFinite(price) || price <= 0) return null;
+  const pc = json.pc && Number.isFinite(json.pc) && json.pc > 0 ? json.pc : null;
   return {
     symbol,
     priceCents: Math.round(price * 100),
+    prevCloseCents: pc != null ? Math.round(pc * 100) : null,
     fetchedAt: new Date().toISOString(),
   };
 }

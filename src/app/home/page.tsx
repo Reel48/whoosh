@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/membership";
 import { AppShell } from "@/components/AppShell";
-import { Avatar } from "@/components/Avatar";
 import { Bolt } from "@/components/Bolt";
-import { SECTION_LIST, type Section } from "@/lib/sections";
+import { SectionHero } from "@/components/ui/SectionHero";
+import { ScoreTicker } from "@/components/news/ScoreTicker";
+import { CapitalSnapshotCard } from "@/components/app/CapitalSnapshotCard";
+import { SECTIONS, type Section } from "@/lib/sections";
 import { getGuildOnlineCount, isGuildMember } from "@/lib/discord";
 import { getLink } from "@/lib/fantasy/link";
 import { getCrossLeagueScoreboard } from "@/lib/fantasy/rankings";
 import { fetchFeed, DEFAULT_SPORT } from "@/lib/news/espn";
+import { loadDashboard } from "@/lib/wb/dashboard";
+
 export const dynamic = "force-dynamic";
 
 export const metadata = {
@@ -25,15 +29,17 @@ const SECTION_ACCENT: Record<string, { dot: string; text: string }> = {
 };
 
 /**
- * Signed-in command center. The post-login landing: a vivid color-block hero
- * that greets the member, a live-scores ticker, then calm, data-backed cards
- * for each section (Fantasy, News, Pool). Capital is intentionally absent — it
- * lives behind the navbar equity pill (see AppShell), not here.
+ * Signed-in command center. The post-login dashboard: a vivid brand greeting
+ * band, a live-scores ticker, a featured Capital equity snapshot, then
+ * data-backed widgets for Fantasy and News, with Pool and the Discord call to
+ * action filling out the grid. The body sits in a `data-theme="home"` scope so
+ * it adopts the refined functional surface the sections share, while the hero
+ * band stays loud and on-brand.
  */
 export default async function Home() {
   const session = await requireSession("/home");
 
-  const [onlineCount, inServer, link, board, topArticle] = await Promise.all([
+  const [onlineCount, inServer, link, board, topArticle, dashboard] = await Promise.all([
     getGuildOnlineCount().catch(() => null),
     session.discordUserId
       ? isGuildMember(session.discordUserId).catch(() => false)
@@ -43,6 +49,7 @@ export default async function Home() {
     fetchFeed(DEFAULT_SPORT)
       .then((a) => a[0] ?? null)
       .catch(() => null),
+    loadDashboard(session.id).catch(() => null),
   ]);
 
   const discordLabel = inServer ? "Open the Discord" : "Join the Discord";
@@ -51,7 +58,7 @@ export default async function Home() {
   const myRow = link ? board.rows.find((r) => r.ownerId === link.sleeperUserId) ?? null : null;
   const leader = board.rows[0] ?? null;
 
-  /** The one live stat each card carries under its tagline. */
+  /** The one live stat each section card carries under its tagline. */
   function statFor(s: Section): string {
     if (s.key === "fantasy") {
       if (!link) return "Link your Sleeper to track your team →";
@@ -67,113 +74,133 @@ export default async function Home() {
 
   return (
     <AppShell>
-      {/* Hero — blue color block; the whole band opens the Discord. */}
-      <section className="border-b-2 border-ink bg-blue">
-        <a
-          href={DISCORD_INVITE}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group relative mx-auto block w-full max-w-5xl overflow-hidden px-6 py-12 transition-opacity hover:opacity-95 sm:py-16"
-        >
-          <div className="hatch pointer-events-none absolute inset-0 text-ink/10" />
-          <div className="relative">
-            <div className="flex items-center gap-3.5">
-              <Avatar
-                avatarUrl={session.avatarUrl}
-                username={session.username}
-                size={52}
-                className="border-2 border-ink"
-              />
-              <div className="min-w-0">
-                <p className="text-xs font-heading font-bold uppercase tracking-[0.22em] text-ink/70">
-                  Hello
-                </p>
-                <p className="truncate font-heading text-3xl font-black tracking-tight text-ink sm:text-4xl">
-                  @{session.username}
-                </p>
-              </div>
+      <div data-theme="home">
+        {/* Brand greeting band — the only loud element; matches the sections. */}
+        <div className="mx-auto w-full max-w-5xl px-6 pt-8 sm:pt-10">
+          <SectionHero
+            accent="sky"
+            eyebrow="Welcome back"
+            title={`@${session.username}`}
+            avatarUrl={session.avatarUrl}
+            username={session.username}
+            aside={
+              onlineCount != null && onlineCount > 0 ? (
+                <span className="hidden items-center gap-2 rounded-full border-2 border-ink bg-white-smoke px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-ink sm:inline-flex">
+                  <span className="inline-flex h-2 w-2 rounded-full border border-ink bg-pigment-green" />
+                  {onlineCount.toLocaleString()} online
+                </span>
+              ) : undefined
+            }
+          />
+        </div>
+
+        {/* Live scores — self-hides when no games are on. */}
+        <div className="mt-6">
+          <ScoreTicker />
+        </div>
+
+        <main className="mx-auto w-full max-w-5xl px-6 py-8 sm:py-10">
+          <div className="grid gap-5 sm:grid-cols-2">
+            {/* Featured Capital equity snapshot, spanning the full width. */}
+            <div className="sm:col-span-2">
+              <CapitalSnapshotCard data={dashboard} />
             </div>
 
-            {onlineCount != null && onlineCount > 0 && (
-              <div className="mt-7">
-                <span className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-white-smoke px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-ink">
-                  <span className="inline-flex h-2 w-2 rounded-full border border-ink bg-pigment-green" />
-                  {onlineCount.toLocaleString()} online now
+            <SectionCard section={SECTIONS.fantasy} stat={statFor(SECTIONS.fantasy)} />
+            <SectionCard
+              section={SECTIONS.news}
+              stat={statFor(SECTIONS.news)}
+              thumbnail={topArticle?.images?.[0] ?? null}
+            />
+            <SectionCard section={SECTIONS.pool} stat={statFor(SECTIONS.pool)} />
+
+            {/* Discord — one consolidated call to action. */}
+            <a
+              href={DISCORD_INVITE}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col gap-4 rounded-theme border-theme border-ink/10 bg-ink p-7 text-white-smoke shadow-theme transition-transform hover:-translate-y-1"
+            >
+              <span className="flex items-center gap-2.5">
+                <span className="h-3 w-3 rounded-full border-2 border-white-smoke bg-safety-orange" />
+                <span className="text-xs font-bold uppercase tracking-[0.18em] text-white-smoke/60">
+                  Community
                 </span>
+              </span>
+              <div>
+                <h3 className="font-display text-2xl font-black tracking-tight">The crew is in Discord.</h3>
+                <p className="mt-2 text-sm font-medium text-white-smoke/70">
+                  {onlineCount != null && onlineCount > 0
+                    ? `${onlineCount.toLocaleString()} online right now — come hang.`
+                    : "Sports takes, market moves, and the banter in between."}
+                </p>
               </div>
-            )}
+              <span className="mt-auto inline-flex w-fit items-center gap-2 rounded-full border-2 border-ink bg-safety-orange px-4 py-2 font-display text-sm font-bold text-ink transition-opacity group-hover:opacity-90">
+                <Bolt className="h-4 w-4" /> {discordLabel}
+              </span>
+            </a>
           </div>
-        </a>
-      </section>
-
-      {/* Calm body — live section cards. */}
-      <main className="mx-auto w-full max-w-5xl px-6 py-10 sm:py-14">
-        <div className="grid gap-5 sm:grid-cols-2">
-          {SECTION_LIST.map((s) => {
-            const accent = SECTION_ACCENT[s.key] ?? { dot: "bg-ink", text: "text-ink" };
-            return (
-              <Link
-                key={s.key}
-                href={s.href}
-                data-theme={s.key}
-                className="group flex flex-col gap-4 rounded-3xl border-theme border-ink/10 bg-white p-7 shadow-theme transition-transform hover:-translate-y-1"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="inline-flex items-center gap-2.5">
-                    <span className={`h-3 w-3 rounded-full border-2 border-ink ${accent.dot}`} />
-                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-ink/50">
-                      {s.label}
-                    </span>
-                  </span>
-                  {!s.live && (
-                    <span className="rounded-full border-theme border-ink/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink/50">
-                      Soon
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <h3 className="font-display text-3xl font-black tracking-tight text-ink">
-                    {s.label}
-                  </h3>
-                  <p className="mt-2 line-clamp-2 text-sm font-medium text-ink/70">
-                    {statFor(s)}
-                  </p>
-                </div>
-
-                <span className={`mt-auto inline-flex w-fit items-center gap-2 font-display text-sm font-bold ${s.live ? accent.text : "text-ink/50"}`}>
-                  {s.live ? "Enter" : "Preview"}
-                  <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Community strip — calm ink band closing the page. */}
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-theme border-2 border-ink bg-ink p-7 text-white-smoke sm:p-8">
-          <div>
-            <p className="font-heading text-xl font-bold sm:text-2xl">
-              The whole crew is in Discord.
-            </p>
-            <p className="mt-1 text-sm font-medium text-white-smoke/70">
-              {onlineCount != null && onlineCount > 0
-                ? `${onlineCount.toLocaleString()} members online right now — come hang.`
-                : "Sports takes, what to watch, market moves, and the banter in between."}
-            </p>
-          </div>
-          <a
-            href={DISCORD_INVITE}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="chip-tap tap-press inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-safety-orange px-6 py-3 text-sm font-bold text-ink transition-opacity hover:opacity-90"
-          >
-            <Bolt className="h-4 w-4" /> {discordLabel}
-          </a>
-        </div>
-      </main>
+        </main>
+      </div>
     </AppShell>
+  );
+}
+
+/**
+ * A section entry on the hub: dot + label, big title, one live stat, and an
+ * Enter/Preview affordance. News passes a thumbnail when its top story has one.
+ */
+function SectionCard({
+  section: s,
+  stat,
+  thumbnail,
+}: {
+  section: Section;
+  stat: string;
+  thumbnail?: string | null;
+}) {
+  const accent = SECTION_ACCENT[s.key] ?? { dot: "bg-ink", text: "text-ink" };
+  return (
+    <Link
+      href={s.href}
+      data-theme={s.key}
+      className="group flex flex-col gap-4 rounded-theme border-theme border-ink/10 bg-white p-7 shadow-theme transition-transform hover:-translate-y-1"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span className="inline-flex items-center gap-2.5">
+          <span className={`h-3 w-3 rounded-full border-2 border-ink ${accent.dot}`} />
+          <span className="text-xs font-bold uppercase tracking-[0.18em] text-ink/50">{s.label}</span>
+        </span>
+        {!s.live && (
+          <span className="rounded-full border-theme border-ink/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink/50">
+            Soon
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-start gap-4">
+        <div className="min-w-0 flex-1">
+          <h3 className="font-display text-3xl font-black tracking-tight text-ink">{s.label}</h3>
+          <p className="mt-2 line-clamp-2 text-sm font-medium text-ink/70">{stat}</p>
+        </div>
+        {thumbnail && (
+          // eslint-disable-next-line @next/next/no-img-element -- remote ESPN image
+          <img
+            src={thumbnail}
+            alt=""
+            className="h-16 w-16 shrink-0 rounded-lg border border-ink/10 object-cover"
+          />
+        )}
+      </div>
+
+      <span
+        className={`mt-auto inline-flex w-fit items-center gap-2 font-display text-sm font-bold ${
+          s.live ? accent.text : "text-ink/50"
+        }`}
+      >
+        {s.live ? "Enter" : "Preview"}
+        <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
+      </span>
+    </Link>
   );
 }

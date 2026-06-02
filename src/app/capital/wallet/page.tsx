@@ -103,6 +103,9 @@ export default async function WalletPage({
 
   const { allocation, returns, positions } = dashboard;
   const returnPos = returns.totalReturnCents >= 0;
+  // Day-over-day market move on holdings (null until quotes carry a prev close).
+  const dayChange = dashboard.dayChangeCents;
+  const dayPos = (dayChange ?? 0) >= 0;
 
   const sp = await searchParams;
   const banner =
@@ -152,9 +155,18 @@ export default async function WalletPage({
         <div className="cap-stat">
           <span className="cap-stat__label">Total equity</span>
           <span className="cap-stat__value">{formatMoney(allocation.totalEquityCents)}</span>
-          <span className={`cap-stat__delta ${returnPos ? "cap-stat__delta--pos" : "cap-stat__delta--neg"}`}>
-            {returnPos ? "▲" : "▼"} {formatMoney(returns.totalReturnCents, { signed: true })} · {formatPct(returns.totalReturnFraction)}
-          </span>
+          {dayChange != null ? (
+            <span className={`cap-stat__delta ${dayPos ? "cap-stat__delta--pos" : "cap-stat__delta--neg"}`}>
+              {dayPos ? "▲" : "▼"} {formatMoney(dayChange, { signed: true })} today
+              {returns.totalReturnCents !== 0 && (
+                <span style={{ color: "var(--text-muted)" }}> · {formatPct(returns.totalReturnFraction)} all-time</span>
+              )}
+            </span>
+          ) : (
+            <span className={`cap-stat__delta ${returnPos ? "cap-stat__delta--pos" : "cap-stat__delta--neg"}`}>
+              {returnPos ? "▲" : "▼"} {formatMoney(returns.totalReturnCents, { signed: true })} · {formatPct(returns.totalReturnFraction)}
+            </span>
+          )}
         </div>
         <div className="cap-stat">
           <span className="cap-stat__label">Cash</span>

@@ -740,16 +740,19 @@ export type Database = {
         Row: {
           fetched_at: string
           last_price_cents: number
+          prev_close_cents: number | null
           symbol: string
         }
         Insert: {
           fetched_at: string
           last_price_cents: number
+          prev_close_cents?: number | null
           symbol: string
         }
         Update: {
           fetched_at?: string
           last_price_cents?: number
+          prev_close_cents?: number | null
           symbol?: string
         }
         Relationships: []
