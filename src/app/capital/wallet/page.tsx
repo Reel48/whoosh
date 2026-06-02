@@ -16,6 +16,7 @@ import { Disclaimer } from "@/components/Disclaimer";
 import { BuyWbForm } from "@/components/wb/BuyWbForm";
 import { hasClaimedToday, getUserStreak } from "@/lib/wb/bonus";
 import { formatWb } from "@/lib/wb/format";
+import { Ticker } from "@/components/ui/Ticker";
 
 export const dynamic = "force-dynamic";
 
@@ -148,7 +149,9 @@ export default async function WalletPage({
       <section className="card cap-stat-row cap-mt">
         <div className="cap-stat">
           <span className="cap-stat__label">Total equity</span>
-          <span className="cap-stat__value">{formatMoney(allocation.totalEquityCents)}</span>
+          <span className="cap-stat__value">
+            <Ticker valueCents={allocation.totalEquityCents} format={(c) => formatMoney(c)} />
+          </span>
           {dayChange != null ? (
             <span className={`cap-stat__delta ${dayPos ? "cap-stat__delta--pos" : "cap-stat__delta--neg"}`}>
               {dayPos ? "▲" : "▼"} {formatMoney(dayChange, { signed: true })} today
