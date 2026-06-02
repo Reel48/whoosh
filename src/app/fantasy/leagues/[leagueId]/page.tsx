@@ -12,6 +12,7 @@ import { MatchupCard } from "@/components/fantasy/MatchupCard";
 import { TeamAvatar } from "@/components/fantasy/TeamAvatar";
 import { LeaguePaywall } from "@/components/fantasy/LeaguePaywall";
 import { InviteCard } from "@/components/fantasy/InviteCard";
+import { Reveal } from "@/components/ui/Reveal";
 
 export const dynamic = "force-dynamic";
 
@@ -98,7 +99,9 @@ export default async function LeagueDetailPage({
       </header>
 
       {requiresPayment && cfg.joinUrl && (
-        <InviteCard joinUrl={cfg.joinUrl} leagueName={overview.displayName} />
+        <Reveal direction="right">
+          <InviteCard joinUrl={cfg.joinUrl} leagueName={overview.displayName} />
+        </Reveal>
       )}
 
       <div className="ftb-tabs ftb-mt">
@@ -114,13 +117,16 @@ export default async function LeagueDetailPage({
       </div>
 
       {view === "standings" && (
-        <section className="ftb-mt-lg">
+        <Reveal direction="right" className="ftb-mt-lg">
+        <section>
           <StandingsTable rows={overview.standings} mineRosterId={mineRosterId} />
         </section>
+        </Reveal>
       )}
 
       {view === "matchups" && (
-        <section className="ftb-mt-lg">
+        <Reveal direction="right" className="ftb-mt-lg">
+        <section>
           <h2 className="text-h2 ftb-section-title">{state ? weekLabel(state) : "This week"}</h2>
           {matchups.length === 0 ? (
             <div className="card ftb-empty">No matchups posted for this week yet.</div>
@@ -132,6 +138,7 @@ export default async function LeagueDetailPage({
             </div>
           )}
         </section>
+        </Reveal>
       )}
     </main>
   );

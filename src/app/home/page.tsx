@@ -103,26 +103,26 @@ export default async function Home() {
           <div className="grid gap-5 sm:grid-cols-2">
             {/* Featured Capital equity snapshot, spanning the full width. Cards
                 reveal in a short stagger as the dashboard arrives. */}
-            <Reveal index={0} className="sm:col-span-2">
+            <Reveal direction="right" index={0} className="sm:col-span-2">
               <CapitalSnapshotCard data={dashboard} />
             </Reveal>
 
-            <Reveal index={1} className="h-full">
+            <Reveal direction="right" index={1} className="h-full">
               <SectionCard section={SECTIONS.fantasy} stat={statFor(SECTIONS.fantasy)} />
             </Reveal>
-            <Reveal index={2} className="h-full">
+            <Reveal direction="right" index={2} className="h-full">
               <SectionCard
                 section={SECTIONS.news}
                 stat={statFor(SECTIONS.news)}
                 thumbnail={topArticle?.images?.[0] ?? null}
               />
             </Reveal>
-            <Reveal index={3} className="h-full">
+            <Reveal direction="right" index={3} className="h-full">
               <SectionCard section={SECTIONS.pool} stat={statFor(SECTIONS.pool)} />
             </Reveal>
 
             {/* Discord — one consolidated call to action. */}
-            <Reveal index={4} className="h-full">
+            <Reveal direction="right" index={4} className="h-full">
             <a
               href={DISCORD_INVITE}
               target="_blank"

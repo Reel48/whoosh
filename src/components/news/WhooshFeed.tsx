@@ -1,6 +1,7 @@
 import type { Article } from "@/lib/news/espn";
 import type { WhooshEntry } from "@/lib/news/engagement";
 import { ArticleCard } from "./ArticleCard";
+import { Reveal } from "@/components/ui/Reveal";
 
 /** A WhooshEntry rendered exactly like an ESPN article card. */
 function toArticle(e: WhooshEntry): Article {
@@ -39,7 +40,9 @@ export function WhooshFeed({ entries }: { entries: WhooshEntry[] }) {
     <div className="mx-auto w-full max-w-2xl px-6 pb-16">
       <div className="grid gap-3">
         {entries.map((e) => (
-          <ArticleCard key={e.espnId} article={toArticle(e)} />
+          <Reveal key={e.espnId} direction="right">
+            <ArticleCard article={toArticle(e)} />
+          </Reveal>
         ))}
       </div>
     </div>

@@ -8,6 +8,7 @@ import { getLink } from "@/lib/fantasy/link";
 import { currentScoringWeek, weekLabel } from "@/lib/fantasy/format";
 import { MatchupCard } from "@/components/fantasy/MatchupCard";
 import { MatchupWager } from "@/components/fantasy/MatchupWager";
+import { Reveal } from "@/components/ui/Reveal";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Matchups — Whoosh Fantasy" };
@@ -78,12 +79,15 @@ export default async function MatchupsPage({
       )}
 
       {blocks.length === 0 ? (
-        <div className="card ftb-mt-lg ftb-empty">
+        <Reveal direction="right" className="ftb-mt-lg">
+        <div className="card ftb-empty">
           No matchups to show right now. They&apos;ll appear here once the week&apos;s slate is set.
         </div>
+        </Reveal>
       ) : (
         blocks.map((b) => (
-          <section key={b.leagueId} className="ftb-mt-lg">
+          <Reveal key={b.leagueId} direction="right" className="ftb-mt-lg">
+          <section>
             <h2 className="text-h2 ftb-section-title">{b.leagueName}</h2>
             <div className="ftb-stack">
               {b.matchups.map((m, i) => {
@@ -107,6 +111,7 @@ export default async function MatchupsPage({
               })}
             </div>
           </section>
+          </Reveal>
         ))
       )}
     </main>

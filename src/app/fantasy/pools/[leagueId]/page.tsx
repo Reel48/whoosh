@@ -6,6 +6,7 @@ import { hasLeagueAccess } from "@/lib/fantasy/entitlements";
 import { TeamAvatar } from "@/components/fantasy/TeamAvatar";
 import { LeaguePaywall } from "@/components/fantasy/LeaguePaywall";
 import { InviteCard } from "@/components/fantasy/InviteCard";
+import { Reveal } from "@/components/ui/Reveal";
 
 export const dynamic = "force-dynamic";
 
@@ -70,11 +71,14 @@ export default async function PoolDetailPage({
       </header>
 
       {requiresPayment && cfg.joinUrl && (
-        <InviteCard joinUrl={cfg.joinUrl} leagueName={pool.displayName} />
+        <Reveal direction="right">
+          <InviteCard joinUrl={cfg.joinUrl} leagueName={pool.displayName} />
+        </Reveal>
       )}
 
       {/* Summary + link out — picks/standings live on Sleeper. */}
-      <section className="card ftb-mt-lg">
+      <Reveal direction="right" className="ftb-mt-lg">
+      <section className="card">
         <div className="ftb-card-head">
           <div>
             <p className="text-eyebrow">{pool.season} season</p>
@@ -94,9 +98,11 @@ export default async function PoolDetailPage({
             : "Make and track your weekly picks on Sleeper. Standings live there too."}
         </p>
       </section>
+      </Reveal>
 
       {/* Entries */}
-      <section className="ftb-mt-lg">
+      <Reveal direction="right" className="ftb-mt-lg">
+      <section>
         <h2 className="text-h2 ftb-section-title">{isSurvivor ? "Entries" : "Players"}</h2>
         {pool.entries.length === 0 ? (
           <div className="card ftb-empty">No entries yet.</div>
@@ -137,6 +143,7 @@ export default async function PoolDetailPage({
           </div>
         )}
       </section>
+      </Reveal>
     </main>
   );
 }

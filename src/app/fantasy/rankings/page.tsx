@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { getCrossLeagueScoreboard, POWER_WEIGHTS } from "@/lib/fantasy/rankings";
 import { getLink } from "@/lib/fantasy/link";
 import { CrossLeagueTable } from "@/components/fantasy/CrossLeagueTable";
+import { Reveal } from "@/components/ui/Reveal";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Power Rankings — Whoosh Fantasy" };
@@ -26,9 +27,11 @@ export default async function RankingsPage() {
         ({Math.round(POWER_WEIGHTS.points * 100)}%); ties break by league finish, then total points.
       </p>
 
-      <section className="ftb-mt-lg">
+      <Reveal direction="right" className="ftb-mt-lg">
+      <section>
         <CrossLeagueTable rows={board.rows} mineSleeperUserId={link?.sleeperUserId} />
       </section>
+      </Reveal>
     </main>
   );
 }

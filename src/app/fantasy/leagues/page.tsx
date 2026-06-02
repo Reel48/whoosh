@@ -13,6 +13,7 @@ import { getEntitlements } from "@/lib/fantasy/entitlements";
 import { LeagueCard } from "@/components/fantasy/LeagueCard";
 import { PoolCard } from "@/components/fantasy/PoolCard";
 import { JoinCard, type JoinOption } from "@/components/fantasy/JoinCard";
+import { Reveal } from "@/components/ui/Reveal";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Leagues — Whoosh Fantasy" };
@@ -119,20 +120,25 @@ export default async function LeaguesPage({
       <h1 className="text-h1 ftb-mt-1">Whoosh leagues</h1>
 
       {joined && (
-        <div className="card ftb-mt-lg" role="status">
+        <Reveal direction="right" className="ftb-mt-lg">
+        <div className="card" role="status">
           <p className="text-h3">You&apos;re in! 🎉</p>
           <p className="text-body-sm ftb-mt-sm">
             Your spot is confirmed. Open your league below to grab your Sleeper invite link.
           </p>
         </div>
+        </Reveal>
       )}
 
       {!hasLeagueContent ? (
-        <div className="card ftb-mt-lg ftb-empty">
+        <Reveal direction="right" className="ftb-mt-lg">
+        <div className="card ftb-empty">
           No leagues are set up yet. Check back once the commissioner adds them.
         </div>
+        </Reveal>
       ) : (
-        <div className="ftb-league-grid ftb-mt-lg">
+        <Reveal direction="right" className="ftb-mt-lg">
+        <div className="ftb-league-grid">
           {leagueCards.map((c, i) =>
             "join" in c ? (
               <JoinCard key={`join-${i}`} option={c.join} />
@@ -147,10 +153,12 @@ export default async function LeaguesPage({
             ),
           )}
         </div>
+        </Reveal>
       )}
 
       {poolCards.length > 0 && (
-        <section className="ftb-mt-lg">
+        <Reveal direction="right" className="ftb-mt-lg">
+        <section>
           <h2 className="text-h2 ftb-section-title">Pools</h2>
           <div className="ftb-league-grid">
             {poolCards.map((c, i) =>
@@ -164,6 +172,7 @@ export default async function LeaguesPage({
             )}
           </div>
         </section>
+        </Reveal>
       )}
     </main>
   );

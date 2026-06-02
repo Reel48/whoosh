@@ -11,6 +11,7 @@ import { CrossLeagueTable } from "@/components/fantasy/CrossLeagueTable";
 import { PoolCard } from "@/components/fantasy/PoolCard";
 import { LinkSleeperForm } from "@/components/fantasy/LinkSleeperForm";
 import { SectionHero } from "@/components/ui/SectionHero";
+import { Reveal } from "@/components/ui/Reveal";
 import { weekLabel } from "@/lib/fantasy/format";
 
 export const dynamic = "force-dynamic";
@@ -79,7 +80,8 @@ export default async function FantasyHome({
 
       {/* Link prompt / status */}
       {!link ? (
-        <section className="card ftb-mt-lg">
+        <Reveal direction="right" className="ftb-mt-lg">
+        <section className="card">
           <h2 className="text-h3">Link your Sleeper account</h2>
           <p className="text-body-sm ftb-mt-1">
             Connect your Sleeper username to highlight your team in the standings and power rankings.
@@ -88,6 +90,7 @@ export default async function FantasyHome({
             <LinkSleeperForm />
           </div>
         </section>
+        </Reveal>
       ) : (
         <div className="ftb-mt flex flex-wrap items-center gap-3">
           <span className="text-body-sm">
@@ -104,7 +107,8 @@ export default async function FantasyHome({
       )}
 
       {/* Who's leading */}
-      <section className="ftb-mt-lg">
+      <Reveal direction="right" className="ftb-mt-lg">
+      <section>
         <div className="ftb-card-head">
           <h2 className="text-h2">Who&apos;s leading</h2>
           <Link href="/fantasy/leagues" className="ftb-link">
@@ -123,10 +127,12 @@ export default async function FantasyHome({
           </div>
         )}
       </section>
+      </Reveal>
 
       {/* Pools — Pick 'Em & Survivor */}
       {pools.length > 0 && (
-        <section className="ftb-mt-lg">
+        <Reveal direction="right" className="ftb-mt-lg">
+        <section>
           <h2 className="text-h2 ftb-section-title">Pools</h2>
           <div className="ftb-league-grid">
             {pools.map((p) => (
@@ -134,11 +140,13 @@ export default async function FantasyHome({
             ))}
           </div>
         </section>
+        </Reveal>
       )}
 
       {/* Cross-league power rankings preview */}
       {board.rows.length > 0 && (
-        <section className="ftb-mt-lg">
+        <Reveal direction="right" className="ftb-mt-lg">
+        <section>
           <div className="ftb-card-head">
             <h2 className="text-h2">Power rankings</h2>
             <Link href="/fantasy/rankings" className="ftb-link">
@@ -156,6 +164,7 @@ export default async function FantasyHome({
             />
           </div>
         </section>
+        </Reveal>
       )}
     </main>
   );

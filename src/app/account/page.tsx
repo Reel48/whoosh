@@ -13,6 +13,7 @@ import { ensureWallet } from "@/lib/wb/ledger";
 import { getReferralStats } from "@/lib/wb/referrals";
 import { listEarned, ACHIEVEMENTS, getAchievementDef } from "@/lib/wb/achievements";
 import { ReferralCard } from "@/components/wb/ReferralCard";
+import { Reveal } from "@/components/ui/Reveal";
 import { formatWb } from "@/lib/wb/format";
 
 export const dynamic = "force-dynamic";
@@ -137,7 +138,8 @@ export default async function AccountPage({
         {sp.email === "pending" && <AccountNotice tone="ok">Check your inbox to confirm your new email address.</AccountNotice>}
 
         {/* Identity card — BLUE block */}
-        <div className="mt-6 flex items-center gap-4 rounded-3xl border-2 border-ink bg-blue p-6 text-ink">
+        <Reveal direction="right" className="mt-6">
+        <div className="flex items-center gap-4 rounded-3xl border-2 border-ink bg-blue p-6 text-ink">
           <Avatar
             avatarUrl={session.avatarUrl}
             username={session.username}
@@ -161,9 +163,11 @@ export default async function AccountPage({
             </button>
           </form>
         </div>
+        </Reveal>
 
         {/* Notifications — moved off the navbar; the bell opens the dropdown. */}
-        <div className="mt-6 flex items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink">
+        <Reveal direction="right" className="mt-6">
+        <div className="flex items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink">
           <div className="min-w-0">
             <h2 className="font-heading text-lg font-bold">Notifications</h2>
             <p className="mt-1 text-sm font-medium text-ink/70">
@@ -172,11 +176,13 @@ export default async function AccountPage({
           </div>
           <NotificationsBell />
         </div>
+        </Reveal>
 
         {session.isAdmin && (
+          <Reveal direction="right" className="mt-6">
           <Link
             href="/admin"
-            className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-ink p-6 text-white-smoke transition-opacity hover:opacity-90"
+            className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border-2 border-ink bg-ink p-6 text-white-smoke transition-opacity hover:opacity-90"
           >
             <div className="min-w-0">
               <h2 className="font-heading text-xl font-bold">Admin dashboard</h2>
@@ -188,10 +194,12 @@ export default async function AccountPage({
               Open →
             </span>
           </Link>
+          </Reveal>
         )}
 
         {/* Sign-in methods + profile management */}
-        <div className="mt-6 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
+        <Reveal direction="right" className="mt-6">
+        <div className="rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
           <h2 className="font-heading text-xl font-bold">Sign-in &amp; profile</h2>
 
           {/* Discord */}
@@ -270,9 +278,11 @@ export default async function AccountPage({
             </button>
           </form>
         </div>
+        </Reveal>
 
         {/* Premium status card — neutral so colored status pills can live inside */}
-        <div className="mt-6 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
+        <Reveal direction="right" className="mt-6">
+        <div className="rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-heading text-xl font-bold">Whoosh Premium</h2>
             <StatusPill status={sub?.status} />
@@ -368,6 +378,7 @@ export default async function AccountPage({
             </a>
           </div>
         </div>
+        </Reveal>
 
         <p className="mt-6 text-xs font-medium text-ink/60">
           Billing and cancellation are handled by Stripe&rsquo;s secure customer
@@ -375,10 +386,15 @@ export default async function AccountPage({
           your subscription status.
         </p>
 
-        {referral && <ReferralCard stats={referral} />}
+        {referral && (
+          <Reveal direction="right" className="mt-6">
+            <ReferralCard stats={referral} />
+          </Reveal>
+        )}
 
         {/* Achievements */}
-        <section className="mt-10 rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
+        <Reveal direction="right" className="mt-10">
+        <section className="rounded-3xl border-2 border-ink bg-white-smoke p-6 text-ink sm:p-8">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="font-heading text-xl font-bold">Achievements</h2>
             <p className="text-xs font-bold uppercase tracking-wider text-ink/60">
@@ -419,6 +435,7 @@ export default async function AccountPage({
             })}
           </ul>
         </section>
+        </Reveal>
       </main>
     </>
   );

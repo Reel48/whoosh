@@ -6,6 +6,7 @@ import { assignEntitlement } from "@/lib/fantasy/entitlements";
 import { creditCheckoutSession } from "@/lib/wb/stripeCredits";
 import { getLeagueConfig } from "@/lib/fantasy/leagues";
 import { InviteCard } from "@/components/fantasy/InviteCard";
+import { Reveal } from "@/components/ui/Reveal";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "You're in — Whoosh Fantasy" };
@@ -95,7 +96,9 @@ export default async function JoinedPage({
             You&apos;ve been placed in <strong>{leagueName}</strong>. Grab your Sleeper
             invite below, then head to your league.
           </p>
-          <InviteCard joinUrl={league.joinUrl} leagueName={leagueName} />
+          <Reveal direction="right">
+            <InviteCard joinUrl={league.joinUrl} leagueName={leagueName} />
+          </Reveal>
           <div className="ftb-mt">
             <Link href={`/fantasy/leagues/${assignedLeagueId}`} className="btn btn-primary">
               Go to {leagueName} →
@@ -103,7 +106,8 @@ export default async function JoinedPage({
           </div>
         </>
       ) : (
-        <div className="card ftb-mt-lg">
+        <Reveal direction="right" className="ftb-mt-lg">
+        <div className="card">
           <p className="text-h3">We&apos;re finalizing your spot</p>
           <p className="text-body-sm ftb-mt-sm">
             Your payment went through. If your league doesn&apos;t appear in a moment,
@@ -114,6 +118,7 @@ export default async function JoinedPage({
             . You&apos;ll also get a notification once your invite is ready.
           </p>
         </div>
+        </Reveal>
       )}
     </main>
   );

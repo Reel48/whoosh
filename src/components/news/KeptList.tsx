@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import type { WhooshEntry } from "@/lib/news/engagement";
 import { EspnLogo, formatArticleDate } from "./ArticleCard";
+import { Reveal } from "@/components/ui/Reveal";
 
 async function post(body: unknown) {
   try {
@@ -89,8 +90,8 @@ export function KeptList({ entries }: { entries: WhooshEntry[] }) {
           const date = formatArticleDate(e.pubDate);
           const byline = [e.author, date].filter(Boolean).join(" · ");
           return (
+            <Reveal key={id} direction="right">
             <div
-              key={id}
               className="overflow-hidden rounded-theme border-theme border-ink/10 bg-surface shadow-theme"
             >
               <div className="p-5">
@@ -129,6 +130,7 @@ export function KeptList({ entries }: { entries: WhooshEntry[] }) {
                 </a>
               )}
             </div>
+            </Reveal>
           );
         })}
       </div>
