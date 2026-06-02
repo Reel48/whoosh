@@ -73,9 +73,12 @@ export default async function Home() {
   }
 
   return (
-    <AppShell>
+    /* Live scores ticker pins right under the navbar (banner), the same slot
+       the news section uses; the welcome card sits below it. */
+    <AppShell banner={<ScoreTicker />}>
       <div data-theme="home">
-        {/* Brand greeting band — the only loud element; matches the sections. */}
+        {/* Brand greeting band — a flat color block (no hatch), matching the
+            calmer dashboard body below it. */}
         <div className="mx-auto w-full max-w-5xl px-6 pt-8 sm:pt-10">
           <SectionHero
             accent="sky"
@@ -83,6 +86,7 @@ export default async function Home() {
             title={`@${session.username}`}
             avatarUrl={session.avatarUrl}
             username={session.username}
+            hatch={false}
             aside={
               onlineCount != null && onlineCount > 0 ? (
                 <span className="hidden items-center gap-2 rounded-full border-2 border-ink bg-white-smoke px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-ink sm:inline-flex">
@@ -92,11 +96,6 @@ export default async function Home() {
               ) : undefined
             }
           />
-        </div>
-
-        {/* Live scores — self-hides when no games are on. */}
-        <div className="mt-6">
-          <ScoreTicker />
         </div>
 
         <main className="mx-auto w-full max-w-5xl px-6 py-8 sm:py-10">

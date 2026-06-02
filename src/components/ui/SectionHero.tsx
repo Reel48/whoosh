@@ -28,6 +28,7 @@ export function SectionHero({
   avatarUrl,
   username,
   aside,
+  hatch = true,
 }: {
   accent?: HeroAccent;
   eyebrow: string;
@@ -37,6 +38,8 @@ export function SectionHero({
   username?: string;
   /** Optional trailing slot — a badge, stat, or CTA. */
   aside?: React.ReactNode;
+  /** The signature diagonal-hatch motif. Set false for a flat color band. */
+  hatch?: boolean;
 }) {
   const showAvatar = username !== undefined;
   return (
@@ -44,10 +47,12 @@ export function SectionHero({
       className="relative overflow-hidden rounded-theme"
       style={{ background: ACCENT_BG[accent] }}
     >
-      <div
-        className="hatch pointer-events-none absolute inset-0"
-        style={{ color: "rgba(0,0,0,0.10)" }}
-      />
+      {hatch && (
+        <div
+          className="hatch pointer-events-none absolute inset-0"
+          style={{ color: "rgba(0,0,0,0.10)" }}
+        />
+      )}
       <div className="relative flex items-center gap-4 p-7 sm:p-8">
         {showAvatar && (
           <Avatar

@@ -42,11 +42,6 @@ const KIND_LABEL: Record<LedgerKind, string> = {
 
 const formatMoney = formatWb;
 
-function formatPct(fraction: number): string {
-  const sign = fraction >= 0 ? "+" : "";
-  return `${sign}${(fraction * 100).toFixed(2)}%`;
-}
-
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {
     month: "short",
@@ -102,7 +97,6 @@ export default async function WalletPage({
   ]);
 
   const { allocation, returns, positions } = dashboard;
-  const returnPos = returns.totalReturnCents >= 0;
   // Day-over-day market move on holdings (null until quotes carry a prev close).
   const dayChange = dashboard.dayChangeCents;
   const dayPos = (dayChange ?? 0) >= 0;
@@ -158,14 +152,9 @@ export default async function WalletPage({
           {dayChange != null ? (
             <span className={`cap-stat__delta ${dayPos ? "cap-stat__delta--pos" : "cap-stat__delta--neg"}`}>
               {dayPos ? "▲" : "▼"} {formatMoney(dayChange, { signed: true })} today
-              {returns.totalReturnCents !== 0 && (
-                <span style={{ color: "var(--text-muted)" }}> · {formatPct(returns.totalReturnFraction)} all-time</span>
-              )}
             </span>
           ) : (
-            <span className={`cap-stat__delta ${returnPos ? "cap-stat__delta--pos" : "cap-stat__delta--neg"}`}>
-              {returnPos ? "▲" : "▼"} {formatMoney(returns.totalReturnCents, { signed: true })} · {formatPct(returns.totalReturnFraction)}
-            </span>
+            <span className="cap-stat__delta">—</span>
           )}
         </div>
         <div className="cap-stat">
