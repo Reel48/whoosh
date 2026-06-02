@@ -74,6 +74,15 @@ const TABS: Tab[] = [
  *
  * Sits above the iPhone home indicator (safe-area padding) and auto-hides when
  * the keyboard is open. Hidden on sm+ — desktop uses the header switcher.
+ *
+ * Positioning: rather than `fixed bottom-0` (which Android Chrome fails to keep
+ * glued to the viewport bottom while the URL bar retracts on scroll — it leaves
+ * a gap below the bar), the bar lives at the bottom of a `top-0`, 100dvh fixed
+ * frame. Top-anchored fixed elements track the visible viewport reliably on
+ * every mobile browser, and `100dvh` follows the live (URL-bar-aware) viewport
+ * height, so the frame's bottom edge — and the bar with it — stays pinned to
+ * the real bottom. The frame is click-through (`pointer-events-none`); only the
+ * bar re-enables pointer events.
  */
 export function BottomTabBar({ activeSection }: { activeSection: SectionKey | null }) {
   const pathname = usePathname();
@@ -101,11 +110,16 @@ export function BottomTabBar({ activeSection }: { activeSection: SectionKey | nu
   if (keyboardOpen) return null;
 
   return (
-    <nav
-      aria-label="Sections"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-ink/10 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden"
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-x-0 top-0 z-30 flex flex-col justify-end sm:hidden"
+      style={{ height: "100dvh" }}
     >
-      <ul
+      <nav
+        aria-label="Sections"
+        className="pointer-events-auto border-t border-ink/10 bg-white pb-[env(safe-area-inset-bottom)]"
+      >
+        <ul
         className="mx-auto grid w-full max-w-3xl"
         style={{ gridTemplateColumns: `repeat(${TABS.length}, minmax(0, 1fr))` }}
       >
@@ -137,7 +151,8 @@ export function BottomTabBar({ activeSection }: { activeSection: SectionKey | nu
             </li>
           );
         })}
-      </ul>
-    </nav>
+        </ul>
+      </nav>
+    </div>
   );
 }
