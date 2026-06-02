@@ -61,29 +61,21 @@ export function MobileMenu({ signedIn, username }: Props) {
         onClick={() => setOpen((v) => !v)}
         className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-ink bg-white-smoke transition-colors hover:bg-ink hover:text-white-smoke sm:hidden"
       >
-        <svg
-          viewBox="0 0 24 24"
-          width={20}
-          height={20}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          aria-hidden="true"
-        >
-          {open ? (
-            <>
-              <line x1="6" y1="6" x2="18" y2="18" />
-              <line x1="18" y1="6" x2="6" y2="18" />
-            </>
-          ) : (
-            <>
+        <span className="t-icon-swap" data-state={open ? "b" : "a"} aria-hidden="true">
+          <span className="t-icon" data-icon="a">
+            <svg viewBox="0 0 24 24" width={20} height={20} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="4" y1="7" x2="20" y2="7" />
               <line x1="4" y1="12" x2="20" y2="12" />
               <line x1="4" y1="17" x2="20" y2="17" />
-            </>
-          )}
-        </svg>
+            </svg>
+          </span>
+          <span className="t-icon" data-icon="b">
+            <svg viewBox="0 0 24 24" width={20} height={20} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="6" y1="6" x2="18" y2="18" />
+              <line x1="18" y1="6" x2="6" y2="18" />
+            </svg>
+          </span>
+        </span>
       </button>
 
       {mounted && typeof document !== "undefined" && createPortal(
