@@ -5,6 +5,7 @@ import { ensureWallet } from "@/lib/wb/ledger";
 import { listUserWagers, type WagerStatus } from "@/lib/wb/bets";
 import { MARKET_LABELS } from "@/lib/wb/odds";
 import { LocalTime } from "@/components/LocalTime";
+import { Reveal } from "@/components/ui/Reveal";
 import { Disclaimer } from "@/components/Disclaimer";
 import { formatWb } from "@/lib/wb/format";
 
@@ -57,7 +58,8 @@ export default async function MyBetsPage({
       <p className="text-body-sm cap-mt-1">Your open wagers and full win/loss history.</p>
 
       {/* Summary */}
-      <section className="card-grid cap-mt">
+      <Reveal direction="right" className="cap-mt">
+      <section className="card-grid">
         <div className="kpi">
           <div className="kpi__label">Open</div>
           <div className="kpi__value">{open.length}</div>
@@ -76,6 +78,7 @@ export default async function MyBetsPage({
           <div className={`kpi__delta ${netPos ? "kpi__delta--positive" : "kpi__delta--negative"}`}>All settled bets</div>
         </div>
       </section>
+      </Reveal>
 
       {/* Filters */}
       <div className="cap-tabs">
@@ -91,8 +94,9 @@ export default async function MyBetsPage({
       </div>
 
       {/* List */}
+      <Reveal direction="right" className="cap-mt-lg">
       {visible.length === 0 ? (
-        <div className="card cap-mt-lg cap-empty">
+        <div className="card cap-empty">
           {wagers.length === 0 ? (
             <>No bets yet. Head to <Link href="/capital/events" className="cap-link">Events</Link> to place your first wager.</>
           ) : (
@@ -100,7 +104,7 @@ export default async function MyBetsPage({
           )}
         </div>
       ) : (
-        <div className="cap-tbl-scroll cap-mt-lg">
+        <div className="cap-tbl-scroll">
         <table className="tbl">
           <thead>
             <tr>
@@ -147,6 +151,7 @@ export default async function MyBetsPage({
         </table>
         </div>
       )}
+      </Reveal>
 
       <Disclaimer />
     </main>

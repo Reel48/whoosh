@@ -6,6 +6,7 @@ import { listOpenEvents, listRecentSettledEvents } from "@/lib/wb/bets";
 import { MARKET_LABELS } from "@/lib/wb/odds";
 import { groupSyncedByGame, sportTitle, type Game } from "@/lib/wb/eventGroups";
 import { EventCard } from "@/components/capital/EventCard";
+import { Reveal } from "@/components/ui/Reveal";
 import { Disclaimer } from "@/components/Disclaimer";
 
 export const dynamic = "force-dynamic";
@@ -84,9 +85,11 @@ export default async function EventsPage({
       )}
 
       {events.length === 0 ? (
-        <div className="card cap-mt-lg cap-empty">
+        <Reveal direction="right" className="cap-mt-lg">
+        <div className="card cap-empty">
           No open events right now. We post new events around big games, drops, and culture moments.
         </div>
+        </Reveal>
       ) : (
         <div className="cap-mt-lg cap-stack">
           {filterOptions.length > 2 && (
@@ -108,7 +111,9 @@ export default async function EventsPage({
               <h2 className="text-h2 cap-section-title">{sportTitle(section.sportKey)}</h2>
               <div className="cap-stack">
                 {section.games.map((game) => (
-                  <EventCard key={game.key} game={game} />
+                  <Reveal key={game.key} direction="right">
+                    <EventCard game={game} />
+                  </Reveal>
                 ))}
               </div>
             </section>
@@ -119,7 +124,9 @@ export default async function EventsPage({
               {sports.length > 0 && <h2 className="text-h2 cap-section-title">More events</h2>}
               <div className="cap-stack">
                 {manualGames.map((game) => (
-                  <EventCard key={game.key} game={game} />
+                  <Reveal key={game.key} direction="right">
+                    <EventCard game={game} />
+                  </Reveal>
                 ))}
               </div>
             </section>
@@ -128,7 +135,8 @@ export default async function EventsPage({
       )}
 
       {recent.length > 0 && (
-        <section className="cap-mt-lg">
+        <Reveal direction="right" className="cap-mt-lg">
+        <section>
           <h2 className="text-h2 cap-section-title">Recently settled</h2>
           <div className="cap-tbl-scroll">
             <table className="tbl">
@@ -159,6 +167,7 @@ export default async function EventsPage({
             </table>
           </div>
         </section>
+        </Reveal>
       )}
 
       <Disclaimer />

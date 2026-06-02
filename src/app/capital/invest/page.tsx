@@ -12,6 +12,8 @@ import { StockPriceChart } from "@/components/wb/StockPriceChart";
 import { StockStats } from "@/components/wb/StockStats";
 import { SymbolSearch } from "@/components/wb/SymbolSearch";
 import { Disclaimer } from "@/components/Disclaimer";
+import { Ticker } from "@/components/ui/Ticker";
+import { Reveal } from "@/components/ui/Reveal";
 import { formatWb, formatUsd } from "@/lib/wb/format";
 
 export const dynamic = "force-dynamic";
@@ -119,26 +121,29 @@ export default async function InvestPage({
       )}
 
       {/* KPI strip — three compact columns in one card (matches the wallet). */}
-      <section className="card cap-stat-row cap-mt">
+      <Reveal direction="right" className="cap-mt">
+      <section className="card cap-stat-row">
         <div className="cap-stat">
           <span className="cap-stat__label">Total equity</span>
-          <span className="cap-stat__value">{fmtWb(totalEquity)}</span>
+          <span className="cap-stat__value"><Ticker valueCents={totalEquity} /></span>
           <span className="cap-stat__delta">Cash + positions</span>
         </div>
         <div className="cap-stat">
           <span className="cap-stat__label">Cash (WB)</span>
-          <span className="cap-stat__value">{fmtWb(balance)}</span>
+          <span className="cap-stat__value"><Ticker valueCents={balance} /></span>
           <span className="cap-stat__delta">Available to invest</span>
         </div>
         <div className="cap-stat">
           <span className="cap-stat__label">Positions value</span>
-          <span className="cap-stat__value">{fmtWb(portfolioValue)}</span>
+          <span className="cap-stat__value"><Ticker valueCents={portfolioValue} /></span>
           <span className="cap-stat__delta">{positions.length} held</span>
         </div>
       </section>
+      </Reveal>
 
       {/* Asset lookup */}
-      <section className="card cap-mt-lg">
+      <Reveal direction="right" className="cap-mt-lg">
+      <section className="card">
         <h2 className="text-h3">Look up an asset</h2>
         <p className="text-body-sm cap-mt-1">
           Search any US-listed stock or supported crypto by company name or ticker. Orders fill at the
@@ -148,10 +153,12 @@ export default async function InvestPage({
           <SymbolSearch defaultValue={lookupSymbol} />
         </div>
       </section>
+      </Reveal>
 
       {/* Stock detail */}
       {lookupSymbol && snapshot && (
-        <section className="cap-stack cap-mt-lg">
+        <Reveal direction="right" className="cap-mt-lg">
+        <section className="cap-stack">
           <StockHeader profile={profile} snapshot={snapshot} />
 
           {/* Chart */}
@@ -227,17 +234,21 @@ export default async function InvestPage({
 
           <StockStats snapshot={snapshot} profile={profile} />
         </section>
+        </Reveal>
       )}
 
       {lookupSymbol && !snapshot && (
-        <div className="card cap-mt-lg cap-empty">
+        <Reveal direction="right" className="cap-mt-lg">
+        <div className="card cap-empty">
           No data available for {lookupSymbol}. Try a different US-listed ticker symbol.
         </div>
+        </Reveal>
       )}
 
       {/* Watchlist */}
       {watchlist.length > 0 && (
-        <section className="cap-mt-lg">
+        <Reveal direction="right" className="cap-mt-lg">
+        <section>
           <h2 className="text-h2 cap-section-title">Watchlist</h2>
           <table className="tbl">
             <thead>
@@ -262,10 +273,12 @@ export default async function InvestPage({
             </tbody>
           </table>
         </section>
+        </Reveal>
       )}
 
       {/* Positions */}
-      <section className="cap-mt-lg">
+      <Reveal direction="right" className="cap-mt-lg">
+      <section>
         <h2 className="text-h2 cap-section-title">Positions</h2>
         {positions.length === 0 ? (
           <div className="card cap-empty">
@@ -302,6 +315,7 @@ export default async function InvestPage({
           </div>
         )}
       </section>
+      </Reveal>
 
       {/* Total unrealized P/L */}
       {positions.length > 0 && (() => {
@@ -310,7 +324,8 @@ export default async function InvestPage({
         const pct = totalCost > 0 ? (totalPL / totalCost) * 100 : 0;
         const pos = totalPL >= 0;
         return (
-          <div className="kpi cap-mt">
+          <Reveal direction="right" className="cap-mt">
+          <div className="kpi">
             <div className="kpi__label">Total unrealized P/L</div>
             <div className="kpi__value" style={{ color: pos ? "var(--positive-text)" : "var(--negative-text)" }}>
               {pos ? "▲ " : "▼ "}{fmtWb(totalPL, { signed: true })}
@@ -319,11 +334,13 @@ export default async function InvestPage({
               {pos ? "+" : ""}{pct.toFixed(2)}%
             </div>
           </div>
+          </Reveal>
         );
       })()}
 
       {/* Recent orders */}
-      <section className="cap-mt-lg">
+      <Reveal direction="right" className="cap-mt-lg">
+      <section>
         <h2 className="text-h2 cap-section-title">Recent orders</h2>
         {orders.length === 0 ? (
           <p className="text-body-sm">No orders yet.</p>
@@ -346,6 +363,7 @@ export default async function InvestPage({
           </table>
         )}
       </section>
+      </Reveal>
 
       <Disclaimer />
     </main>
