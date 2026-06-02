@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useDisclosureTransition } from "@/components/ui/useDisclosureTransition";
+import { Shimmer } from "@/components/ui/Shimmer";
 
 type Item = {
   id: number;
@@ -123,7 +124,7 @@ export function NotificationsBell() {
         >
           <div className="flex items-baseline justify-between border-b-2 border-ink px-4 py-3">
             <p className="font-heading font-bold text-ink">Notifications</p>
-            {loading && <span className="text-xs text-ink/60">refreshing…</span>}
+            {loading && <Shimmer className="text-xs">refreshing…</Shimmer>}
           </div>
           {items.length === 0 ? (
             <p className="px-4 py-6 text-center text-sm text-ink/60">

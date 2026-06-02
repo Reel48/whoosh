@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDisclosureTransition } from "@/components/ui/useDisclosureTransition";
+import { Shimmer } from "@/components/ui/Shimmer";
 
 type Suggestion = { symbol: string; name: string; kind: "stock" | "crypto" };
 
@@ -224,7 +225,7 @@ export function SymbolSearch({ defaultValue = "" }: { defaultValue?: string }) {
           })}
 
           {!isEmpty && loading && results.length === 0 && (
-            <div className="cap-search__hint">Searching…</div>
+            <div className="cap-search__hint"><Shimmer>Searching…</Shimmer></div>
           )}
         </div>
       )}

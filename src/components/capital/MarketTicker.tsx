@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { TickerQuote } from "@/lib/wb/marketTicker";
+import { Shimmer } from "@/components/ui/Shimmer";
 
 /**
  * A thin market-quotes strip pinned to the top of the Capital section that
@@ -37,7 +38,20 @@ export function MarketTicker() {
     };
   }, []);
 
-  if (!quotes || quotes.length === 0) return null;
+  if (!quotes || quotes.length === 0) {
+    // Before the first quotes land, show a quiet shimmer label instead of a
+    // blank bar so the strip reads as "loading" rather than missing.
+    return (
+      <div
+        className="overflow-hidden border-b"
+        style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+      >
+        <div className="mx-auto flex h-9 w-full max-w-6xl items-center px-4">
+          <Shimmer className="text-xs" >Loading market…</Shimmer>
+        </div>
+      </div>
+    );
+  }
 
   // Duplicate for a seamless loop; pace the glide to the amount of content.
   const loop = [...quotes, ...quotes];
