@@ -7,6 +7,7 @@ import { MARKET_LABELS } from "@/lib/wb/odds";
 import { groupSyncedByGame, sportTitle, type Game } from "@/lib/wb/eventGroups";
 import { EventCard } from "@/components/capital/EventCard";
 import { Reveal } from "@/components/ui/Reveal";
+import { SuccessCheck } from "@/components/ui/SuccessCheck";
 import { Disclaimer } from "@/components/Disclaimer";
 
 export const dynamic = "force-dynamic";
@@ -79,7 +80,8 @@ export default async function EventsPage({
       </div>
 
       {banner && (
-        <div className={`alert ${banner.tone === "good" ? "alert-positive" : "alert-warning"} cap-mt`}>
+        <div className={`alert ${banner.tone === "good" ? "alert-positive" : "alert-warning t-input is-shaking"} cap-mt`}>
+          {banner.tone === "good" && <SuccessCheck />}
           <div className="body">{banner.text}</div>
         </div>
       )}

@@ -18,6 +18,7 @@ import { hasClaimedToday, getUserStreak } from "@/lib/wb/bonus";
 import { formatWb } from "@/lib/wb/format";
 import { Ticker } from "@/components/ui/Ticker";
 import { Reveal } from "@/components/ui/Reveal";
+import { SuccessCheck } from "@/components/ui/SuccessCheck";
 
 export const dynamic = "force-dynamic";
 
@@ -140,7 +141,8 @@ export default async function WalletPage({
       <h1 className="text-h1 cap-mt-1">Your portfolio</h1>
 
       {banner && (
-        <div className={`alert ${banner.tone === "good" ? "alert-positive" : "alert-warning"} cap-mt`}>
+        <div className={`alert ${banner.tone === "good" ? "alert-positive" : "alert-warning t-input is-shaking"} cap-mt`}>
+          {banner.tone === "good" && <SuccessCheck />}
           <div className="body">{banner.text}</div>
         </div>
       )}

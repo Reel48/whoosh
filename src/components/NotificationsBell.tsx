@@ -106,11 +106,11 @@ export function NotificationsBell() {
           <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
           <path d="M10 21a2 2 0 0 0 4 0" />
         </svg>
-        {unread > 0 && (
-          <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border-2 border-ink bg-imperial-red px-1 text-[10px] font-black text-white-smoke">
-            {unread > 9 ? "9+" : unread}
+        <span className="t-badge" data-open={unread > 0} aria-hidden={unread === 0}>
+          <span className="t-badge-dot inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border-2 border-ink bg-imperial-red px-1 text-[10px] font-black text-white-smoke">
+            {unread > 9 ? "9+" : unread || ""}
           </span>
-        )}
+        </span>
       </button>
 
       {mounted && (

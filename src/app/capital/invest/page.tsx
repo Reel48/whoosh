@@ -14,6 +14,7 @@ import { SymbolSearch } from "@/components/wb/SymbolSearch";
 import { Disclaimer } from "@/components/Disclaimer";
 import { Ticker } from "@/components/ui/Ticker";
 import { Reveal } from "@/components/ui/Reveal";
+import { SuccessCheck } from "@/components/ui/SuccessCheck";
 import { formatWb, formatUsd } from "@/lib/wb/format";
 
 export const dynamic = "force-dynamic";
@@ -115,7 +116,8 @@ export default async function InvestPage({
       <h1 className="text-h1 cap-mt-1">Simulated investing</h1>
 
       {banner && (
-        <div className={`alert ${banner.tone === "good" ? "alert-positive" : "alert-warning"} cap-mt`}>
+        <div className={`alert ${banner.tone === "good" ? "alert-positive" : "alert-warning t-input is-shaking"} cap-mt`}>
+          {banner.tone === "good" && <SuccessCheck />}
           <div className="body">{banner.text}</div>
         </div>
       )}
