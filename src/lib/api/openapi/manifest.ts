@@ -11,7 +11,7 @@
  * OpenAPI `webhooks` field, not `paths`).
  */
 
-export type HttpMethod = "get" | "post";
+export type HttpMethod = "get" | "post" | "patch" | "delete";
 
 export type QueryParam = { name: string; required: boolean; description?: string };
 
@@ -349,6 +349,15 @@ export const OPERATIONS: ApiOperation[] = [
     responseType: "AvatarResponse",
   },
   {
+    method: "post",
+    path: "/api/v1/account/device-token",
+    operationId: "registerDeviceToken",
+    summary: "Register this device's APNs token for push notifications.",
+    auth: "bearer",
+    requestType: "DeviceTokenRequest",
+    responseType: "DeviceTokenResponse",
+  },
+  {
     method: "get",
     path: "/api/v1/home",
     operationId: "getHome",
@@ -413,7 +422,10 @@ export const OPERATIONS: ApiOperation[] = [
     auth: "bearer",
     responseType: "ChatMessagesResponse",
     pathParams: ["channelId"],
-    query: [{ name: "before", required: false, description: "Return messages with id < before (older page)." }],
+    query: [
+      { name: "before", required: false, description: "Return messages with id < before (older page)." },
+      { name: "after", required: false, description: "Return messages with id > after (jump to unread)." },
+    ],
     extraErrors: ["forbidden"],
   },
   {
@@ -436,6 +448,38 @@ export const OPERATIONS: ApiOperation[] = [
     requestType: "ChatReactRequest",
     responseType: "ChatReactResponse",
     pathParams: ["messageId"],
+    extraErrors: ["forbidden"],
+  },
+  {
+    method: "patch",
+    path: "/api/v1/chat/messages/{messageId}",
+    operationId: "editChatMessage",
+    summary: "Edit your own message.",
+    auth: "bearer",
+    requestType: "ChatEditRequest",
+    responseType: "ChatOkResponse",
+    pathParams: ["messageId"],
+    extraErrors: ["forbidden"],
+  },
+  {
+    method: "delete",
+    path: "/api/v1/chat/messages/{messageId}",
+    operationId: "deleteChatMessage",
+    summary: "Delete your own message (admins may delete any).",
+    auth: "bearer",
+    responseType: "ChatOkResponse",
+    pathParams: ["messageId"],
+    extraErrors: ["forbidden"],
+  },
+  {
+    method: "post",
+    path: "/api/v1/chat/channels/{channelId}/read",
+    operationId: "markChatRead",
+    summary: "Advance the viewer's last-read mark for a channel.",
+    auth: "bearer",
+    requestType: "ChatReadRequest",
+    responseType: "ChatOkResponse",
+    pathParams: ["channelId"],
     extraErrors: ["forbidden"],
   },
   {
@@ -481,6 +525,36 @@ export const OPERATIONS: ApiOperation[] = [
     auth: "bearer",
     responseType: "ChatMembersResponse",
     query: [{ name: "q", required: false, description: "Username prefix." }],
+  },
+  {
+    method: "get",
+    path: "/api/v1/chat/search",
+    operationId: "searchChatMessages",
+    summary: "Full-text search over messages the viewer can read.",
+    auth: "bearer",
+    responseType: "ChatSearchResponse",
+    query: [
+      { name: "q", required: true, description: "Search query (websearch syntax)." },
+      { name: "channelId", required: false, description: "Restrict to a single channel." },
+    ],
+  },
+  {
+    method: "get",
+    path: "/api/v1/chat/dms",
+    operationId: "listChatDms",
+    summary: "The viewer's DM conversations (most recent first).",
+    auth: "bearer",
+    responseType: "ChatDmsResponse",
+  },
+  {
+    method: "post",
+    path: "/api/v1/chat/dms",
+    operationId: "openChatDm",
+    summary: "Open or create the 1:1 DM with another user.",
+    auth: "bearer",
+    requestType: "ChatDmOpenRequest",
+    responseType: "ChatDmOpenResponse",
+    extraErrors: ["not_found"],
   },
   {
     method: "get",

@@ -70,6 +70,128 @@ actor WhooshAPI {
         return u
     }
 
+    // MARK: Chat
+
+    func chatOverview() async throws -> ChatOverview {
+        try await get("/api/v1/chat/overview")
+    }
+
+    /// Newest page (or older page when `before` is set). Returns oldest→newest.
+    func chatMessages(channelId: Int, before: Int? = nil) async throws -> [ChatMessage] {
+        var path = "/api/v1/chat/channels/\(channelId)/messages"
+        if let before { path += "?before=\(before)" }
+        let r: ChatMessagesResponse = try await get(path)
+        return r.messages
+    }
+
+    func sendChatMessage(channelId: Int, body: String?, imageUrl: String? = nil,
+                         replyTo: Int? = nil) async throws -> SendChatMessageResponse {
+        try await post("/api/v1/chat/channels/\(channelId)/messages",
+                       body: SendChatMessageBody(body: body, imageUrl: imageUrl, replyTo: replyTo))
+    }
+
+    /// Older page (`before`) or, for "jump to unread", the oldest page above a
+    /// mark (`after`). Returns oldest→newest.
+    func chatMessages(channelId: Int, after: Int) async throws -> [ChatMessage] {
+        let r: ChatMessagesResponse = try await get("/api/v1/chat/channels/\(channelId)/messages?after=\(after)")
+        return r.messages
+    }
+
+    /// Advance the viewer's last-read mark for a channel.
+    func markChatRead(channelId: Int, messageId: Int) async throws {
+        let _: ChatOkResponse = try await post("/api/v1/chat/channels/\(channelId)/read",
+                                               body: ChatReadBody(messageId: messageId))
+    }
+
+    /// Toggle a reaction; returns the emoji's new count.
+    @discardableResult
+    func toggleReaction(messageId: Int, emoji: String, on: Bool) async throws -> Int {
+        let r: ChatReactResponse = try await post("/api/v1/chat/messages/\(messageId)/react",
+                                                  body: ChatReactBody(emoji: emoji, on: on))
+        return r.count
+    }
+
+    func editChatMessage(messageId: Int, body: String) async throws {
+        let _: ChatOkResponse = try await patch("/api/v1/chat/messages/\(messageId)",
+                                                body: ChatEditBody(body: body))
+    }
+
+    func deleteChatMessage(messageId: Int) async throws {
+        let _: ChatOkResponse = try await delete("/api/v1/chat/messages/\(messageId)")
+    }
+
+    /// Multipart upload of a chat image; returns its public URL.
+    func uploadChatImage(imageData: Data, fileName: String = "image.jpg",
+                         mimeType: String = "image/jpeg") async throws -> String {
+        var req = try await request("POST", "/api/v1/chat/upload")
+        let boundary = "Boundary-\(UUID().uuidString)"
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        var body = Data()
+        body.append("--\(boundary)\r\n")
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n")
+        body.append("Content-Type: \(mimeType)\r\n\r\n")
+        body.append(imageData)
+        body.append("\r\n--\(boundary)--\r\n")
+        req.httpBody = body
+        let r: ChatUploadResponse = try await send(req)
+        return r.url
+    }
+
+    /// Enrich a set of user ids for the realtime author cache.
+    func chatUsers(ids: [String]) async throws -> [ChatAuthor] {
+        guard !ids.isEmpty else { return [] }
+        let q = ids.joined(separator: ",").addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let r: ChatUsersResponse = try await get("/api/v1/chat/users?ids=\(q)")
+        return r.users
+    }
+
+    /// @mention picker: profiles by username prefix.
+    func chatMembers(query: String) async throws -> [ChatMember] {
+        let q = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let r: ChatMembersResponse = try await get("/api/v1/chat/members?q=\(q)")
+        return r.members
+    }
+
+    /// Full-text search over messages the viewer can read.
+    func chatSearch(query: String, channelId: Int? = nil) async throws -> [ChatMessage] {
+        let q = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        var path = "/api/v1/chat/search?q=\(q)"
+        if let channelId { path += "&channelId=\(channelId)" }
+        let r: ChatSearchResponse = try await get(path)
+        return r.messages
+    }
+
+    /// The viewer's DM conversations (most recent first).
+    func chatDms() async throws -> [ChatDmConversation] {
+        let r: ChatDmsResponse = try await get("/api/v1/chat/dms")
+        return r.conversations
+    }
+
+    /// Open or create the 1:1 DM with another user; returns it as a channel.
+    func openDm(userId: String) async throws -> ChatChannel {
+        let r: ChatDmOpenResponse = try await post("/api/v1/chat/dms", body: ChatDmOpenBody(userId: userId))
+        return r.channel
+    }
+
+    // MARK: Notifications (shared feed; chat uses chat_mention / chat_dm kinds)
+
+    func notifications() async throws -> NotificationsResponse {
+        try await get("/api/v1/wb/notifications")
+    }
+
+    @discardableResult
+    func markNotificationsRead() async throws -> Int {
+        struct Empty: Encodable {}
+        let r: MarkReadResponse = try await post("/api/v1/wb/notifications", body: Empty())
+        return r.unread
+    }
+
+    /// Register this device's APNs token for push notifications.
+    func registerDeviceToken(_ token: String) async throws {
+        struct Body: Encodable { let token: String; let platform = "ios" }
+        let _: DeviceTokenResponse = try await post("/api/v1/account/device-token", body: Body(token: token))
+    }
+
     // MARK: Plumbing
 
     private func get<T: Decodable>(_ path: String) async throws -> T {
@@ -81,6 +203,17 @@ actor WhooshAPI {
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try JSONEncoder().encode(body)
         return try await send(req)
+    }
+
+    private func patch<T: Decodable>(_ path: String, body: some Encodable) async throws -> T {
+        var req = try await request("PATCH", path)
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONEncoder().encode(body)
+        return try await send(req)
+    }
+
+    private func delete<T: Decodable>(_ path: String) async throws -> T {
+        try await send(try await request("DELETE", path))
     }
 
     private func request(_ method: String, _ path: String) async throws -> URLRequest {

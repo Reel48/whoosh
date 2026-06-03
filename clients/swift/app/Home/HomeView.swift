@@ -12,6 +12,8 @@ struct HomeView: View {
         TabView {
             NavigationStack { landing }
                 .tabItem { Label("Home", systemImage: "house.fill") }
+            ChannelsListView()
+                .tabItem { Label("Chat", systemImage: "bubble.left.and.bubble.right.fill") }
             NavigationStack { account }
                 .tabItem { Label("Account", systemImage: "person.crop.circle") }
         }

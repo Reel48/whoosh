@@ -49,6 +49,10 @@ export type ChatChannel = {
   requiredRoleId: number | null;
   /** Whether the viewer may post here (post policy + role). */
   canPost: boolean;
+  /** Messages with id greater than the viewer's last-read mark. */
+  unread: number;
+  /** Timestamp of the most recent message, or null if empty. */
+  lastActivityAt: string | null;
 };
 
 export type ChatCategory = {
@@ -103,3 +107,12 @@ export type ChatLeaderboardRow = {
 };
 
 export type ChatMember = { id: string; username: string; avatarUrl: string | null };
+
+/** A DM conversation row for the inbox list. */
+export type ChatDmConversation = {
+  channelId: number;
+  other: ChatAuthor;
+  lastBody: string | null;
+  lastAt: string | null;
+  unread: number;
+};

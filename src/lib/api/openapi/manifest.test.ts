@@ -31,6 +31,8 @@ function routeFileOperations(): Set<string> {
     const src = readFileSync(abs, "utf8");
     if (/export\s+async\s+function\s+GET\b/.test(src)) ops.add(`get ${path}`);
     if (/export\s+async\s+function\s+POST\b/.test(src)) ops.add(`post ${path}`);
+    if (/export\s+async\s+function\s+PATCH\b/.test(src)) ops.add(`patch ${path}`);
+    if (/export\s+async\s+function\s+DELETE\b/.test(src)) ops.add(`delete ${path}`);
   }
   return ops;
 }

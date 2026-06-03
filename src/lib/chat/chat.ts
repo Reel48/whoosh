@@ -1,7 +1,7 @@
 import type { ApiErrorCode } from "@/lib/api/json";
 import { chatDb } from "./db";
 import type {
-  ChatAuthor, ChatCategory, ChatChannel, ChatLeaderboardRow, ChatMe, ChatMember,
+  ChatAuthor, ChatCategory, ChatChannel, ChatDmConversation, ChatLeaderboardRow, ChatMe, ChatMember,
   ChatMessage, ChatOverview, ChatReactionSummary, ChatRole,
   CategoryRow, ChannelRow, MessageRow, ProfileRow, RoleRow, StatRow,
 } from "./types";
@@ -22,6 +22,8 @@ function mapPgError(error: { message?: string } | null): ChatError {
   const m = (error?.message ?? "").toLowerCase();
   if (m.includes("forbidden") || m.includes("not assignable")) return new ChatError("forbidden", "Not allowed.");
   if (m.includes("empty")) return new ChatError("validation", "Message is empty.");
+  if (m.includes("validation")) return new ChatError("validation", "Invalid input.");
+  if (m.includes("not_found")) return new ChatError("not_found", "Not found.");
   return new ChatError("internal", error?.message ?? "Chat operation failed.");
 }
 
@@ -118,16 +120,22 @@ export async function getChatOverview(userId: string, isAdmin: boolean, isPremiu
   const db = chatDb();
   await db.rpc("reconcile_chat_roles", { p_user: userId, p_is_premium: isPremium });
 
-  const [{ data: cats }, { data: chans }, { data: myRoleRows }, { data: roleRows }, { data: stat }] =
+  const [{ data: cats }, { data: chans }, { data: myRoleRows }, { data: roleRows }, { data: stat }, { data: unreadRows }] =
     await Promise.all([
       db.from("chat_category").select("id, name, position").order("position", { ascending: true }),
       db.from("chat_channel").select(
         "id, category_id, slug, name, description, kind, post_policy, required_role_id, is_active, position",
-      ).eq("is_active", true).order("position", { ascending: true }),
+      ).eq("is_active", true).neq("kind", "dm").order("position", { ascending: true }),
       db.from("chat_user_role").select("role_id").eq("user_id", userId),
       db.from("chat_role").select("id, key, name, color, priority").order("priority", { ascending: false }),
       db.from("chat_user_stat").select("xp, level").eq("user_id", userId).maybeSingle(),
+      db.rpc("chat_unread_counts", { p_user: userId }),
     ]);
+
+  const unreadByChannel = new Map<number, { unread: number; lastActivity: string | null }>();
+  for (const r of (unreadRows ?? []) as { channel_id: number; unread: number; last_activity: string | null }[]) {
+    unreadByChannel.set(r.channel_id, { unread: Number(r.unread), lastActivity: r.last_activity });
+  }
 
   const myRoleIds = new Set(((myRoleRows ?? []) as { role_id: number }[]).map((r) => r.role_id));
   const allRoles = (roleRows ?? []) as RoleRow[];
@@ -141,10 +149,12 @@ export async function getChatOverview(userId: string, isAdmin: boolean, isPremiu
   const channelsByCat = new Map<number, ChatChannel[]>();
   for (const c of (chans ?? []) as ChannelRow[]) {
     if (!canAccess(c)) continue;
+    const u = unreadByChannel.get(c.id);
     const dto: ChatChannel = {
       id: c.id, categoryId: c.category_id, slug: c.slug, name: c.name,
       description: c.description, kind: c.kind, postPolicy: c.post_policy,
       requiredRoleId: c.required_role_id, canPost: canPost(c),
+      unread: u?.unread ?? 0, lastActivityAt: u?.lastActivity ?? null,
     };
     const list = channelsByCat.get(c.category_id) ?? [];
     list.push(dto);
@@ -170,17 +180,32 @@ export async function getChatOverview(userId: string, isAdmin: boolean, isPremiu
   return { categories, me };
 }
 
-export async function getChatMessages(userId: string, channelId: number, before?: number): Promise<ChatMessage[]> {
+export async function getChatMessages(
+  userId: string, channelId: number, before?: number, after?: number,
+): Promise<ChatMessage[]> {
   if (!(await canRead(userId, channelId))) throw new ChatError("forbidden", "No access to this channel.");
   const db = chatDb();
+  // `after` reads the oldest page above a mark (ascending, for "jump to unread");
+  // otherwise read the newest/`before` page (descending, then reverse).
+  const ascending = after != null && after > 0;
   let q = db.from("chat_message").select("*").eq("channel_id", channelId).is("deleted_at", null)
-    .order("id", { ascending: false }).limit(PAGE);
+    .order("id", { ascending }).limit(PAGE);
   if (before && before > 0) q = q.lt("id", before);
+  if (ascending) q = q.gt("id", after!);
   const { data } = await q;
-  const rows = ((data ?? []) as MessageRow[]).reverse(); // ascending for display
+  const raw = (data ?? []) as MessageRow[];
+  const rows = ascending ? raw : raw.reverse(); // always ascending for display
   const authors = await enrichAuthors(rows.map((r) => r.user_id));
   const reactions = await reactionsFor(rows.map((r) => r.id), userId);
   return rows.map((r) => toMessage(r, authors, reactions, userId));
+}
+
+/** Advance the viewer's last-read mark for a channel (never moves backwards). */
+export async function markChatRead(userId: string, channelId: number, messageId: number): Promise<void> {
+  const { error } = await chatDb().rpc("mark_chat_read", {
+    p_user: userId, p_channel: channelId, p_message: messageId,
+  });
+  if (error) throw mapPgError(error);
 }
 
 export type SendInput = { body?: string; imageUrl?: string | null; replyTo?: number | null };
@@ -244,12 +269,88 @@ export async function getChatStarboard(viewerId: string, limit = 50): Promise<Ch
   return rows.map((r) => toMessage(r, authors, reactions, viewerId));
 }
 
+/** Full-text search over messages the viewer can read (optionally one channel). */
+export async function searchChatMessages(
+  viewerId: string, query: string, channelId?: number, limit = 50,
+): Promise<ChatMessage[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const { data, error } = await chatDb().rpc("search_chat_messages", {
+    p_user: viewerId, p_query: q, p_channel: channelId ?? null, p_limit: limit,
+  });
+  if (error) throw mapPgError(error);
+  const rows = (data ?? []) as MessageRow[];
+  const authors = await enrichAuthors(rows.map((r) => r.user_id));
+  const reactions = await reactionsFor(rows.map((r) => r.id), viewerId);
+  return rows.map((r) => toMessage(r, authors, reactions, viewerId));
+}
+
 export async function getChatMembers(query: string, limit = 10): Promise<ChatMember[]> {
   const q = query.trim().replace(/[%_]/g, "");
   if (!q) return [];
   const { data } = await chatDb().from("profile")
     .select("user_id, username, avatar_url").ilike("username", `${q}%`).limit(limit);
   return ((data ?? []) as ProfileRow[]).map((p) => ({ id: p.user_id, username: p.username, avatarUrl: p.avatar_url }));
+}
+
+// ── Direct messages ──────────────────────────────────────────────────────────
+
+/** The viewer's DM conversations: the other participant, last message, unread. */
+export async function listChatDms(userId: string): Promise<ChatDmConversation[]> {
+  const db = chatDb();
+  const { data: mine } = await db.from("chat_channel_member").select("channel_id").eq("user_id", userId);
+  const memberChannels = [...new Set(((mine ?? []) as { channel_id: number }[]).map((r) => r.channel_id))];
+  if (!memberChannels.length) return [];
+
+  const { data: chans } = await db.from("chat_channel").select("id").in("id", memberChannels).eq("kind", "dm");
+  const dmIds = ((chans ?? []) as { id: number }[]).map((c) => c.id);
+  if (!dmIds.length) return [];
+
+  const [{ data: members }, { data: lastMsgs }, { data: unreadRows }] = await Promise.all([
+    db.from("chat_channel_member").select("channel_id, user_id").in("channel_id", dmIds),
+    db.from("chat_message").select("channel_id, body, created_at, id")
+      .in("channel_id", dmIds).is("deleted_at", null).order("id", { ascending: false }),
+    db.rpc("chat_unread_counts", { p_user: userId }),
+  ]);
+
+  const otherByChannel = new Map<number, string>();
+  for (const m of (members ?? []) as { channel_id: number; user_id: string }[]) {
+    if (m.user_id !== userId) otherByChannel.set(m.channel_id, m.user_id);
+  }
+  const lastByChannel = new Map<number, { body: string; created_at: string }>();
+  for (const m of (lastMsgs ?? []) as { channel_id: number; body: string; created_at: string }[]) {
+    if (!lastByChannel.has(m.channel_id)) lastByChannel.set(m.channel_id, { body: m.body, created_at: m.created_at });
+  }
+  const unreadByChannel = new Map<number, number>();
+  for (const r of (unreadRows ?? []) as { channel_id: number; unread: number }[]) {
+    unreadByChannel.set(r.channel_id, Number(r.unread));
+  }
+
+  const authors = await enrichAuthors([...otherByChannel.values()]);
+  return dmIds
+    .map((id) => ({
+      channelId: id,
+      other: authorOr(authors, otherByChannel.get(id) ?? ""),
+      lastBody: lastByChannel.get(id)?.body ?? null,
+      lastAt: lastByChannel.get(id)?.created_at ?? null,
+      unread: unreadByChannel.get(id) ?? 0,
+    }))
+    .sort((a, b) => (b.lastAt ?? "").localeCompare(a.lastAt ?? ""));
+}
+
+/** Open (or create) the 1:1 DM with another user; returns it as a channel. */
+export async function openChatDm(userId: string, otherId: string): Promise<ChatChannel> {
+  const db = chatDb();
+  const { data, error } = await db.rpc("get_or_create_dm", { p_user: userId, p_other: otherId });
+  if (error) throw mapPgError(error);
+  const channelId = Number(data);
+  const authors = await enrichAuthors([otherId]);
+  const other = authorOr(authors, otherId);
+  return {
+    id: channelId, categoryId: 0, slug: `dm-${channelId}`, name: other.username,
+    description: null, kind: "dm", postPolicy: "members", requiredRoleId: null,
+    canPost: true, unread: 0, lastActivityAt: null,
+  };
 }
 
 export async function getEnrichedUsers(ids: string[]): Promise<ChatAuthor[]> {
