@@ -131,7 +131,22 @@ function buildPaths(): Record<string, Record<string, unknown>> {
       ...(parameters.length ? { parameters } : {}),
       responses,
     };
-    if (op.requestType) {
+    if (op.requestContentType === "multipart/form-data") {
+      operation.requestBody = {
+        required: true,
+        content: {
+          "multipart/form-data": {
+            schema: {
+              type: "object",
+              required: [op.fileField ?? "file"],
+              properties: {
+                [op.fileField ?? "file"]: { type: "string", format: "binary" },
+              },
+            },
+          },
+        },
+      };
+    } else if (op.requestType) {
       operation.requestBody = {
         required: true,
         content: {

@@ -632,6 +632,10 @@ components:
             - "null"
         isAdmin:
           type: boolean
+        onboarded:
+          type: boolean
+          description: Whether first-run onboarding is complete — the iOS app branches on
+            this.
         auth:
           type: object
           properties:
@@ -662,6 +666,7 @@ components:
         - avatarUrl
         - discordUserId
         - isAdmin
+        - onboarded
         - auth
         - referrals
         - achievements
@@ -706,6 +711,55 @@ components:
       description: "Achievement catalog. Adding one: append to ACHIEVEMENTS and add an
         evaluator call site (or wire into evaluateAfter*). The catalog is the
         source of truth for icon + label — DB only stores the code string."
+    UsernameAvailableResponse:
+      type: object
+      properties:
+        available:
+          type: boolean
+        normalized:
+          type: string
+          description: The handle normalized to the allowed format (suggested value).
+        reason:
+          type: string
+          description: Why unavailable, when `available` is false.
+      required:
+        - available
+        - normalized
+      description: GET /api/v1/account/username-available?handle=
+    SetUsernameRequest:
+      type: object
+      properties:
+        username:
+          type: string
+      required:
+        - username
+      description: POST /api/v1/account/profile — set
+    ProfileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        avatarUrl:
+          type:
+            - string
+            - "null"
+        onboarded:
+          type: boolean
+      required:
+        - id
+        - username
+        - avatarUrl
+        - onboarded
+    AvatarResponse:
+      type: object
+      properties:
+        avatarUrl:
+          type: string
+      required:
+        - avatarUrl
+      description: POST /api/v1/account/avatar — multipart image upload.
     FantasyOverviewResponse:
       type: object
       properties:
@@ -1427,6 +1481,93 @@ components:
       required:
         - groupKey
       description: POST /api/v1/fantasy/checkout — start a league-group entry-fee purchase.
+    HomeResponse:
+      type: object
+      properties:
+        capital:
+          $ref: "#/components/schemas/DashboardData"
+        board:
+          $ref: "#/components/schemas/CrossLeagueScoreboard"
+        topArticle:
+          anyOf:
+            - $ref: "#/components/schemas/Article"
+            - type: "null"
+        fantasyLink:
+          anyOf:
+            - $ref: "#/components/schemas/FantasyLink"
+            - type: "null"
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/Section"
+      required:
+        - capital
+        - board
+        - topArticle
+        - fantasyLink
+        - sections
+      description: GET /api/v1/home — one call powering the app's logged-in landing screen.
+    Section:
+      type: object
+      properties:
+        key:
+          $ref: "#/components/schemas/SectionKey"
+        label:
+          type: string
+          description: Short label shown on the hub and as the in-section title.
+        href:
+          type: string
+          description: Section hub URL + the prefix that marks a route as "in" this section.
+        tagline:
+          type: string
+          description: One-liner shown on the /home hub cards.
+        nav:
+          type: array
+          items:
+            $ref: "#/components/schemas/NavItem"
+          description: Sub-pages shown in the desktop sub-nav and mobile route strip.
+        live:
+          type: boolean
+          description: True once the section has real content; false renders a "coming
+            soon".
+      required:
+        - key
+        - label
+        - href
+        - tagline
+        - nav
+        - live
+    SectionKey:
+      type: string
+      enum:
+        - capital
+        - fantasy
+        - pool
+        - news
+      description: >-
+        Single source of truth for the signed-in app's section structure.
+
+
+        The signed-in experience is split into themed sections. Each section
+        owns a URL prefix, a `data-theme` scope (see globals.css), and a list of
+        sub-pages. Navigation surfaces (AppShell header, desktop sub-nav, mobile
+        route strip, bottom tab bar) all read from here instead of hardcoding
+        link lists.
+
+
+        This file is intentionally data-only (no JSX) so it can be imported by
+        both server and client components. Icons are resolved by key in the
+        client nav components.
+    NavItem:
+      type: object
+      properties:
+        href:
+          type: string
+        label:
+          type: string
+      required:
+        - href
+        - label
     ApiError:
       type: object
       required:
@@ -2627,6 +2768,209 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/LinkSleeperRequest"
+  /api/v1/account/username-available:
+    get:
+      operationId: checkUsernameAvailable
+      summary: Live @handle availability check for onboarding.
+      tags:
+        - account
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: handle
+          in: query
+          required: true
+          description: Candidate @handle.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/UsernameAvailableResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/v1/account/profile:
+    post:
+      operationId: setProfile
+      summary: Set the user's @handle and mark them onboarded.
+      tags:
+        - account
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/ProfileResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetUsernameRequest"
+  /api/v1/account/avatar:
+    post:
+      operationId: uploadAvatar
+      summary: Upload a profile avatar image.
+      tags:
+        - account
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/AvatarResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+  /api/v1/home:
+    get:
+      operationId: getHome
+      summary: Aggregate data for the logged-in landing screen.
+      tags:
+        - home
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/HomeResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /api/v1/wb/buy:
     post:
       operationId: buyWhooshBucks

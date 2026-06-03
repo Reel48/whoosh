@@ -25,6 +25,14 @@ export type ApiOperation = {
   auth: "bearer" | "public";
   /** Exported request DTO name in contracts.ts (POST bodies). */
   requestType?: string;
+  /**
+   * Request content type. Defaults to `application/json` (using `requestType`).
+   * Set `multipart/form-data` for file uploads — the generator emits a binary
+   * `fileField` part instead of a JSON `$ref`.
+   */
+  requestContentType?: "multipart/form-data";
+  /** Form field name for the uploaded file (multipart requests only). */
+  fileField?: string;
   /** Exported response DTO name in contracts.ts (the `data` payload). */
   responseType: string;
   query?: QueryParam[];
@@ -263,6 +271,45 @@ export const OPERATIONS: ApiOperation[] = [
     auth: "bearer",
     requestType: "LinkSleeperRequest",
     responseType: "LinkSleeperResponse",
+  },
+
+  // ── Onboarding / profile (iOS first-run) ────────────────────────────────────
+  {
+    method: "get",
+    path: "/api/v1/account/username-available",
+    operationId: "checkUsernameAvailable",
+    summary: "Live @handle availability check for onboarding.",
+    auth: "bearer",
+    responseType: "UsernameAvailableResponse",
+    query: [{ name: "handle", required: true, description: "Candidate @handle." }],
+  },
+  {
+    method: "post",
+    path: "/api/v1/account/profile",
+    operationId: "setProfile",
+    summary: "Set the user's @handle and mark them onboarded.",
+    auth: "bearer",
+    requestType: "SetUsernameRequest",
+    responseType: "ProfileResponse",
+    extraErrors: ["conflict"],
+  },
+  {
+    method: "post",
+    path: "/api/v1/account/avatar",
+    operationId: "uploadAvatar",
+    summary: "Upload a profile avatar image.",
+    auth: "bearer",
+    requestContentType: "multipart/form-data",
+    fileField: "file",
+    responseType: "AvatarResponse",
+  },
+  {
+    method: "get",
+    path: "/api/v1/home",
+    operationId: "getHome",
+    summary: "Aggregate data for the logged-in landing screen.",
+    auth: "bearer",
+    responseType: "HomeResponse",
   },
 
   // ── Payments (web Stripe link-out — iOS opens these URLs in the browser) ────

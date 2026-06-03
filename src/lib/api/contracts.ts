@@ -28,6 +28,7 @@ import type { Matchup } from "@/lib/fantasy/matchups";
 import type { NflState } from "@/lib/sleeper/types";
 import type { Article } from "@/lib/news/espn";
 import type { WhooshEntry } from "@/lib/news/engagement";
+import type { Section } from "@/lib/sections";
 
 /** POST /api/v1/wb/wager — place a wager on an event outcome. */
 export type PlaceWagerRequest = {
@@ -99,10 +100,35 @@ export type AccountResponse = {
   avatarUrl: string | null;
   discordUserId: string | null;
   isAdmin: boolean;
+  /** Whether first-run onboarding is complete — the iOS app branches on this. */
+  onboarded: boolean;
   auth: { hasDiscord: boolean; hasPassword: boolean; email: string | null; emailVerified: boolean };
   referrals: ReferralStats;
   achievements: EarnedAchievement[];
 };
+
+// ── Onboarding / profile (iOS first-run) ─────────────────────────────────────
+
+/** GET /api/v1/account/username-available?handle= */
+export type UsernameAvailableResponse = {
+  available: boolean;
+  /** The handle normalized to the allowed format (suggested value). */
+  normalized: string;
+  /** Why unavailable, when `available` is false. */
+  reason?: string;
+};
+
+/** POST /api/v1/account/profile — set @handle + mark onboarded. */
+export type SetUsernameRequest = { username: string };
+export type ProfileResponse = {
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+  onboarded: boolean;
+};
+
+/** POST /api/v1/account/avatar — multipart image upload. */
+export type AvatarResponse = { avatarUrl: string };
 
 // ── Fantasy ──────────────────────────────────────────────────────────────────
 
@@ -187,3 +213,14 @@ export type SubscribeRequest = { interval: "monthly" | "six_months" | "annual" }
 
 /** POST /api/v1/fantasy/checkout — start a league-group entry-fee purchase. */
 export type FantasyCheckoutRequest = { groupKey: string };
+
+// ── Home (iOS landing aggregate) ─────────────────────────────────────────────
+
+/** GET /api/v1/home — one call powering the app's logged-in landing screen. */
+export type HomeResponse = {
+  capital: DashboardData;
+  board: CrossLeagueScoreboard;
+  topArticle: Article | null;
+  fantasyLink: FantasyLink | null;
+  sections: Section[];
+};

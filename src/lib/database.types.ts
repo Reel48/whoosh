@@ -633,6 +633,7 @@ export type Database = {
           discord_user_id: string | null
           has_password: boolean
           is_admin: boolean
+          onboarded_at: string | null
           stripe_customer_id: string | null
           updated_at: string
           user_id: string
@@ -644,6 +645,7 @@ export type Database = {
           discord_user_id?: string | null
           has_password?: boolean
           is_admin?: boolean
+          onboarded_at?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
           user_id: string
@@ -655,6 +657,7 @@ export type Database = {
           discord_user_id?: string | null
           has_password?: boolean
           is_admin?: boolean
+          onboarded_at?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
           user_id?: string
