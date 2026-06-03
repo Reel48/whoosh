@@ -170,8 +170,8 @@ export type FantasyRankingsResponse = CrossLeagueScoreboard;
 /** GET /api/v1/fantasy/pools */
 export type FantasyPoolsResponse = { pools: PoolSummary[] };
 
-/** GET /api/v1/fantasy/pools/[leagueId] */
-export type FantasyPoolDetailResponse = PoolDetail;
+/** GET /api/v1/fantasy/pools/[leagueId] — pool detail + the user's join status. */
+export type FantasyPoolDetailResponse = PoolDetail & { joined: boolean };
 
 /** GET /api/v1/fantasy/leagues/[leagueId] — overview + the viewer's access. */
 export type FantasyLeagueResponse = { overview: LeagueOverview; access: boolean };
