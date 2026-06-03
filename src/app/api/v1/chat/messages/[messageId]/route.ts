@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { editChatMessage, deleteChatMessage, ChatError } from "@/lib/chat/chat";
 import { jsonOk, jsonError, readJson, requireBearerSession } from "@/lib/api/json";
+import { requireCapability } from "@/lib/api/client";
 import type { ChatEditRequest } from "@/lib/api/contracts";
 
 export const runtime = "nodejs";
@@ -13,6 +14,8 @@ export async function PATCH(
 ) {
   const session = await requireBearerSession(req);
   if (session instanceof NextResponse) return session;
+  const gate = requireCapability(req, "chat");
+  if (gate) return gate;
   const { messageId } = await params;
   const body = await readJson<ChatEditRequest>(req);
   if (!body?.body?.trim()) return jsonError("validation", "Body required.");
@@ -32,6 +35,8 @@ export async function DELETE(
 ) {
   const session = await requireBearerSession(req);
   if (session instanceof NextResponse) return session;
+  const gate = requireCapability(req, "chat");
+  if (gate) return gate;
   const { messageId } = await params;
   try {
     await deleteChatMessage(session.id, Number(messageId));

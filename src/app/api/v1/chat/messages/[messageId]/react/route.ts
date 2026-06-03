@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { toggleChatReaction, ChatError } from "@/lib/chat/chat";
 import { jsonOk, jsonError, readJson, requireBearerSession } from "@/lib/api/json";
+import { requireCapability } from "@/lib/api/client";
 import type { ChatReactRequest, ChatReactResponse } from "@/lib/api/contracts";
 
 export const runtime = "nodejs";
@@ -13,6 +14,8 @@ export async function POST(
 ) {
   const session = await requireBearerSession(req);
   if (session instanceof NextResponse) return session;
+  const gate = requireCapability(req, "chat");
+  if (gate) return gate;
   const { messageId } = await params;
   const body = await readJson<ChatReactRequest>(req);
   if (!body?.emoji) return jsonError("validation", "emoji required.");

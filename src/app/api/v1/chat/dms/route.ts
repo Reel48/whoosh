@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { listChatDms, openChatDm, ChatError } from "@/lib/chat/chat";
 import { jsonOk, jsonError, readJson, requireBearerSession } from "@/lib/api/json";
+import { requireCapability } from "@/lib/api/client";
 import type { ChatDmsResponse, ChatDmOpenRequest, ChatDmOpenResponse } from "@/lib/api/contracts";
 
 export const runtime = "nodejs";
@@ -10,6 +11,8 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const session = await requireBearerSession(req);
   if (session instanceof NextResponse) return session;
+  const gate = requireCapability(req, "chat");
+  if (gate) return gate;
   try {
     const conversations = await listChatDms(session.id);
     return jsonOk<ChatDmsResponse>({ conversations });
@@ -23,6 +26,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requireBearerSession(req);
   if (session instanceof NextResponse) return session;
+  const gate = requireCapability(req, "chat");
+  if (gate) return gate;
   const body = await readJson<ChatDmOpenRequest>(req);
   if (!body?.userId) return jsonError("validation", "userId required.");
   try {
