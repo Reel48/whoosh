@@ -30,6 +30,9 @@ import type { Article } from "@/lib/news/espn";
 import type { WhooshEntry } from "@/lib/news/engagement";
 import type { Section } from "@/lib/sections";
 import type { BetEvent, UserWager } from "@/lib/wb/bets";
+import type { StockSnapshot } from "@/lib/wb/history";
+import type { CompanyProfile } from "@/lib/wb/profile";
+import type { Order } from "@/lib/wb/invest";
 
 /** POST /api/v1/wb/wager — place a wager on an event outcome. */
 export type PlaceWagerRequest = {
@@ -92,6 +95,16 @@ export type BetsResponse = { wagers: UserWager[] };
 
 /** GET /api/v1/wb/quote?symbol= — a single live quote. */
 export type QuoteResponse = Quote;
+
+/** GET /api/v1/wb/symbol?symbol=&range= — full stock detail for the invest view. */
+export type SymbolDetailResponse = {
+  snapshot: StockSnapshot;
+  profile: CompanyProfile | null;
+  quote: Quote | null;
+};
+
+/** GET /api/v1/wb/orders — the user's recent investing orders. */
+export type OrdersResponse = { orders: Order[] };
 
 /** GET /api/v1/wb/search?q= — symbol typeahead. */
 export type SearchResult = { symbol: string; name: string; kind: "stock" | "crypto" };

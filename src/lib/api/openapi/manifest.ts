@@ -177,6 +177,27 @@ export const OPERATIONS: ApiOperation[] = [
   },
   {
     method: "get",
+    path: "/api/v1/wb/symbol",
+    operationId: "getSymbolDetail",
+    summary: "Full stock detail: snapshot + candles + profile + quote.",
+    auth: "bearer",
+    responseType: "SymbolDetailResponse",
+    query: [
+      { name: "symbol", required: true, description: "Ticker or crypto symbol." },
+      { name: "range", required: false, description: "1m|3m|6m|1y|5y (default 1y)." },
+    ],
+    extraErrors: ["not_found"],
+  },
+  {
+    method: "get",
+    path: "/api/v1/wb/orders",
+    operationId: "getOrders",
+    summary: "The user's recent investing orders.",
+    auth: "bearer",
+    responseType: "OrdersResponse",
+  },
+  {
+    method: "get",
     path: "/api/v1/wb/search",
     operationId: "searchSymbols",
     summary: "Symbol typeahead (stocks + crypto).",
