@@ -1,0 +1,10 @@
+# swift-openapi-generator config (Apple's official generator).
+# Generates a type-safe Swift `Client` from openapi/whoosh-v1.yaml at build time
+# via the SwiftPM build plugin — see README.md. Nothing is committed from this;
+# the generated sources live in the build products of the iOS package.
+generate:
+  - types
+  - client
+accessModifier: public
+# Idiomatic Swift names (e.g. operationId `getWallet` → `getWallet(_:)`).
+namingStrategy: idiomatic
