@@ -85,6 +85,7 @@ export type ChatMessage = {
 
 export type ChatMe = {
   userId: string;
+  avatarUrl: string | null;
   level: number;
   xp: number;
   rank: number;

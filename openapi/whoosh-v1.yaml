@@ -2059,6 +2059,10 @@ components:
       properties:
         userId:
           type: string
+        avatarUrl:
+          type:
+            - string
+            - "null"
         level:
           type: number
         xp:
@@ -2071,6 +2075,7 @@ components:
             $ref: "#/components/schemas/ChatRole"
       required:
         - userId
+        - avatarUrl
         - level
         - xp
         - rank

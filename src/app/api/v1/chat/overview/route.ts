@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   if (session instanceof NextResponse) return session;
   try {
     const premium = await isPremium(session.id).catch(() => false);
-    const data = await getChatOverview(session.id, session.isAdmin, premium);
+    const data = await getChatOverview(session.id, session.isAdmin, premium, session.avatarUrl);
     return jsonOk<ChatOverviewResponse>(data);
   } catch (e) {
     return jsonError("internal", e instanceof Error ? e.message : "Could not load chat.");

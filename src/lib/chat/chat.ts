@@ -114,7 +114,7 @@ async function reactionsFor(messageIds: number[], viewerId: string): Promise<Map
 }
 
 // ── Overview: accessible categories/channels + the viewer's level/roles ──────
-export async function getChatOverview(userId: string, isAdmin: boolean, isPremium: boolean): Promise<ChatOverview> {
+export async function getChatOverview(userId: string, isAdmin: boolean, isPremium: boolean, avatarUrl: string | null): Promise<ChatOverview> {
   const db = chatDb();
   await db.rpc("reconcile_chat_roles", { p_user: userId, p_is_premium: isPremium });
 
@@ -161,6 +161,7 @@ export async function getChatOverview(userId: string, isAdmin: boolean, isPremiu
 
   const me: ChatMe = {
     userId,
+    avatarUrl,
     level: myLevel,
     xp: myXp,
     rank: (count ?? 0) + 1,
