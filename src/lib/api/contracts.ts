@@ -66,6 +66,9 @@ export type InvestOrderResponse = { orderId: number; totalCents: number };
 /** POST /api/v1/wb/bonus — claim the daily bonus. */
 export type ClaimBonusResponse = { claimed: boolean; amountCents: number; streak: number };
 
+/** GET /api/v1/wb/bonus — is today's bonus still claimable + current streak. */
+export type BonusStatusResponse = { available: boolean; streak: number };
+
 /** POST /api/v1/wb/watchlist — add/remove a symbol from the watchlist. */
 export type WatchlistMutateRequest = { symbol: string; action: "add" | "remove" };
 export type WatchlistMutateResponse = { symbol: string; watching: boolean };

@@ -1,12 +1,26 @@
 import { NextResponse } from "next/server";
 import { ensureWallet } from "@/lib/wb/ledger";
-import { claimDailyBonus } from "@/lib/wb/bonus";
+import { claimDailyBonus, getUserStreak, hasClaimedToday } from "@/lib/wb/bonus";
 import { evaluateAchievements } from "@/lib/wb/achievements";
 import { jsonError, jsonOk, requireBearerSession } from "@/lib/api/json";
-import type { ClaimBonusResponse } from "@/lib/api/contracts";
+import type { BonusStatusResponse, ClaimBonusResponse } from "@/lib/api/contracts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/**
+ * Whether today's daily bonus is still claimable + the current streak. Lets the
+ * client surface the bonus prominently when unclaimed.
+ */
+export async function GET(req: Request) {
+  const session = await requireBearerSession(req);
+  if (session instanceof NextResponse) return session;
+  const [claimed, streak] = await Promise.all([
+    hasClaimedToday(session.id),
+    getUserStreak(session.id),
+  ]);
+  return jsonOk<BonusStatusResponse>({ available: !claimed, streak });
+}
 
 /**
  * JSON re-shell of `POST /api/wb/bonus`. `claimDailyBonus` is idempotent per day

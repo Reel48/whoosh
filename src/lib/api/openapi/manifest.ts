@@ -88,6 +88,14 @@ export const OPERATIONS: ApiOperation[] = [
     extraErrors: ["insufficient_funds", "not_found"],
   },
   {
+    method: "get",
+    path: "/api/v1/wb/bonus",
+    operationId: "getBonusStatus",
+    summary: "Whether today's daily bonus is claimable + current streak.",
+    auth: "bearer",
+    responseType: "BonusStatusResponse",
+  },
+  {
     method: "post",
     path: "/api/v1/wb/bonus",
     operationId: "claimDailyBonus",
