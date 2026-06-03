@@ -16,9 +16,11 @@ export async function GET(
   const session = await requireBearerSession(req);
   if (session instanceof NextResponse) return session;
   const { channelId } = await params;
-  const before = Number(new URL(req.url).searchParams.get("before") ?? "0");
+  const sp = new URL(req.url).searchParams;
+  const before = Number(sp.get("before") ?? "0");
+  const after = Number(sp.get("after") ?? "0");
   try {
-    const messages = await getChatMessages(session.id, Number(channelId), before);
+    const messages = await getChatMessages(session.id, Number(channelId), before, after);
     return jsonOk<ChatMessagesResponse>({ messages });
   } catch (e) {
     if (e instanceof ChatError) return jsonError(e.code, e.message);

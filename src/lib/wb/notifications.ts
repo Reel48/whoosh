@@ -9,7 +9,9 @@ export type NotificationKind =
   | "achievement"
   | "renewal"
   | "referral"
-  | "system";
+  | "system"
+  | "chat_mention"
+  | "chat_dm";
 
 export type Notification = {
   id: number;

@@ -35,6 +35,7 @@ import type { CompanyProfile } from "@/lib/wb/profile";
 import type { Order } from "@/lib/wb/invest";
 import type {
   ChatOverview, ChatMessage, ChatLeaderboardRow, ChatAuthor, ChatMember, ChatRole,
+  ChatChannel, ChatDmConversation,
 } from "@/lib/chat/types";
 
 /** POST /api/v1/wb/wager — place a wager on an event outcome. */
@@ -272,6 +273,9 @@ export type ChatReactResponse = { count: number };
 /** PATCH /api/v1/chat/messages/[id] — edit own message. */
 export type ChatEditRequest = { body: string };
 
+/** POST /api/v1/chat/channels/[id]/read — advance the viewer's last-read mark. */
+export type ChatReadRequest = { messageId: number };
+
 /** POST /api/v1/chat/upload — multipart image → public URL. */
 export type ChatUploadResponse = { url: string };
 
@@ -286,6 +290,19 @@ export type ChatUsersResponse = { users: ChatAuthor[] };
 
 /** GET /api/v1/chat/members?q= — @mention picker. */
 export type ChatMembersResponse = { members: ChatMember[] };
+
+/** POST /api/v1/account/device-token — register an APNs device token. */
+export type DeviceTokenRequest = { token: string; platform?: string };
+export type DeviceTokenResponse = { ok: boolean };
+
+/** GET /api/v1/chat/search?q=&channelId= — full-text message search. */
+export type ChatSearchResponse = { messages: ChatMessage[] };
+
+/** GET /api/v1/chat/dms — the viewer's DM conversations. */
+export type ChatDmsResponse = { conversations: ChatDmConversation[] };
+/** POST /api/v1/chat/dms — open/create a 1:1 DM; returns it as a channel. */
+export type ChatDmOpenRequest = { userId: string };
+export type ChatDmOpenResponse = { channel: ChatChannel };
 
 /** GET /api/v1/chat/admin/roles — all roles (admin). */
 export type ChatRolesResponse = { roles: ChatRole[] };

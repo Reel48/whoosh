@@ -14,9 +14,14 @@ enum AppState: Equatable {
 final class AppModel: ObservableObject {
     @Published private(set) var state: AppState = .loading
     @Published var currentUsername: String = ""
+    @Published var currentUserId: String = ""
 
     let auth = SupabaseAuth.shared
     lazy var api = WhooshAPI(token: { [auth] in await auth.accessToken() })
+    /// Shared chat state for the Chat tab (created once, lives with the session).
+    lazy var chatStore = ChatStore(api: api)
+    /// Shared notification feed (in-app badge + inbox), live via Realtime.
+    lazy var notifications = NotificationsStore(api: api)
 
     /// Decide the initial screen: no session → sign in; session → ask the
     /// backend whether onboarding is done.
@@ -32,7 +37,18 @@ final class AppModel: ObservableObject {
     }
 
     /// Called by OnboardingView once the profile is created.
-    func didFinishOnboarding() { state = .home }
+    func didFinishOnboarding() {
+        if !currentUserId.isEmpty { startSessionServices(userId: currentUserId) }
+        state = .home
+    }
+
+    /// Start session-scoped services once signed in + onboarded: the live
+    /// notification feed and APNs push registration.
+    private func startSessionServices(userId: String) {
+        notifications.start(userId: userId)
+        PushManager.shared.configure(api: api)
+        PushManager.shared.requestAuthorization()
+    }
 
     func signOut() async {
         try? await auth.signOut()
@@ -44,6 +60,10 @@ final class AppModel: ObservableObject {
         do {
             let account = try await api.account()
             currentUsername = account.username
+            currentUserId = account.id
+            chatStore.myUsername = account.username
+            chatStore.myUserId = account.id
+            if account.onboarded { startSessionServices(userId: account.id) }
             state = account.onboarded ? .home : .onboarding
         } catch let e as APIError where e.code == "unauthorized" {
             state = .unauthenticated     // token rejected/expired → re-auth

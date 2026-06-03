@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct WhooshApp: App {
     @StateObject private var model = AppModel()
+    @UIApplicationDelegateAdaptor(PushAppDelegate.self) private var appDelegate
 
     var body: some Scene {
         WindowGroup {
