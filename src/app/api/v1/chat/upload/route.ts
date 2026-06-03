@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { uploadChatImage } from "@/lib/chat/chat";
 import { jsonError, jsonOk, requireBearerSession } from "@/lib/api/json";
+import { requireCapability } from "@/lib/api/client";
 import type { ChatUploadResponse } from "@/lib/api/contracts";
 
 export const runtime = "nodejs";
@@ -13,6 +14,8 @@ const MAX_BYTES = 8_000_000; // 8 MB
 export async function POST(req: Request) {
   const session = await requireBearerSession(req);
   if (session instanceof NextResponse) return session;
+  const gate = requireCapability(req, "chat");
+  if (gate) return gate;
 
   let file: unknown;
   try {

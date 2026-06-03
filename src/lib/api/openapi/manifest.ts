@@ -38,7 +38,7 @@ export type ApiOperation = {
   query?: QueryParam[];
   pathParams?: string[];
   /** Per-client capability gate (see src/lib/api/client.ts) — adds a 403. */
-  capability?: "wagering" | "real_money_fantasy";
+  capability?: "wagering" | "real_money_fantasy" | "chat";
   /** Extra error codes this op can return beyond the auth/validation defaults. */
   extraErrors?: string[];
 };
@@ -409,6 +409,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "get",
     path: "/api/v1/chat/overview",
+    capability: "chat",
     operationId: "getChatOverview",
     summary: "Accessible categories/channels + the viewer's level and roles.",
     auth: "bearer",
@@ -417,6 +418,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "get",
     path: "/api/v1/chat/channels/{channelId}/messages",
+    capability: "chat",
     operationId: "getChatMessages",
     summary: "Paginated, enriched message history for a channel.",
     auth: "bearer",
@@ -431,6 +433,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "post",
     path: "/api/v1/chat/channels/{channelId}/messages",
+    capability: "chat",
     operationId: "sendChatMessage",
     summary: "Post a message (grants XP/level).",
     auth: "bearer",
@@ -442,6 +445,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "post",
     path: "/api/v1/chat/messages/{messageId}/react",
+    capability: "chat",
     operationId: "reactChatMessage",
     summary: "Toggle a reaction; returns the emoji's new count.",
     auth: "bearer",
@@ -453,6 +457,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "patch",
     path: "/api/v1/chat/messages/{messageId}",
+    capability: "chat",
     operationId: "editChatMessage",
     summary: "Edit your own message.",
     auth: "bearer",
@@ -464,6 +469,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "delete",
     path: "/api/v1/chat/messages/{messageId}",
+    capability: "chat",
     operationId: "deleteChatMessage",
     summary: "Delete your own message (admins may delete any).",
     auth: "bearer",
@@ -474,6 +480,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "post",
     path: "/api/v1/chat/channels/{channelId}/read",
+    capability: "chat",
     operationId: "markChatRead",
     summary: "Advance the viewer's last-read mark for a channel.",
     auth: "bearer",
@@ -485,6 +492,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "post",
     path: "/api/v1/chat/upload",
+    capability: "chat",
     operationId: "uploadChatImage",
     summary: "Upload a chat image (multipart) → public URL.",
     auth: "bearer",
@@ -495,6 +503,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "get",
     path: "/api/v1/chat/leaderboard",
+    capability: "chat",
     operationId: "getChatLeaderboard",
     summary: "XP leaderboard.",
     auth: "bearer",
@@ -503,6 +512,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "get",
     path: "/api/v1/chat/starboard",
+    capability: "chat",
     operationId: "getChatStarboard",
     summary: "Most-starred messages.",
     auth: "bearer",
@@ -511,6 +521,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "get",
     path: "/api/v1/chat/users",
+    capability: "chat",
     operationId: "getChatUsers",
     summary: "Enrich a set of user ids for the realtime author cache.",
     auth: "bearer",
@@ -520,6 +531,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "get",
     path: "/api/v1/chat/members",
+    capability: "chat",
     operationId: "searchChatMembers",
     summary: "@mention picker: profiles by username prefix.",
     auth: "bearer",
@@ -529,6 +541,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "get",
     path: "/api/v1/chat/search",
+    capability: "chat",
     operationId: "searchChatMessages",
     summary: "Full-text search over messages the viewer can read.",
     auth: "bearer",
@@ -541,6 +554,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "get",
     path: "/api/v1/chat/dms",
+    capability: "chat",
     operationId: "listChatDms",
     summary: "The viewer's DM conversations (most recent first).",
     auth: "bearer",
@@ -549,6 +563,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "post",
     path: "/api/v1/chat/dms",
+    capability: "chat",
     operationId: "openChatDm",
     summary: "Open or create the 1:1 DM with another user.",
     auth: "bearer",
@@ -559,6 +574,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "get",
     path: "/api/v1/chat/admin/roles",
+    capability: "chat",
     operationId: "listChatRoles",
     summary: "All chat roles (admin).",
     auth: "bearer",
@@ -568,6 +584,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "post",
     path: "/api/v1/chat/admin/roles",
+    capability: "chat",
     operationId: "createChatRole",
     summary: "Create a custom assignable role (admin).",
     auth: "bearer",
@@ -578,6 +595,7 @@ export const OPERATIONS: ApiOperation[] = [
   {
     method: "post",
     path: "/api/v1/chat/admin/roles/assign",
+    capability: "chat",
     operationId: "assignChatRole",
     summary: "Assign or remove a role for a user (admin).",
     auth: "bearer",

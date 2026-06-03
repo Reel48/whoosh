@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getChatMessages, sendChatMessage, ChatError } from "@/lib/chat/chat";
 import { jsonOk, jsonError, readJson, requireBearerSession } from "@/lib/api/json";
+import { requireCapability } from "@/lib/api/client";
 import type {
   ChatMessagesResponse, SendChatMessageRequest, SendChatMessageResponse,
 } from "@/lib/api/contracts";
@@ -15,6 +16,8 @@ export async function GET(
 ) {
   const session = await requireBearerSession(req);
   if (session instanceof NextResponse) return session;
+  const gate = requireCapability(req, "chat");
+  if (gate) return gate;
   const { channelId } = await params;
   const sp = new URL(req.url).searchParams;
   const before = Number(sp.get("before") ?? "0");
@@ -35,6 +38,8 @@ export async function POST(
 ) {
   const session = await requireBearerSession(req);
   if (session instanceof NextResponse) return session;
+  const gate = requireCapability(req, "chat");
+  if (gate) return gate;
   const { channelId } = await params;
   const body = await readJson<SendChatMessageRequest>(req);
   if (!body) return jsonError("validation", "Invalid body.");

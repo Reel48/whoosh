@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getEnrichedUsers } from "@/lib/chat/chat";
 import { jsonOk, jsonError, requireBearerSession } from "@/lib/api/json";
+import { requireCapability } from "@/lib/api/client";
 import type { ChatUsersResponse } from "@/lib/api/contracts";
 
 export const runtime = "nodejs";
@@ -10,6 +11,8 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const session = await requireBearerSession(req);
   if (session instanceof NextResponse) return session;
+  const gate = requireCapability(req, "chat");
+  if (gate) return gate;
   const ids = (new URL(req.url).searchParams.get("ids") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   try {
     const users = await getEnrichedUsers(ids.slice(0, 100));

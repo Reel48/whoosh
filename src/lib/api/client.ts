@@ -15,7 +15,7 @@ import { jsonError, type ApiErr } from "@/lib/api/json";
  * keeps everything enabled so nothing changes for the web app today.
  */
 export type ClientKind = "web" | "ios" | "android";
-export type Capability = "wagering" | "real_money_fantasy";
+export type Capability = "wagering" | "real_money_fantasy" | "chat";
 
 /** Identify the calling client from the `X-Client` header (defaults to web). */
 export function clientFromReq(req: Request): ClientKind {
@@ -28,6 +28,8 @@ export function clientFromReq(req: Request): ClientKind {
 const CAPABILITY_POLICY: Record<Capability, Record<ClientKind, boolean>> = {
   wagering: { web: true, ios: true, android: true },
   real_money_fantasy: { web: true, ios: true, android: true },
+  // Chat/DMs are a native-app feature only — never exposed on the web client.
+  chat: { web: false, ios: true, android: true },
 };
 
 export function clientAllows(client: ClientKind, capability: Capability): boolean {
