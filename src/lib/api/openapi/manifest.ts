@@ -143,6 +143,22 @@ export const OPERATIONS: ApiOperation[] = [
   },
   {
     method: "get",
+    path: "/api/v1/wb/events",
+    operationId: "listEvents",
+    summary: "Open house-wager events with outcomes.",
+    auth: "bearer",
+    responseType: "EventsResponse",
+  },
+  {
+    method: "get",
+    path: "/api/v1/wb/bets",
+    operationId: "listMyBets",
+    summary: "The signed-in user's wagers (newest first).",
+    auth: "bearer",
+    responseType: "BetsResponse",
+  },
+  {
+    method: "get",
     path: "/api/v1/wb/quote",
     operationId: "getQuote",
     summary: "A single live quote for a symbol.",

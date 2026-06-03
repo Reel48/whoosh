@@ -29,6 +29,7 @@ import type { NflState } from "@/lib/sleeper/types";
 import type { Article } from "@/lib/news/espn";
 import type { WhooshEntry } from "@/lib/news/engagement";
 import type { Section } from "@/lib/sections";
+import type { BetEvent, UserWager } from "@/lib/wb/bets";
 
 /** POST /api/v1/wb/wager — place a wager on an event outcome. */
 export type PlaceWagerRequest = {
@@ -79,6 +80,12 @@ export type MarkReadResponse = { unread: 0 };
 
 /** GET /api/v1/wb/activity — ledger entries (JSON sibling of the CSV export). */
 export type ActivityResponse = { entries: LedgerEntry[] };
+
+/** GET /api/v1/wb/events — open house-wager events (with outcomes). */
+export type EventsResponse = { events: BetEvent[] };
+
+/** GET /api/v1/wb/bets — the signed-in user's wagers (newest first). */
+export type BetsResponse = { wagers: UserWager[] };
 
 /** GET /api/v1/wb/quote?symbol= — a single live quote. */
 export type QuoteResponse = Quote;

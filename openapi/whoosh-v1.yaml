@@ -453,6 +453,214 @@ components:
         - daily_bonus
         - referral_reward
         - adjustment
+    EventsResponse:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/BetEvent"
+      required:
+        - events
+      description: GET /api/v1/wb/events — open house-wager events (with outcomes).
+    BetEvent:
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        description:
+          type:
+            - string
+            - "null"
+        status:
+          $ref: "#/components/schemas/EventStatus"
+        createdBy:
+          type:
+            - string
+            - "null"
+        closesAt:
+          type:
+            - string
+            - "null"
+        settledOutcomeId:
+          type:
+            - number
+            - "null"
+        createdAt:
+          type: string
+        source:
+          $ref: "#/components/schemas/EventSource"
+        externalEventId:
+          type:
+            - string
+            - "null"
+        sportKey:
+          type:
+            - string
+            - "null"
+        market:
+          anyOf:
+            - $ref: "#/components/schemas/BetMarket"
+            - type: "null"
+        homeTeam:
+          type:
+            - string
+            - "null"
+        awayTeam:
+          type:
+            - string
+            - "null"
+        commenceTime:
+          type:
+            - string
+            - "null"
+        outcomes:
+          type: array
+          items:
+            $ref: "#/components/schemas/BetOutcome"
+      required:
+        - id
+        - title
+        - description
+        - status
+        - createdBy
+        - closesAt
+        - settledOutcomeId
+        - createdAt
+        - source
+        - externalEventId
+        - sportKey
+        - market
+        - homeTeam
+        - awayTeam
+        - commenceTime
+        - outcomes
+    EventStatus:
+      type: string
+      enum:
+        - open
+        - locked
+        - settled
+        - cancelled
+    EventSource:
+      type: string
+      enum:
+        - manual
+        - odds_api
+        - sleeper
+    BetMarket:
+      type: string
+      enum:
+        - h2h
+        - spreads
+        - totals
+    BetOutcome:
+      type: object
+      properties:
+        id:
+          type: number
+        label:
+          type: string
+        oddsDecimal:
+          type: number
+        point:
+          type:
+            - number
+            - "null"
+        outcomeKey:
+          type:
+            - string
+            - "null"
+      required:
+        - id
+        - label
+        - oddsDecimal
+        - point
+        - outcomeKey
+    BetsResponse:
+      type: object
+      properties:
+        wagers:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserWager"
+      required:
+        - wagers
+      description: GET /api/v1/wb/bets — the signed-in user's wagers (newest first).
+    UserWager:
+      type: object
+      properties:
+        id:
+          type: number
+        eventId:
+          type: number
+        status:
+          $ref: "#/components/schemas/WagerStatus"
+        stakeCents:
+          type: number
+        oddsFrozen:
+          type: number
+        pointFrozen:
+          type:
+            - number
+            - "null"
+        createdAt:
+          type: string
+        payoutCents:
+          type: number
+          description: "Actual credited amount: full return for won, stake back for
+            refunded, else 0."
+        potentialCents:
+          type: number
+          description: What a win returns (stake × frozen odds) — shown for open wagers too.
+        outcomeLabel:
+          type: string
+        event:
+          type: object
+          properties:
+            title:
+              type: string
+            market:
+              anyOf:
+                - $ref: "#/components/schemas/BetMarket"
+                - type: "null"
+            sportKey:
+              type:
+                - string
+                - "null"
+            status:
+              $ref: "#/components/schemas/EventStatus"
+            commenceTime:
+              type:
+                - string
+                - "null"
+          required:
+            - title
+            - market
+            - sportKey
+            - status
+            - commenceTime
+      required:
+        - id
+        - eventId
+        - status
+        - stakeCents
+        - oddsFrozen
+        - pointFrozen
+        - createdAt
+        - payoutCents
+        - potentialCents
+        - outcomeLabel
+        - event
+    WagerStatus:
+      type: string
+      enum:
+        - open
+        - won
+        - lost
+        - refunded
     QuoteResponse:
       $ref: "#/components/schemas/Quote"
       description: GET /api/v1/wb/quote?symbol= — a single live quote.
@@ -2094,6 +2302,92 @@ paths:
                       - true
                   data:
                     $ref: "#/components/schemas/ActivityResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/v1/wb/events:
+    get:
+      operationId: listEvents
+      summary: Open house-wager events with outcomes.
+      tags:
+        - wb
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/EventsResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/v1/wb/bets:
+    get:
+      operationId: listMyBets
+      summary: The signed-in user's wagers (newest first).
+      tags:
+        - wb
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/BetsResponse"
         "400":
           description: Error envelope.
           content:
