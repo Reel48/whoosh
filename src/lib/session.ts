@@ -26,18 +26,22 @@ export type Session = {
   isAdmin: boolean;
 };
 
-async function _getSession(): Promise<Session | null> {
-  const sb = await createServerSupabase();
-  // getClaims() verifies the JWT locally (trustworthy + cheap), unlike
-  // getSession() which must not be trusted server-side.
-  const { data, error } = await sb.auth.getClaims();
-  const claims = data?.claims;
-  if (error || !claims?.sub) return null;
-  const userId = claims.sub as string;
+/** Minimal shape of the verified JWT claims this module relies on. */
+type VerifiedClaims = { sub?: unknown; email?: unknown } | null | undefined;
 
-  // Read display + link info from the profile (service role — always works
-  // server-side and sidesteps RLS). The profile is created by the
-  // on_auth_user_created trigger at signup.
+/**
+ * Turn verified JWT claims into a {@link Session} by joining the profile row.
+ *
+ * Shared by both the cookie-bound web path ({@link getSession}) and the
+ * bearer-token API path ({@link getSessionFromBearer}) so the two never drift.
+ * The profile read uses the service-role client — it always works server-side
+ * and sidesteps RLS. The profile is created by the `on_auth_user_created`
+ * trigger at signup.
+ */
+async function buildSession(claims: VerifiedClaims): Promise<Session | null> {
+  if (!claims || typeof claims.sub !== "string" || !claims.sub) return null;
+  const userId = claims.sub;
+
   const { data: profile } = await supabase()
     .from("profile")
     .select("username, avatar_url, discord_user_id, has_password, is_admin")
@@ -58,8 +62,37 @@ async function _getSession(): Promise<Session | null> {
   };
 }
 
+async function _getSession(): Promise<Session | null> {
+  const sb = await createServerSupabase();
+  // getClaims() verifies the JWT locally (trustworthy + cheap), unlike
+  // getSession() which must not be trusted server-side.
+  const { data, error } = await sb.auth.getClaims();
+  if (error) return null;
+  return buildSession(data?.claims);
+}
+
 /** Current session, deduped per-render via React `cache()`. */
 export const getSession = cache(_getSession);
+
+/**
+ * Resolve a {@link Session} from a raw bearer JWT (the `Authorization: Bearer`
+ * token a mobile/API client sends) instead of the SSR auth cookie.
+ *
+ * `getClaims(token)` verifies the passed token's signature (asymmetric keys) or
+ * falls back to an Auth-server check (symmetric keys) — so the identity is
+ * trustworthy. Returns null on any missing/invalid/expired token. Not cached:
+ * unlike the per-render cookie path, each API request carries its own token.
+ */
+export async function getSessionFromBearer(token: string): Promise<Session | null> {
+  if (!token) return null;
+  try {
+    const { data, error } = await supabase().auth.getClaims(token);
+    if (error) return null;
+    return buildSession(data?.claims);
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Validate a `next` redirect target. Only internal paths starting with a single
