@@ -33,6 +33,9 @@ import type { BetEvent, UserWager } from "@/lib/wb/bets";
 import type { StockSnapshot } from "@/lib/wb/history";
 import type { CompanyProfile } from "@/lib/wb/profile";
 import type { Order } from "@/lib/wb/invest";
+import type {
+  ChatOverview, ChatMessage, ChatLeaderboardRow, ChatAuthor, ChatMember, ChatRole,
+} from "@/lib/chat/types";
 
 /** POST /api/v1/wb/wager — place a wager on an event outcome. */
 export type PlaceWagerRequest = {
@@ -249,3 +252,47 @@ export type HomeResponse = {
   fantasyLink: FantasyLink | null;
   sections: Section[];
 };
+
+// ── Chat (Discord-style) ─────────────────────────────────────────────────────
+
+/** GET /api/v1/chat/overview — accessible categories/channels + the viewer's level/roles. */
+export type ChatOverviewResponse = ChatOverview;
+
+/** GET /api/v1/chat/channels/[id]/messages?before= — paginated, enriched history. */
+export type ChatMessagesResponse = { messages: ChatMessage[] };
+
+/** POST /api/v1/chat/channels/[id]/messages — send a message. */
+export type SendChatMessageRequest = { body?: string; imageUrl?: string | null; replyTo?: number | null };
+export type SendChatMessageResponse = { message: ChatMessage; level: number; leveledUp: boolean };
+
+/** POST /api/v1/chat/messages/[id]/react — toggle a reaction; returns the emoji's new count. */
+export type ChatReactRequest = { emoji: string; on: boolean };
+export type ChatReactResponse = { count: number };
+
+/** PATCH /api/v1/chat/messages/[id] — edit own message. */
+export type ChatEditRequest = { body: string };
+
+/** POST /api/v1/chat/upload — multipart image → public URL. */
+export type ChatUploadResponse = { url: string };
+
+/** GET /api/v1/chat/leaderboard — XP ranking. */
+export type ChatLeaderboardResponse = { rows: ChatLeaderboardRow[] };
+
+/** GET /api/v1/chat/starboard — most-starred messages. */
+export type ChatStarboardResponse = { messages: ChatMessage[] };
+
+/** GET /api/v1/chat/users?ids= — enrich authors for the realtime cache. */
+export type ChatUsersResponse = { users: ChatAuthor[] };
+
+/** GET /api/v1/chat/members?q= — @mention picker. */
+export type ChatMembersResponse = { members: ChatMember[] };
+
+/** GET /api/v1/chat/admin/roles — all roles (admin). */
+export type ChatRolesResponse = { roles: ChatRole[] };
+/** POST /api/v1/chat/admin/roles — create a custom role (admin). */
+export type CreateChatRoleRequest = { key: string; name: string; color: string; priority?: number };
+export type CreateChatRoleResponse = { role: ChatRole };
+/** POST /api/v1/chat/admin/roles/assign — assign/remove (admin); `on:false` removes. */
+export type ChatRoleAssignRequest = { userId: string; roleId: number; on?: boolean };
+/** Generic acknowledgement for chat mutations with no payload. */
+export type ChatOkResponse = { ok: boolean };
