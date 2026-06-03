@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import type { FantasyLeagueConfig } from "@/lib/fantasy/leagues";
 
 /**
  * Paid per-league access. A buy-in is recorded once per (user, group, season)
@@ -24,6 +25,48 @@ function shape(r: Record<string, unknown>): Entitlement {
     assignedLeagueId: (r.assigned_league_id as string | null) ?? null,
     status: String(r.status),
   };
+}
+
+/**
+ * Collapse interchangeable public leagues (e.g. Whoosh Blue + Orange, which
+ * share a `groupKey`) down to the one the viewer should see: their **assigned**
+ * league when they hold an active entitlement in that group, otherwise a single
+ * representative (lowest `sort`) so the group still appears once. Singleton
+ * groups pass through unchanged. Order is preserved by first appearance.
+ *
+ * This keeps a user from seeing both public leagues at once — they only join
+ * one. The cross-league rankings still include every league's teams.
+ */
+export function resolveVisibleLeagues(
+  configs: FantasyLeagueConfig[],
+  entitlements: Entitlement[],
+): FantasyLeagueConfig[] {
+  const assignedByGroup = new Map<string, string>();
+  for (const e of entitlements) {
+    if (e.status === "active" && e.assignedLeagueId) {
+      assignedByGroup.set(e.groupKey, e.assignedLeagueId);
+    }
+  }
+
+  const groups = new Map<string, FantasyLeagueConfig[]>();
+  const order: string[] = [];
+  for (const c of configs) {
+    if (!groups.has(c.groupKey)) {
+      groups.set(c.groupKey, []);
+      order.push(c.groupKey);
+    }
+    groups.get(c.groupKey)!.push(c);
+  }
+
+  return order.map((groupKey) => {
+    const group = groups.get(groupKey)!;
+    if (group.length === 1) return group[0];
+    const assignedId = assignedByGroup.get(groupKey);
+    return (
+      (assignedId && group.find((g) => g.sleeperLeagueId === assignedId)) ||
+      [...group].sort((a, b) => a.sort - b.sort)[0]
+    );
+  });
 }
 
 /** Every entitlement for a user, optionally scoped to one season. */

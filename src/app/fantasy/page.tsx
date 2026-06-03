@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getNflState } from "@/lib/sleeper/client";
 import { listActiveLeagues, getLeagueOverview, type LeagueOverview } from "@/lib/fantasy/leagues";
+import { getEntitlements, resolveVisibleLeagues } from "@/lib/fantasy/entitlements";
 import { getCrossLeagueScoreboard } from "@/lib/fantasy/rankings";
 import { listPoolSummaries } from "@/lib/fantasy/pools";
 import { getLink } from "@/lib/fantasy/link";
@@ -35,20 +36,28 @@ export default async function FantasyHome({
           ? { tone: "warning", text: sp.fmsg || "Could not link that account." }
           : null;
 
-  const [state, leagueConfigs, link, board, pools] = await Promise.all([
+  const [state, leagueConfigs, link, board, pools, entitlements] = await Promise.all([
     getNflState().catch(() => null),
     listActiveLeagues(),
     getLink(session.id).catch(() => null),
     getCrossLeagueScoreboard().catch(() => ({ rows: [], leagues: [] })),
     listPoolSummaries().catch(() => []),
+    getEntitlements(session.id).catch(() => []),
   ]);
+
+  // Interchangeable public leagues (e.g. Whoosh Blue + Orange) collapse to the
+  // one this user is seated in — they only ever join one. The cross-league
+  // power rankings below stay unfiltered, so the leaderboard still shows
+  // everyone across both leagues.
+  const visibleLeagues = resolveVisibleLeagues(
+    leagueConfigs.filter((c) => c.kind === "standard"),
+    entitlements,
+  );
 
   // H2H leagues drive "who's leading" + rankings; pools render separately.
   const overviews = (
     await Promise.all(
-      leagueConfigs
-        .filter((c) => c.kind === "standard")
-        .map((c) => getLeagueOverview(c.sleeperLeagueId).catch(() => null)),
+      visibleLeagues.map((c) => getLeagueOverview(c.sleeperLeagueId).catch(() => null)),
     )
   ).filter((o): o is LeagueOverview => o !== null);
 
