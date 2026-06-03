@@ -264,4 +264,43 @@ export const OPERATIONS: ApiOperation[] = [
     requestType: "LinkSleeperRequest",
     responseType: "LinkSleeperResponse",
   },
+
+  // ── Payments (web Stripe link-out — iOS opens these URLs in the browser) ────
+  {
+    method: "post",
+    path: "/api/v1/wb/buy",
+    operationId: "buyWhooshBucks",
+    summary: "Start a Whoosh Bucks purchase; returns a hosted Stripe Checkout URL.",
+    auth: "bearer",
+    requestType: "BuyWbRequest",
+    responseType: "CheckoutUrlResponse",
+  },
+  {
+    method: "post",
+    path: "/api/v1/checkout",
+    operationId: "startSubscription",
+    summary: "Start a premium subscription; returns a hosted Stripe Checkout URL.",
+    auth: "bearer",
+    requestType: "SubscribeRequest",
+    responseType: "CheckoutUrlResponse",
+  },
+  {
+    method: "post",
+    path: "/api/v1/portal",
+    operationId: "billingPortal",
+    summary: "Stripe Billing Portal URL for managing/cancelling the subscription.",
+    auth: "bearer",
+    responseType: "CheckoutUrlResponse",
+    extraErrors: ["not_found"],
+  },
+  {
+    method: "post",
+    path: "/api/v1/fantasy/checkout",
+    operationId: "fantasyCheckout",
+    summary: "Start a fantasy league-group entry purchase; returns a Stripe URL.",
+    auth: "bearer",
+    requestType: "FantasyCheckoutRequest",
+    responseType: "CheckoutUrlResponse",
+    capability: "real_money_fantasy",
+  },
 ];

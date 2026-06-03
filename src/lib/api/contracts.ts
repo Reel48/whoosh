@@ -165,3 +165,25 @@ export type SwipeResponse = { points: number };
 export type NewsFeedResponse =
   | { mode: "whoosh"; entries: WhooshEntry[] }
   | { mode: "sport"; sport: string; articles: Article[] };
+
+// ── Payments (web Stripe link-out) ───────────────────────────────────────────
+// iOS does NOT check out in-app. These endpoints return a hosted Stripe Checkout
+// URL the app opens in the browser (Apple External Purchase Link). The existing
+// Stripe webhook credits WB / grants premium on completion — no Apple server
+// credentials involved. See docs/ios-payments.md.
+
+/** A hosted Stripe URL for the client to open externally. */
+export type CheckoutUrlResponse = { url: string };
+
+/** POST /api/v1/wb/buy — start a Whoosh Bucks purchase. */
+export type BuyWbRequest = {
+  /** USD amount in whole dollars; or pass `amountCents`. */
+  amount?: number;
+  amountCents?: number;
+};
+
+/** POST /api/v1/checkout — start a premium subscription. */
+export type SubscribeRequest = { interval: "monthly" | "six_months" | "annual" };
+
+/** POST /api/v1/fantasy/checkout — start a league-group entry-fee purchase. */
+export type FantasyCheckoutRequest = { groupKey: string };

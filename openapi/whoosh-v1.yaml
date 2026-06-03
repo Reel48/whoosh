@@ -1390,6 +1390,43 @@ components:
         - author
         - guid
         - images
+    CheckoutUrlResponse:
+      type: object
+      properties:
+        url:
+          type: string
+      required:
+        - url
+      description: A hosted Stripe URL for the client to open externally.
+    BuyWbRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          description: USD amount in whole dollars; or pass `amountCents`.
+        amountCents:
+          type: number
+      description: POST /api/v1/wb/buy — start a Whoosh Bucks purchase.
+    SubscribeRequest:
+      type: object
+      properties:
+        interval:
+          type: string
+          enum:
+            - monthly
+            - six_months
+            - annual
+      required:
+        - interval
+      description: POST /api/v1/checkout — start a premium subscription.
+    FantasyCheckoutRequest:
+      type: object
+      properties:
+        groupKey:
+          type: string
+      required:
+        - groupKey
+      description: POST /api/v1/fantasy/checkout — start a league-group entry-fee purchase.
     ApiError:
       type: object
       required:
@@ -2590,6 +2627,208 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/LinkSleeperRequest"
+  /api/v1/wb/buy:
+    post:
+      operationId: buyWhooshBucks
+      summary: Start a Whoosh Bucks purchase; returns a hosted Stripe Checkout URL.
+      tags:
+        - wb
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/CheckoutUrlResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BuyWbRequest"
+  /api/v1/checkout:
+    post:
+      operationId: startSubscription
+      summary: Start a premium subscription; returns a hosted Stripe Checkout URL.
+      tags:
+        - checkout
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/CheckoutUrlResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscribeRequest"
+  /api/v1/portal:
+    post:
+      operationId: billingPortal
+      summary: Stripe Billing Portal URL for managing/cancelling the subscription.
+      tags:
+        - portal
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/CheckoutUrlResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/v1/fantasy/checkout:
+    post:
+      operationId: fantasyCheckout
+      summary: Start a fantasy league-group entry purchase; returns a Stripe URL.
+      tags:
+        - fantasy
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/CheckoutUrlResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FantasyCheckoutRequest"
 webhooks:
   appleIapNotification:
     post:
