@@ -1044,6 +1044,9 @@ components:
           type: boolean
           description: Whether first-run onboarding is complete — the iOS app branches on
             this.
+        premium:
+          type: boolean
+          description: Whether the user currently holds Whoosh Premium (perk tier).
         auth:
           type: object
           properties:
@@ -1075,6 +1078,7 @@ components:
         - discordUserId
         - isAdmin
         - onboarded
+        - premium
         - auth
         - referrals
         - achievements

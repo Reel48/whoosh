@@ -125,6 +125,8 @@ export type AccountResponse = {
   isAdmin: boolean;
   /** Whether first-run onboarding is complete — the iOS app branches on this. */
   onboarded: boolean;
+  /** Whether the user currently holds Whoosh Premium (perk tier). */
+  premium: boolean;
   auth: { hasDiscord: boolean; hasPassword: boolean; email: string | null; emailVerified: boolean };
   referrals: ReferralStats;
   achievements: EarnedAchievement[];
