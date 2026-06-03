@@ -164,11 +164,12 @@ components:
           description: Admin adjustments.
         totalReturnCents:
           type: number
-          description: Total return vs. money in (purchases).
+          description: "Gameplay gains: interest + wager P/L + investing P/L (incl.
+            dividends)."
         totalReturnFraction:
           type: number
-          description: Total return as a fraction of money in (purchases + premium match).
-            0 if denom is 0.
+          description: Gains as a fraction of principal contributed (equity − gains). 0 if
+            no principal.
       required:
         - realDollarsInCents
         - premiumMatchCents

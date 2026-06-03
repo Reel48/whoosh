@@ -54,9 +54,9 @@ export type ReturnsBreakdown = {
   netTransfersCents: number;
   /** Admin adjustments. */
   adjustmentsCents: number;
-  /** Total return vs. money in (purchases). */
+  /** Gameplay gains: interest + wager P/L + investing P/L (incl. dividends). */
   totalReturnCents: number;
-  /** Total return as a fraction of money in (purchases + premium match). 0 if denom is 0. */
+  /** Gains as a fraction of principal contributed (equity − gains). 0 if no principal. */
   totalReturnFraction: number;
 };
 
@@ -225,9 +225,15 @@ export async function loadDashboard(userId: string): Promise<DashboardData> {
     lifetime.totalInvestDividend;
   const netTransfersCents = lifetime.totalTransferIn + lifetime.totalTransferOut; // out is negative
 
-  const totalReturnCents = totalEquityCents - lifetime.totalPurchased;
-  const denom = lifetime.totalPurchased + lifetime.totalPremiumMatch;
-  const totalReturnFraction = denom > 0 ? totalReturnCents / denom : 0;
+  // All-time return = the gameplay gains (interest + wager P/L + investing P/L,
+  // dividends already folded into investingPl) measured against the principal
+  // that funded the account. Principal is derived as equity − gains so it
+  // captures *every* way WB arrived (purchases, Premium match, daily bonuses,
+  // transfers, admin grants) — the old denominator counted only real-dollar
+  // purchases, so anyone who earned or was granted their WB saw a permanent 0%.
+  const totalReturnCents = lifetime.totalInterest + wagerPlCents + investingPlCents;
+  const principalInCents = totalEquityCents - totalReturnCents;
+  const totalReturnFraction = principalInCents > 0 ? totalReturnCents / principalInCents : 0;
 
   // Today's equity move = the market move on holdings (cash/wagers don't move
   // intraday). Null when no holding carries a previous-close to compare with.
