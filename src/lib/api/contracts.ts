@@ -278,6 +278,10 @@ export type SendChatMessageResponse = { message: ChatMessage; level: number; lev
 export type ChatReactRequest = { emoji: string; on: boolean };
 export type ChatReactResponse = { count: number };
 
+/** GET /api/v1/chat/gifs?q=&limit= — proxied Giphy search/trending for the GIF picker. */
+export type ChatGif = { id: string; url: string; previewUrl: string; width: number; height: number };
+export type ChatGifsResponse = { gifs: ChatGif[] };
+
 /** POST /api/v1/chat/gift — send Whoosh Bucks to an @handle and post a gift card. */
 export type ChatGiftRequest = {
   channelId: number;

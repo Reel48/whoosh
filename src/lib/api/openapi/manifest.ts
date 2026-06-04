@@ -510,6 +510,15 @@ export const OPERATIONS: ApiOperation[] = [
     extraErrors: ["forbidden", "not_found", "insufficient_funds"],
   },
   {
+    method: "get",
+    path: "/api/v1/chat/gifs",
+    capability: "chat",
+    operationId: "searchChatGifs",
+    summary: "Proxied Giphy search/trending for the GIF picker.",
+    auth: "bearer",
+    responseType: "ChatGifsResponse",
+  },
+  {
     method: "patch",
     path: "/api/v1/chat/messages/{messageId}",
     capability: "chat",
