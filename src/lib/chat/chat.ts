@@ -76,6 +76,7 @@ function toMessage(
   authors: Map<string, ChatAuthor>,
   reactionsByMsg: Map<number, ChatReactionSummary[]>,
   viewerId: string,
+  pollVotesByMsg?: Map<number, string[]>,
 ): ChatMessage {
   return {
     id: r.id,
@@ -91,7 +92,23 @@ function toMessage(
     editedAt: r.edited_at,
     kind: r.kind ?? "text",
     data: r.data ?? null,
+    myPollVotes: pollVotesByMsg?.get(r.id) ?? [],
   };
+}
+
+/** The viewer's poll-vote option ids per message (for poll messages in a page). */
+async function pollVotesFor(messageIds: number[], viewerId: string): Promise<Map<number, string[]>> {
+  const out = new Map<number, string[]>();
+  if (!messageIds.length) return out;
+  const { data } = await chatDb()
+    .from("chat_poll_vote").select("message_id, option_id")
+    .eq("user_id", viewerId).in("message_id", messageIds);
+  for (const r of (data ?? []) as { message_id: number; option_id: string }[]) {
+    const list = out.get(r.message_id) ?? [];
+    list.push(r.option_id);
+    out.set(r.message_id, list);
+  }
+  return out;
 }
 
 async function canRead(userId: string, channelId: number): Promise<boolean> {
@@ -202,7 +219,8 @@ export async function getChatMessages(
   const rows = ascending ? raw : raw.reverse(); // always ascending for display
   const authors = await enrichAuthors(rows.map((r) => r.user_id));
   const reactions = await reactionsFor(rows.map((r) => r.id), userId);
-  return rows.map((r) => toMessage(r, authors, reactions, userId));
+  const pollVotes = await pollVotesFor(rows.map((r) => r.id), userId);
+  return rows.map((r) => toMessage(r, authors, reactions, userId, pollVotes));
 }
 
 /** Advance the viewer's last-read mark for a channel (never moves backwards). */
@@ -282,7 +300,8 @@ export async function getChatStarboard(viewerId: string, limit = 50): Promise<Ch
   const rows = (data ?? []) as MessageRow[];
   const authors = await enrichAuthors(rows.map((r) => r.user_id));
   const reactions = await reactionsFor(rows.map((r) => r.id), viewerId);
-  return rows.map((r) => toMessage(r, authors, reactions, viewerId));
+  const pollVotes = await pollVotesFor(rows.map((r) => r.id), viewerId);
+  return rows.map((r) => toMessage(r, authors, reactions, viewerId, pollVotes));
 }
 
 /** Full-text search over messages the viewer can read (optionally one channel). */
@@ -298,7 +317,22 @@ export async function searchChatMessages(
   const rows = (data ?? []) as MessageRow[];
   const authors = await enrichAuthors(rows.map((r) => r.user_id));
   const reactions = await reactionsFor(rows.map((r) => r.id), viewerId);
-  return rows.map((r) => toMessage(r, authors, reactions, viewerId));
+  const pollVotes = await pollVotesFor(rows.map((r) => r.id), viewerId);
+  return rows.map((r) => toMessage(r, authors, reactions, viewerId, pollVotes));
+}
+
+/** Toggle the viewer's vote on a poll option; returns updated counts + the
+ * viewer's current option ids. Counts are also persisted into the message's
+ * `data` so they ride the message UPDATE realtime broadcast. */
+export async function voteChatPoll(
+  userId: string, messageId: number, optionId: string, on: boolean,
+): Promise<{ counts: Record<string, number>; mine: string[] }> {
+  const { data, error } = await chatDb().rpc("vote_chat_poll", {
+    p_user: userId, p_message: messageId, p_option: optionId, p_on: on,
+  });
+  if (error) throw mapPgError(error);
+  const head = (Array.isArray(data) ? data[0] : data) as { counts: Record<string, number>; mine: string[] } | null;
+  return { counts: head?.counts ?? {}, mine: head?.mine ?? [] };
 }
 
 export async function getChatMembers(query: string, limit = 10): Promise<ChatMember[]> {

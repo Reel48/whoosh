@@ -2169,6 +2169,12 @@ components:
             - $ref: "#/components/schemas/ChatMessageData"
             - type: "null"
           description: Structured payload for non-text kinds; null for plain messages.
+        myPollVotes:
+          type: array
+          items:
+            type: string
+          description: "For poll messages: the option ids the viewer has voted for ([]
+            otherwise)."
       required:
         - id
         - channelId
@@ -2183,6 +2189,7 @@ components:
         - editedAt
         - kind
         - data
+        - myPollVotes
     ChatAuthor:
       type: object
       properties:
@@ -2279,6 +2286,32 @@ components:
           type: number
       required:
         - count
+    ChatPollVoteRequest:
+      type: object
+      properties:
+        optionId:
+          type: string
+        on:
+          type: boolean
+      required:
+        - optionId
+        - on
+      description: POST /api/v1/chat/messages/[id]/vote — toggle a poll vote; returns
+        updated tallies.
+    ChatPollVoteResponse:
+      type: object
+      properties:
+        counts:
+          type: object
+          additionalProperties:
+            type: number
+        mine:
+          type: array
+          items:
+            type: string
+      required:
+        - counts
+        - mine
     ChatEditRequest:
       type: object
       properties:
@@ -4812,6 +4845,73 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/ChatReactRequest"
+  /api/v1/chat/messages/{messageId}/vote:
+    post:
+      operationId: voteChatPoll
+      summary: Toggle a poll vote; returns updated counts + the viewer's selections.
+      tags:
+        - chat
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/ChatPollVoteResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatPollVoteRequest"
   /api/v1/chat/messages/{messageId}:
     patch:
       operationId: editChatMessage

@@ -97,6 +97,8 @@ export type ChatMessage = {
   kind: string;
   /** Structured payload for non-text kinds; null for plain messages. */
   data: ChatMessageData | null;
+  /** For poll messages: the option ids the viewer has voted for ([] otherwise). */
+  myPollVotes: string[];
 };
 
 export type ChatMe = {

@@ -278,6 +278,10 @@ export type SendChatMessageResponse = { message: ChatMessage; level: number; lev
 export type ChatReactRequest = { emoji: string; on: boolean };
 export type ChatReactResponse = { count: number };
 
+/** POST /api/v1/chat/messages/[id]/vote — toggle a poll vote; returns updated tallies. */
+export type ChatPollVoteRequest = { optionId: string; on: boolean };
+export type ChatPollVoteResponse = { counts: Record<string, number>; mine: string[] };
+
 /** PATCH /api/v1/chat/messages/[id] — edit own message. */
 export type ChatEditRequest = { body: string };
 
