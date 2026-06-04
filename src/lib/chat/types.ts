@@ -26,6 +26,7 @@ export type MessageRow = {
   id: number; channel_id: number; user_id: string; body: string;
   image_url: string | null; reply_to_id: number | null; star_count: number;
   created_at: string; edited_at: string | null; deleted_at: string | null;
+  kind: string; data: ChatMessageData | null;
 };
 export type ReactionRow = { message_id: number; user_id: string; emoji: string };
 export type StatRow = { user_id: string; xp: number; message_count: number; level: number };
@@ -73,6 +74,13 @@ export type ChatAuthor = {
 
 export type ChatReactionSummary = { emoji: string; count: number; mine: boolean };
 
+/**
+ * Structured payload for non-text messages. Shape varies by `kind`
+ * (spoiler/stock/bet/poll/gif/file); clients read it per kind. Null for plain
+ * text + image messages.
+ */
+export type ChatMessageData = Record<string, unknown>;
+
 export type ChatMessage = {
   id: number;
   channelId: number;
@@ -85,6 +93,10 @@ export type ChatMessage = {
   mine: boolean;
   createdAt: string;
   editedAt: string | null;
+  /** Discriminator: text | image | gif | spoiler | stock | bet | poll | file. */
+  kind: string;
+  /** Structured payload for non-text kinds; null for plain messages. */
+  data: ChatMessageData | null;
 };
 
 export type ChatMe = {

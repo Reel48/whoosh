@@ -2,9 +2,12 @@ import type { ApiErrorCode } from "@/lib/api/json";
 import { chatDb } from "./db";
 import type {
   ChatAuthor, ChatCategory, ChatChannel, ChatDmConversation, ChatLeaderboardRow, ChatMe, ChatMember,
-  ChatMessage, ChatOverview, ChatReactionSummary, ChatRole,
+  ChatMessage, ChatMessageData, ChatOverview, ChatReactionSummary, ChatRole,
   CategoryRow, ChannelRow, MessageRow, ProfileRow, RoleRow, StatRow,
 } from "./types";
+
+/** Valid structured-message kinds (matches the chat_message_kind_check constraint). */
+const MESSAGE_KINDS = new Set(["text", "image", "gif", "spoiler", "stock", "bet", "poll", "file"]);
 
 /** Messages need this many ⭐ to land on the Starboard. */
 export const STARBOARD_THRESHOLD = 3;
@@ -86,6 +89,8 @@ function toMessage(
     mine: r.user_id === viewerId,
     createdAt: r.created_at,
     editedAt: r.edited_at,
+    kind: r.kind ?? "text",
+    data: r.data ?? null,
   };
 }
 
@@ -208,15 +213,26 @@ export async function markChatRead(userId: string, channelId: number, messageId:
   if (error) throw mapPgError(error);
 }
 
-export type SendInput = { body?: string; imageUrl?: string | null; replyTo?: number | null };
+export type SendInput = {
+  body?: string;
+  imageUrl?: string | null;
+  replyTo?: number | null;
+  /** Structured message kind (default "text"); see ChatMessage.kind. */
+  kind?: string;
+  /** Structured payload for non-text kinds. */
+  data?: ChatMessageData | null;
+};
 
 export async function sendChatMessage(
   userId: string, channelId: number, input: SendInput,
 ): Promise<{ message: ChatMessage; level: number; leveledUp: boolean }> {
+  const kind = input.kind ?? "text";
+  if (!MESSAGE_KINDS.has(kind)) throw new ChatError("validation", "Unknown message kind.");
   const db = chatDb();
   const { data, error } = await db.rpc("send_chat_message", {
     p_user: userId, p_channel: channelId,
     p_body: input.body ?? "", p_image_url: input.imageUrl ?? null, p_reply_to: input.replyTo ?? null,
+    p_kind: kind, p_data: input.data ?? null,
   });
   if (error) throw mapPgError(error);
   const head = (Array.isArray(data) ? data[0] : data) as { id: number; level: number; leveled_up: boolean };

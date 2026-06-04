@@ -263,7 +263,15 @@ export type ChatOverviewResponse = ChatOverview;
 export type ChatMessagesResponse = { messages: ChatMessage[] };
 
 /** POST /api/v1/chat/channels/[id]/messages — send a message. */
-export type SendChatMessageRequest = { body?: string; imageUrl?: string | null; replyTo?: number | null };
+export type SendChatMessageRequest = {
+  body?: string;
+  imageUrl?: string | null;
+  replyTo?: number | null;
+  /** Structured message kind (default "text"); see ChatMessage.kind. */
+  kind?: string;
+  /** Structured payload for non-text kinds. */
+  data?: Record<string, unknown> | null;
+};
 export type SendChatMessageResponse = { message: ChatMessage; level: number; leveledUp: boolean };
 
 /** POST /api/v1/chat/messages/[id]/react — toggle a reaction; returns the emoji's new count. */
