@@ -26,7 +26,7 @@ export type MessageRow = {
   id: number; channel_id: number; user_id: string; body: string;
   image_url: string | null; reply_to_id: number | null; star_count: number;
   created_at: string; edited_at: string | null; deleted_at: string | null;
-  kind: string; data: ChatMessageData | null;
+  kind: string; data: ChatMessageData | null; boost_count: number;
 };
 export type ReactionRow = { message_id: number; user_id: string; emoji: string };
 export type StatRow = { user_id: string; xp: number; message_count: number; level: number };
@@ -89,6 +89,8 @@ export type ChatMessage = {
   imageUrl: string | null;
   replyToId: number | null;
   starCount: number;
+  /** Distinct boosters from the starboard swipe deck (all-time). */
+  boostCount: number;
   reactions: ChatReactionSummary[];
   mine: boolean;
   createdAt: string;

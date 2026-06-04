@@ -297,6 +297,16 @@ export type ChatLeaderboardResponse = { rows: ChatLeaderboardRow[] };
 /** GET /api/v1/chat/starboard — most-starred messages. */
 export type ChatStarboardResponse = { messages: ChatMessage[] };
 
+/** GET /api/v1/chat/starboard/deck — starboard-eligible messages the viewer hasn't swiped. */
+export type StarboardDeckResponse = { messages: ChatMessage[] };
+
+/** GET /api/v1/chat/starboard/leaderboard — all-time top messages by boosts. */
+export type StarboardLeaderboardResponse = { messages: ChatMessage[] };
+
+/** POST /api/v1/chat/starboard/boost — Boost/Meh a message (direction null = undo). */
+export type StarboardBoostRequest = { messageId: number; direction?: string | null };
+export type StarboardBoostResponse = { boostCount: number };
+
 /** GET /api/v1/chat/users?ids= — enrich authors for the realtime cache. */
 export type ChatUsersResponse = { users: ChatAuthor[] };
 
