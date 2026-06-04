@@ -77,6 +77,20 @@ export type Article = {
 /** Feed revalidation window (seconds). 10 min keeps headlines fresh enough. */
 const FEED_TTL = 600;
 
+/**
+ * News is only "new" for 72 hours. Past that an article drops out of the swipe
+ * deck (and the ALL feed) even if the user never saw it. Articles with no
+ * `pubDate` are kept (we can't prove they're stale).
+ */
+export const NEWS_MAX_AGE_HOURS = 72;
+
+function isFresh(pubDate: string | null, maxAgeHours = NEWS_MAX_AGE_HOURS): boolean {
+  if (!pubDate) return true;
+  const t = Date.parse(pubDate);
+  if (Number.isNaN(t)) return true;
+  return t >= Date.now() - maxAgeHours * 3_600_000;
+}
+
 type EspnImage = { url?: string };
 type EspnArticle = {
   id?: number | string;
@@ -148,8 +162,9 @@ export async function fetchFeed(sport: SportKey): Promise<Article[]> {
     return [];
   }
   // Tag each article with its sport so the ALL feed (and clients) can attribute
-  // it; single-sport feeds carry it too (harmless).
-  return articles.map((a) => ({ ...a, sport }));
+  // it; single-sport feeds carry it too (harmless). Stale articles (>72h) are
+  // dropped here so they never reach the deck or the ALL feed.
+  return articles.filter((a) => isFresh(a.pubDate)).map((a) => ({ ...a, sport }));
 }
 
 /**
