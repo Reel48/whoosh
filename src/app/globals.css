@@ -122,7 +122,10 @@
    * section-aware structural tokens; these add the Capital DS aliases so its
    * component classes resolve outside an explicit override. */
   --font-text: var(--font-body);
-  --font-mono: var(--font-body);
+  /* Numerals: Inter + tabular-nums so data columns align. Kept off the brand
+     body face because the Clarika DEMO digits aren't tabular; revisit once the
+     licensed Clarika (with `tnum`) replaces the demo files. */
+  --font-mono: var(--font-num);
 
   /* Font sizes / line-heights / tracking / weights */
   --fs-display-1: 64px; --fs-display-2: 48px; --fs-h1: 36px; --fs-h2: 28px;
@@ -172,7 +175,7 @@
    * so the marketing page and anything outside a [data-theme] scope is
    * unchanged. Each signed-in section overrides these to get its own feel.
    * ------------------------------------------------------------------- */
-  --font-display: var(--font-body); /* heading / display typeface */
+  --font-display: var(--font-capital); /* heading / display typeface — Clarika Geometric everywhere */
   --font-ui: var(--font-body); /* body / UI typeface */
   --theme-border-width: 2px; /* current hard 2px borders */
   --theme-radius: 1.5rem; /* current rounded-3xl feel */
