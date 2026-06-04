@@ -2160,6 +2160,15 @@ components:
           type:
             - string
             - "null"
+        kind:
+          type: string
+          description: "Discriminator: text | image | gif | spoiler | stock | bet | poll |
+            file."
+        data:
+          anyOf:
+            - $ref: "#/components/schemas/ChatMessageData"
+            - type: "null"
+          description: Structured payload for non-text kinds; null for plain messages.
       required:
         - id
         - channelId
@@ -2172,6 +2181,8 @@ components:
         - mine
         - createdAt
         - editedAt
+        - kind
+        - data
     ChatAuthor:
       type: object
       properties:
@@ -2207,6 +2218,12 @@ components:
         - emoji
         - count
         - mine
+    ChatMessageData:
+      type: object
+      additionalProperties: {}
+      description: Structured payload for non-text messages. Shape varies by `kind`
+        (spoiler/stock/bet/poll/gif/file); clients read it per kind. Null for
+        plain text + image messages.
     SendChatMessageRequest:
       type: object
       properties:
@@ -2220,6 +2237,15 @@ components:
           type:
             - number
             - "null"
+        kind:
+          type: string
+          description: Structured message kind (default "text"); see ChatMessage.kind.
+        data:
+          anyOf:
+            - type: object
+              additionalProperties: {}
+            - type: "null"
+          description: Structured payload for non-text kinds.
       description: POST /api/v1/chat/channels/[id]/messages — send a message.
     SendChatMessageResponse:
       type: object
