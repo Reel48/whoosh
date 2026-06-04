@@ -86,6 +86,7 @@ function toMessage(
     imageUrl: r.image_url,
     replyToId: r.reply_to_id,
     starCount: r.star_count,
+    boostCount: r.boost_count ?? 0,
     reactions: reactionsByMsg.get(r.id) ?? [],
     mine: r.user_id === viewerId,
     createdAt: r.created_at,
@@ -302,6 +303,54 @@ export async function getChatStarboard(viewerId: string, limit = 50): Promise<Ch
   const reactions = await reactionsFor(rows.map((r) => r.id), viewerId);
   const pollVotes = await pollVotesFor(rows.map((r) => r.id), viewerId);
   return rows.map((r) => toMessage(r, authors, reactions, viewerId, pollVotes));
+}
+
+// ── Starboard swipe (Boost / Meh) + all-time leaderboard ─────────────────────
+
+/** Starboard-eligible messages (≥ threshold ⭐) the viewer hasn't swiped yet — the deck. */
+export async function getStarboardDeck(viewerId: string, limit = 30): Promise<ChatMessage[]> {
+  const db = chatDb();
+  const [{ data: eligible }, { data: swiped }] = await Promise.all([
+    db.from("chat_message").select("*")
+      .is("deleted_at", null).gte("star_count", STARBOARD_THRESHOLD)
+      .order("star_count", { ascending: false }).limit(150),
+    db.from("starboard_boost").select("message_id").eq("user_id", viewerId),
+  ]);
+  const swipedSet = new Set(((swiped ?? []) as { message_id: number }[]).map((s) => s.message_id));
+  const rows = ((eligible ?? []) as MessageRow[]).filter((r) => !swipedSet.has(r.id)).slice(0, limit);
+  const authors = await enrichAuthors(rows.map((r) => r.user_id));
+  const reactions = await reactionsFor(rows.map((r) => r.id), viewerId);
+  return rows.map((r) => toMessage(r, authors, reactions, viewerId));
+}
+
+/** All-time top messages by boosts (the starboard leaderboard). */
+export async function getStarboardLeaderboard(viewerId: string, limit = 50): Promise<ChatMessage[]> {
+  const db = chatDb();
+  const { data } = await db.from("chat_message").select("*")
+    .is("deleted_at", null).gt("boost_count", 0)
+    .order("boost_count", { ascending: false }).limit(limit);
+  const rows = (data ?? []) as MessageRow[];
+  const authors = await enrichAuthors(rows.map((r) => r.user_id));
+  const reactions = await reactionsFor(rows.map((r) => r.id), viewerId);
+  return rows.map((r) => toMessage(r, authors, reactions, viewerId));
+}
+
+/** Record a Boost/Meh on a starboard message; returns the new boost count. */
+export async function recordStarboardBoost(userId: string, messageId: number, direction: string): Promise<number> {
+  const { data, error } = await chatDb().rpc("record_starboard_boost", {
+    p_user: userId, p_message: messageId, p_direction: direction,
+  });
+  if (error) throw mapPgError(error);
+  return Number(data ?? 0);
+}
+
+/** Undo a starboard swipe (re-deals the card); returns the new boost count. */
+export async function deleteStarboardBoost(userId: string, messageId: number): Promise<number> {
+  const { data, error } = await chatDb().rpc("delete_starboard_boost", {
+    p_user: userId, p_message: messageId,
+  });
+  if (error) throw mapPgError(error);
+  return Number(data ?? 0);
 }
 
 /** Full-text search over messages the viewer can read (optionally one channel). */

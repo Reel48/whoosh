@@ -2148,6 +2148,9 @@ components:
             - "null"
         starCount:
           type: number
+        boostCount:
+          type: number
+          description: Distinct boosters from the starboard swipe deck (all-time).
         reactions:
           type: array
           items:
@@ -2183,6 +2186,7 @@ components:
         - imageUrl
         - replyToId
         - starCount
+        - boostCount
         - reactions
         - mine
         - createdAt
@@ -2376,6 +2380,47 @@ components:
       required:
         - messages
       description: GET /api/v1/chat/starboard — most-starred messages.
+    StarboardDeckResponse:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+      required:
+        - messages
+      description: GET /api/v1/chat/starboard/deck — starboard-eligible messages the
+        viewer hasn't swiped.
+    StarboardLeaderboardResponse:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+      required:
+        - messages
+      description: GET /api/v1/chat/starboard/leaderboard — all-time top messages by boosts.
+    StarboardBoostRequest:
+      type: object
+      properties:
+        messageId:
+          type: number
+        direction:
+          type:
+            - string
+            - "null"
+      required:
+        - messageId
+      description: POST /api/v1/chat/starboard/boost — Boost/Meh a message (direction
+        null = undo).
+    StarboardBoostResponse:
+      type: object
+      properties:
+        boostCount:
+          type: number
+      required:
+        - boostCount
     ChatUsersResponse:
       type: object
       properties:
@@ -5247,6 +5292,165 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /api/v1/chat/starboard/deck:
+    get:
+      operationId: getStarboardDeck
+      summary: Starboard-eligible messages the viewer hasn't swiped (Boost/Meh deck).
+      tags:
+        - chat
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/StarboardDeckResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/v1/chat/starboard/leaderboard:
+    get:
+      operationId: getStarboardLeaderboard
+      summary: All-time top messages by boosts.
+      tags:
+        - chat
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/StarboardLeaderboardResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/v1/chat/starboard/boost:
+    post:
+      operationId: recordStarboardBoost
+      summary: Boost/Meh a message (null direction undoes); returns new boost count.
+      tags:
+        - chat
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/StarboardBoostResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StarboardBoostRequest"
   /api/v1/chat/users:
     get:
       operationId: getChatUsers
