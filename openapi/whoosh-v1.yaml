@@ -2209,12 +2209,16 @@ components:
           type: number
         roleColor:
           type: string
+        isPremium:
+          type: boolean
+          description: Holds the premium role → renders a verified seal next to the name.
       required:
         - id
         - username
         - avatarUrl
         - level
         - roleColor
+        - isPremium
       description: A message author, denormalized for display (name color = top role).
     ChatReactionSummary:
       type: object

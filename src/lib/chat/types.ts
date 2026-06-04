@@ -70,6 +70,8 @@ export type ChatAuthor = {
   avatarUrl: string | null;
   level: number;
   roleColor: string;
+  /** Holds the premium role → renders a verified seal next to the name. */
+  isPremium: boolean;
 };
 
 export type ChatReactionSummary = { emoji: string; count: number; mine: boolean };

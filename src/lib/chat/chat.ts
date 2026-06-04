@@ -40,16 +40,18 @@ async function enrichAuthors(ids: string[]): Promise<Map<string, ChatAuthor>> {
     db.from("profile").select("user_id, username, avatar_url").in("user_id", unique),
     db.from("chat_user_stat").select("user_id, level").in("user_id", unique),
     db.from("chat_user_role").select("user_id, role_id").in("user_id", unique),
-    db.from("chat_role").select("id, color, priority"),
+    db.from("chat_role").select("id, key, color, priority"),
   ]);
   const levelByUser = new Map<string, number>();
   for (const s of (stats ?? []) as Pick<StatRow, "user_id" | "level">[]) levelByUser.set(s.user_id, s.level);
-  const roleById = new Map<number, { color: string; priority: number }>();
-  for (const r of (roles ?? []) as Pick<RoleRow, "id" | "color" | "priority">[]) roleById.set(r.id, r);
+  const roleById = new Map<number, { key: string; color: string; priority: number }>();
+  for (const r of (roles ?? []) as Pick<RoleRow, "id" | "key" | "color" | "priority">[]) roleById.set(r.id, r);
   const topByUser = new Map<string, { color: string; priority: number }>();
+  const premiumByUser = new Map<string, boolean>();
   for (const ur of (userRoles ?? []) as { user_id: string; role_id: number }[]) {
     const role = roleById.get(ur.role_id);
     if (!role) continue;
+    if (role.key === "premium") premiumByUser.set(ur.user_id, true);
     const cur = topByUser.get(ur.user_id);
     if (!cur || role.priority > cur.priority) topByUser.set(ur.user_id, role);
   }
@@ -60,6 +62,7 @@ async function enrichAuthors(ids: string[]): Promise<Map<string, ChatAuthor>> {
       avatarUrl: p.avatar_url,
       level: levelByUser.get(p.user_id) ?? 0,
       roleColor: topByUser.get(p.user_id)?.color ?? DEFAULT_ROLE_COLOR,
+      isPremium: premiumByUser.get(p.user_id) ?? false,
     });
   }
   return map;
@@ -67,7 +70,7 @@ async function enrichAuthors(ids: string[]): Promise<Map<string, ChatAuthor>> {
 
 function authorOr(map: Map<string, ChatAuthor>, userId: string): ChatAuthor {
   return map.get(userId) ?? {
-    id: userId, username: "unknown", avatarUrl: null, level: 0, roleColor: DEFAULT_ROLE_COLOR,
+    id: userId, username: "unknown", avatarUrl: null, level: 0, roleColor: DEFAULT_ROLE_COLOR, isPremium: false,
   };
 }
 
