@@ -287,6 +287,16 @@ export const OPERATIONS: ApiOperation[] = [
     extraErrors: ["forbidden", "not_found"],
   },
   {
+    method: "post",
+    path: "/api/v1/fantasy/rankings/chat",
+    operationId: "openRankingsChat",
+    summary: "Open the cross-league Power Rankings chat (everyone on the board).",
+    auth: "bearer",
+    responseType: "FantasyChatResponse",
+    capability: "chat",
+    extraErrors: ["forbidden"],
+  },
+  {
     method: "get",
     path: "/api/v1/fantasy/rankings",
     operationId: "getFantasyRankings",

@@ -1,9 +1,21 @@
 import { getLeagueOverview } from "@/lib/fantasy/leagues";
 import { getLink } from "@/lib/fantasy/link";
-import { hasLeagueAccess } from "@/lib/fantasy/entitlements";
+import { hasLeagueAccess, getEntitlements } from "@/lib/fantasy/entitlements";
+import { getCrossLeagueScoreboard } from "@/lib/fantasy/rankings";
 import { chatDb } from "@/lib/chat/db";
 import { ChatError } from "@/lib/chat/chat";
 import type { ChatChannel } from "@/lib/chat/types";
+
+/** Fixed channel key for the cross-league Power Rankings chat. */
+const RANKINGS_KEY = "rankings";
+
+function groupChannel(leagueId: string, channelId: number, name: string): ChatChannel {
+  return {
+    id: channelId, categoryId: 0, slug: `fantasy:${leagueId}`, name,
+    description: null, kind: "group", postPolicy: "members", requiredRoleId: null,
+    canPost: true, unread: 0, lastActivityAt: null,
+  };
+}
 
 /**
  * Per-league / per-pool chat membership. A user is "in" a league/pool when their
@@ -44,10 +56,33 @@ export async function openFantasyChat(userId: string, leagueId: string): Promise
     p_league_id: leagueId, p_name: name, p_user: userId,
   });
   if (error) throw new ChatError("internal", error.message);
+  return groupChannel(leagueId, Number(data), name);
+}
 
-  return {
-    id: Number(data), categoryId: 0, slug: `fantasy:${leagueId}`, name,
-    description: null, kind: "group", postPolicy: "members", requiredRoleId: null,
-    canPost: true, unread: 0, lastActivityAt: null,
-  };
+/**
+ * Open the cross-league Power Rankings chat — for everyone on the leaderboard
+ * (your linked Sleeper account owns a roster in any league) plus paid members.
+ * One shared channel; same membership-on-open + RLS gate as league chats.
+ */
+export async function openRankingsChat(userId: string): Promise<ChatChannel> {
+  const link = await getLink(userId).catch(() => null);
+  const board = await getCrossLeagueScoreboard().catch(() => ({ rows: [], leagues: [] }));
+  let member = !!link && board.rows.some((r) => r.ownerId === link.sleeperUserId);
+  if (!member) {
+    const ents = await getEntitlements(userId).catch(() => []);
+    member = ents.some((e) => e.status === "active");
+  }
+
+  const db = chatDb();
+  if (!member) {
+    await db.rpc("remove_fantasy_chat_member", { p_league_id: RANKINGS_KEY, p_user: userId });
+    throw new ChatError("forbidden", "The Power Rankings chat is for league members.");
+  }
+
+  const name = "Power Rankings Chat";
+  const { data, error } = await db.rpc("ensure_fantasy_chat_channel", {
+    p_league_id: RANKINGS_KEY, p_name: name, p_user: userId,
+  });
+  if (error) throw new ChatError("internal", error.message);
+  return groupChannel(RANKINGS_KEY, Number(data), name);
 }
