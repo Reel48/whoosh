@@ -2290,6 +2290,35 @@ components:
           type: number
       required:
         - count
+    ChatGiftRequest:
+      type: object
+      properties:
+        channelId:
+          type: number
+        recipient:
+          type: string
+        amount:
+          type: number
+        amountCents:
+          type: number
+        memo:
+          type:
+            - string
+            - "null"
+      required:
+        - channelId
+        - recipient
+      description: POST /api/v1/chat/gift — send Whoosh Bucks to an
+    ChatGiftResponse:
+      type: object
+      properties:
+        message:
+          $ref: "#/components/schemas/ChatMessage"
+        transferId:
+          type: number
+      required:
+        - message
+        - transferId
     ChatPollVoteRequest:
       type: object
       properties:
@@ -4957,6 +4986,73 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/ChatPollVoteRequest"
+  /api/v1/chat/gift:
+    post:
+      operationId: giftWhooshBucks
+      summary: Send Whoosh Bucks to an @handle and post a gift card.
+      tags:
+        - chat
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/ChatGiftResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "402":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatGiftRequest"
   /api/v1/chat/messages/{messageId}:
     patch:
       operationId: editChatMessage
