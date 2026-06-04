@@ -7,30 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -198,6 +178,371 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      chat_category: {
+        Row: {
+          created_at: string
+          id: number
+          name: string
+          position: number
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          name: string
+          position?: number
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          name?: string
+          position?: number
+        }
+        Relationships: []
+      }
+      chat_channel: {
+        Row: {
+          category_id: number | null
+          created_at: string
+          description: string | null
+          id: number
+          is_active: boolean
+          kind: string
+          name: string
+          position: number
+          post_policy: string
+          required_role_id: number | null
+          slug: string
+        }
+        Insert: {
+          category_id?: number | null
+          created_at?: string
+          description?: string | null
+          id?: never
+          is_active?: boolean
+          kind?: string
+          name: string
+          position?: number
+          post_policy?: string
+          required_role_id?: number | null
+          slug: string
+        }
+        Update: {
+          category_id?: number | null
+          created_at?: string
+          description?: string | null
+          id?: never
+          is_active?: boolean
+          kind?: string
+          name?: string
+          position?: number
+          post_policy?: string
+          required_role_id?: number | null
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_channel_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "chat_category"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_channel_required_role_id_fkey"
+            columns: ["required_role_id"]
+            isOneToOne: false
+            referencedRelation: "chat_role"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_channel_member: {
+        Row: {
+          channel_id: number
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: number
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: number
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_channel_member_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channel"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_mention: {
+        Row: {
+          created_at: string
+          mentioned_user_id: string
+          message_id: number
+        }
+        Insert: {
+          created_at?: string
+          mentioned_user_id: string
+          message_id: number
+        }
+        Update: {
+          created_at?: string
+          mentioned_user_id?: string
+          message_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_mention_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_message"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_message: {
+        Row: {
+          body: string
+          body_tsv: unknown
+          channel_id: number
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          id: number
+          image_url: string | null
+          reply_to_id: number | null
+          star_count: number
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          body_tsv?: unknown
+          channel_id: number
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: never
+          image_url?: string | null
+          reply_to_id?: number | null
+          star_count?: number
+          user_id: string
+        }
+        Update: {
+          body?: string
+          body_tsv?: unknown
+          channel_id?: number
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: never
+          image_url?: string | null
+          reply_to_id?: number | null
+          star_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_message_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_message_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "chat_message"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_reaction: {
+        Row: {
+          channel_id: number
+          created_at: string
+          emoji: string
+          message_id: number
+          user_id: string
+        }
+        Insert: {
+          channel_id: number
+          created_at?: string
+          emoji: string
+          message_id: number
+          user_id: string
+        }
+        Update: {
+          channel_id?: number
+          created_at?: string
+          emoji?: string
+          message_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_reaction_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_reaction_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_message"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_read_state: {
+        Row: {
+          channel_id: number
+          last_read_message_id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: number
+          last_read_message_id?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: number
+          last_read_message_id?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_read_state_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channel"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_role: {
+        Row: {
+          assignable: boolean
+          color: string
+          created_at: string
+          id: number
+          is_system: boolean
+          key: string
+          name: string
+          priority: number
+        }
+        Insert: {
+          assignable?: boolean
+          color?: string
+          created_at?: string
+          id?: never
+          is_system?: boolean
+          key: string
+          name: string
+          priority?: number
+        }
+        Update: {
+          assignable?: boolean
+          color?: string
+          created_at?: string
+          id?: never
+          is_system?: boolean
+          key?: string
+          name?: string
+          priority?: number
+        }
+        Relationships: []
+      }
+      chat_user_role: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          role_id: number
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          role_id: number
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          role_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_user_role_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "chat_role"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_user_stat: {
+        Row: {
+          last_xp_at: string | null
+          level: number
+          message_count: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          last_xp_at?: string | null
+          level?: number
+          message_count?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          last_xp_at?: string | null
+          level?: number
+          message_count?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      device_token: {
+        Row: {
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          platform?: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       fantasy_entitlement: {
         Row: {
@@ -547,6 +892,21 @@ export type Database = {
           sport?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      news_chat_post: {
+        Row: {
+          espn_id: string
+          posted_at: string
+        }
+        Insert: {
+          espn_id: string
+          posted_at?: string
+        }
+        Update: {
+          espn_id?: string
+          posted_at?: string
         }
         Relationships: []
       }
@@ -1012,6 +1372,10 @@ export type Database = {
           username: string
         }[]
       }
+      assign_chat_role: {
+        Args: { p_actor: string; p_role: number; p_target: string }
+        Returns: undefined
+      }
       assign_league_entitlement: {
         Args: {
           p_amount_cents: number
@@ -1042,12 +1406,37 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      chat_can_read: {
+        Args: { p_channel: number; p_user: string }
+        Returns: boolean
+      }
+      chat_level_for_xp: { Args: { p_xp: number }; Returns: number }
+      chat_unread_counts: {
+        Args: { p_user: string }
+        Returns: {
+          channel_id: number
+          last_activity: string
+          unread: number
+        }[]
+      }
       claim_legacy_wallet: {
         Args: { p_discord_user_id: string; p_new_user_id: string }
         Returns: boolean
       }
+      delete_chat_message: {
+        Args: { p_message: number; p_user: string }
+        Returns: undefined
+      }
       delete_news_swipe: {
         Args: { p_espn_id: string; p_user: string }
+        Returns: number
+      }
+      edit_chat_message: {
+        Args: { p_body: string; p_message: number; p_user: string }
+        Returns: string
+      }
+      ensure_fantasy_chat_channel: {
+        Args: { p_league_id: string; p_name: string; p_user: string }
         Returns: number
       }
       ensure_wallet: {
@@ -1212,9 +1601,89 @@ export type Database = {
         }[]
       }
       fn_wb_total_supply: { Args: never; Returns: number }
+      get_or_create_dm: {
+        Args: { p_other: string; p_user: string }
+        Returns: number
+      }
+      mark_chat_read: {
+        Args: { p_channel: number; p_message: number; p_user: string }
+        Returns: undefined
+      }
       normalize_handle: { Args: { input: string }; Returns: string }
+      post_news_article: {
+        Args: {
+          p_body: string
+          p_channel_slug: string
+          p_espn_id: string
+          p_image_url: string
+        }
+        Returns: number
+      }
+      reconcile_chat_roles: {
+        Args: { p_is_premium: boolean; p_user: string }
+        Returns: undefined
+      }
       record_news_swipe: {
         Args: { p_article: Json; p_direction: string; p_user: string }
+        Returns: number
+      }
+      remove_chat_role: {
+        Args: { p_actor: string; p_role: number; p_target: string }
+        Returns: undefined
+      }
+      remove_fantasy_chat_member: {
+        Args: { p_league_id: string; p_user: string }
+        Returns: undefined
+      }
+      search_chat_messages: {
+        Args: {
+          p_channel: number
+          p_limit: number
+          p_query: string
+          p_user: string
+        }
+        Returns: {
+          body: string
+          body_tsv: unknown
+          channel_id: number
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          id: number
+          image_url: string | null
+          reply_to_id: number | null
+          star_count: number
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "chat_message"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      send_chat_message: {
+        Args: {
+          p_body: string
+          p_channel: number
+          p_image_url: string
+          p_reply_to: number
+          p_user: string
+        }
+        Returns: {
+          created_at: string
+          id: number
+          level: number
+          leveled_up: boolean
+        }[]
+      }
+      toggle_chat_reaction: {
+        Args: {
+          p_emoji: string
+          p_message: number
+          p_on: boolean
+          p_user: string
+        }
         Returns: number
       }
     }
@@ -1345,11 +1814,7 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
 } as const
-

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { resolveSport, type Article } from "@/lib/news/espn";
 import { recordSwipe, undoSwipe } from "@/lib/news/engagement";
+import { maybePostKeptArticle } from "@/lib/news/chatBridge";
 import { jsonError, jsonOk, readJson, requireBearerSession } from "@/lib/api/json";
 import type { SwipeRequest, SwipeResponse } from "@/lib/api/contracts";
 
@@ -45,7 +46,11 @@ export async function POST(req: Request) {
       images: a.image ? [a.image] : [],
     };
 
-    const points = await recordSwipe(session.id, resolveSport(body.sport), article, direction);
+    const sport = resolveSport(body.sport);
+    const points = await recordSwipe(session.id, sport, article, direction);
+    // On a keep, surface trending articles into the sport's chat once enough
+    // distinct users have kept it. Idempotent + best-effort (never fails the swipe).
+    if (direction === "right") await maybePostKeptArticle(sport, article, points);
     return jsonOk<SwipeResponse>({ points });
   } catch (e) {
     return jsonError("internal", e instanceof Error ? e.message : "Swipe failed.");
