@@ -368,9 +368,9 @@ alter publication supabase_realtime add table public.chat_reaction;
 
 -- ── Seed: system roles, categories, channels ─────────────────────────────────
 insert into public.chat_role (key, name, color, priority, is_system, assignable) values
-  ('member',  'Member',  '#9aa0a6', 0,  true, false),
+  ('member',  'Member',  '#ae78d2', 0,  true, false),
   ('premium', 'Premium', '#cef932', 50, true, false),
-  ('admin',   'Admin',   '#ff5577', 100,true, false)
+  ('admin',   'Admin',   '#0381ed', 100,true, false)
 on conflict (key) do nothing;
 
 do $$
