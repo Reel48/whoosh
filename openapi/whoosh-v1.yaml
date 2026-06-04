@@ -2294,6 +2294,36 @@ components:
           type: number
       required:
         - count
+    ChatGif:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        previewUrl:
+          type: string
+        width:
+          type: number
+        height:
+          type: number
+      required:
+        - id
+        - url
+        - previewUrl
+        - width
+        - height
+      description: GET /api/v1/chat/gifs?q=&limit= — proxied Giphy search/trending for
+        the GIF picker.
+    ChatGifsResponse:
+      type: object
+      properties:
+        gifs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatGif"
+      required:
+        - gifs
     ChatGiftRequest:
       type: object
       properties:
@@ -5057,6 +5087,55 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/ChatGiftRequest"
+  /api/v1/chat/gifs:
+    get:
+      operationId: searchChatGifs
+      summary: Proxied Giphy search/trending for the GIF picker.
+      tags:
+        - chat
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ok
+                  - data
+                properties:
+                  ok:
+                    type: boolean
+                    enum:
+                      - true
+                  data:
+                    $ref: "#/components/schemas/ChatGifsResponse"
+        "400":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /api/v1/chat/messages/{messageId}:
     patch:
       operationId: editChatMessage
