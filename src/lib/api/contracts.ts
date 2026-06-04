@@ -278,6 +278,16 @@ export type SendChatMessageResponse = { message: ChatMessage; level: number; lev
 export type ChatReactRequest = { emoji: string; on: boolean };
 export type ChatReactResponse = { count: number };
 
+/** POST /api/v1/chat/gift — send Whoosh Bucks to an @handle and post a gift card. */
+export type ChatGiftRequest = {
+  channelId: number;
+  recipient: string;       // @handle (chat username)
+  amount?: number;         // whole WB
+  amountCents?: number;    // or cents directly
+  memo?: string | null;
+};
+export type ChatGiftResponse = { message: ChatMessage; transferId: number };
+
 /** POST /api/v1/chat/messages/[id]/vote — toggle a poll vote; returns updated tallies. */
 export type ChatPollVoteRequest = { optionId: string; on: boolean };
 export type ChatPollVoteResponse = { counts: Record<string, number>; mine: string[] };

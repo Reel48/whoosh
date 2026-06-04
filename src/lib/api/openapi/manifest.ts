@@ -499,6 +499,17 @@ export const OPERATIONS: ApiOperation[] = [
     extraErrors: ["forbidden", "not_found"],
   },
   {
+    method: "post",
+    path: "/api/v1/chat/gift",
+    capability: "chat",
+    operationId: "giftWhooshBucks",
+    summary: "Send Whoosh Bucks to an @handle and post a gift card.",
+    auth: "bearer",
+    requestType: "ChatGiftRequest",
+    responseType: "ChatGiftResponse",
+    extraErrors: ["forbidden", "not_found", "insufficient_funds"],
+  },
+  {
     method: "patch",
     path: "/api/v1/chat/messages/{messageId}",
     capability: "chat",

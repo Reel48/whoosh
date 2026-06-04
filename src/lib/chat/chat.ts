@@ -7,7 +7,7 @@ import type {
 } from "./types";
 
 /** Valid structured-message kinds (matches the chat_message_kind_check constraint). */
-const MESSAGE_KINDS = new Set(["text", "image", "gif", "spoiler", "stock", "bet", "poll", "file"]);
+const MESSAGE_KINDS = new Set(["text", "image", "gif", "spoiler", "stock", "bet", "poll", "file", "score", "gift", "rank"]);
 
 /** Messages need this many ⭐ to land on the Starboard. */
 export const STARBOARD_THRESHOLD = 3;
@@ -382,6 +382,17 @@ export async function voteChatPoll(
   if (error) throw mapPgError(error);
   const head = (Array.isArray(data) ? data[0] : data) as { counts: Record<string, number>; mine: string[] } | null;
   return { counts: head?.counts ?? {}, mine: head?.mine ?? [] };
+}
+
+/** Exact (case-insensitive) profile lookup by @handle — for resolving a /gift recipient. */
+export async function getProfileByUsername(username: string): Promise<ChatMember | null> {
+  const handle = username.replace(/^@/, "").trim().replace(/[%_]/g, "");
+  if (!handle) return null;
+  const { data } = await chatDb().from("profile")
+    .select("user_id, username, avatar_url").ilike("username", handle).limit(1).maybeSingle();
+  if (!data) return null;
+  const p = data as ProfileRow;
+  return { id: p.user_id, username: p.username, avatarUrl: p.avatar_url };
 }
 
 export async function getChatMembers(query: string, limit = 10): Promise<ChatMember[]> {
