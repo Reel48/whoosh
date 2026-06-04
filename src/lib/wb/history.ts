@@ -1,7 +1,10 @@
-import { unstable_cache } from "next/cache";
+import { supabase } from "@/lib/supabase";
 import { getCryptoAsset } from "@/lib/wb/assets";
 
 const TWELVEDATA_BASE = "https://api.twelvedata.com";
+/** Serve a stored snapshot without re-hitting TwelveData when it's this fresh.
+ *  EOD candles change once a day, so an hour is generous. */
+const SNAPSHOT_FRESH_MS = 60 * 60 * 1000;
 
 export type Candle = {
   /** Unix epoch seconds (market close timestamp). */
@@ -151,22 +154,66 @@ async function fetchSnapshotFresh(symbol: string, range: RangeKey): Promise<Stoc
   };
 }
 
-/**
- * Cached for 1 hour per (symbol, range). EOD data only changes once daily
- * so this is generous; combined with Twelve Data's 800 req/day free tier
- * that's effectively unlimited at Discord-scale.
- */
-const fetchSnapshotCached = unstable_cache(
-  fetchSnapshotFresh,
-  ["wb:stock-snapshot-td"],
-  { revalidate: 3600 },
-);
+async function readCachedSnapshot(
+  symbol: string,
+  range: RangeKey,
+): Promise<{ snapshot: StockSnapshot; ageMs: number } | null> {
+  const { data, error } = await supabase()
+    .from("symbol_snapshot")
+    .select("data, fetched_at")
+    .eq("symbol", symbol)
+    .eq("range", range)
+    .maybeSingle();
+  if (error) {
+    console.warn("readCachedSnapshot failed (non-fatal):", error.message);
+    return null;
+  }
+  if (!data) return null;
+  return {
+    snapshot: data.data as StockSnapshot,
+    ageMs: Date.now() - new Date(data.fetched_at).getTime(),
+  };
+}
 
+async function writeSnapshot(
+  symbol: string,
+  range: RangeKey,
+  snapshot: StockSnapshot,
+): Promise<void> {
+  const { error } = await supabase()
+    .from("symbol_snapshot")
+    .upsert(
+      { symbol, range, data: snapshot, fetched_at: new Date().toISOString() },
+      { onConflict: "symbol,range" },
+    );
+  if (error) console.warn("writeSnapshot failed (non-fatal):", error.message);
+}
+
+/**
+ * Durable, stale-tolerant snapshot cache (mirrors the symbol_quote pattern).
+ * 1. Serve a stored row if it's fresh (< 1h) — skips TwelveData, saves credits.
+ * 2. Otherwise fetch live. On success → write-through + return.
+ * 3. On a live failure (TwelveData free tier is only 8 credits/min, and a 429
+ *    comes back as HTTP 200 with status:"error") → return the STALE stored row
+ *    if we have one (correct data, just old) instead of a blank page.
+ * We never persist a null, so one rate-limited minute can't poison a symbol.
+ */
 export async function getStockSnapshot(
   symbolRaw: string,
   range: RangeKey = "1y",
 ): Promise<StockSnapshot | null> {
   const symbol = symbolRaw.trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, "").slice(0, 12);
   if (!symbol) return null;
-  return fetchSnapshotCached(symbol, range);
+
+  const cached = await readCachedSnapshot(symbol, range);
+  if (cached && cached.ageMs < SNAPSHOT_FRESH_MS) return cached.snapshot;
+
+  const fresh = await fetchSnapshotFresh(symbol, range);
+  if (fresh) {
+    await writeSnapshot(symbol, range, fresh);
+    return fresh;
+  }
+
+  // Live fetch failed (likely rate-limited) — fall back to any stale row.
+  return cached?.snapshot ?? null;
 }

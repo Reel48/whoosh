@@ -1120,6 +1120,27 @@ export type Database = {
         }
         Relationships: []
       }
+      symbol_snapshot: {
+        Row: {
+          data: Json
+          fetched_at: string
+          range: string
+          symbol: string
+        }
+        Insert: {
+          data: Json
+          fetched_at?: string
+          range: string
+          symbol: string
+        }
+        Update: {
+          data?: Json
+          fetched_at?: string
+          range?: string
+          symbol?: string
+        }
+        Relationships: []
+      }
       user_achievement: {
         Row: {
           code: string
