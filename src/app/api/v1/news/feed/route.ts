@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchFeed, resolveSport, SPORTS } from "@/lib/news/espn";
+import { fetchAllFeeds, fetchFeed, resolveSport, SPORTS } from "@/lib/news/espn";
 import { getMyKeptArticles, getUserSwipes, getWhooshFeed } from "@/lib/news/engagement";
 import { jsonOk, requireBearerSession } from "@/lib/api/json";
 import type { NewsFeedResponse } from "@/lib/api/contracts";
@@ -18,6 +18,14 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const raw = url.searchParams.get("sport") ?? undefined;
+
+  // The ALL feed merges every sport chronologically (the default view).
+  if (raw === "all") {
+    const articles = await fetchAllFeeds();
+    const swipes = await getUserSwipes(session.id, articles.map((a) => a.guid));
+    const visible = articles.filter((a) => !swipes.has(a.guid)).slice(0, 100);
+    return jsonOk<NewsFeedResponse>({ mode: "sport", sport: "all", articles: visible });
+  }
 
   if (raw === undefined || !(raw in SPORTS)) {
     const mine = url.searchParams.get("view") === "mine";

@@ -70,6 +70,8 @@ export type Article = {
   guid: string;
   /** Image URLs for the post, shown at the bottom. Empty when none are provided. */
   images: string[];
+  /** Which sport this article came from (set by `fetchFeed`; key for the ALL feed). */
+  sport?: SportKey;
 };
 
 /** Feed revalidation window (seconds). 10 min keeps headlines fresh enough. */
@@ -131,17 +133,37 @@ async function fetchJson(url: string, key: "articles" | "headlines"): Promise<Ar
  */
 export async function fetchFeed(sport: SportKey): Promise<Article[]> {
   const s = SPORTS[sport];
+  let articles: Article[];
   if (s.apiPath) {
-    return fetchJson(
+    articles = await fetchJson(
       `https://site.api.espn.com/apis/site/v2/sports/${s.apiPath}/news?limit=50`,
       "articles",
     );
-  }
-  if (s.nowSport) {
-    return fetchJson(
+  } else if (s.nowSport) {
+    articles = await fetchJson(
       `https://now.core.api.espn.com/v1/sports/news?sport=${s.nowSport}&limit=50`,
       "headlines",
     );
+  } else {
+    return [];
   }
-  return [];
+  // Tag each article with its sport so the ALL feed (and clients) can attribute
+  // it; single-sport feeds carry it too (harmless).
+  return articles.map((a) => ({ ...a, sport }));
+}
+
+/**
+ * Every sport's latest articles merged into one feed, newest first. Backs the
+ * "ALL" tab. ESPN feeds are individually cached (FEED_TTL), so these parallel
+ * fetches are cheap and mostly warm. Deduped by guid (first/ newest wins).
+ */
+export async function fetchAllFeeds(): Promise<Article[]> {
+  const feeds = await Promise.all(SPORT_LIST.map((s) => fetchFeed(s.key)));
+  const byGuid = new Map<string, Article>();
+  for (const a of feeds.flat()) {
+    if (!byGuid.has(a.guid)) byGuid.set(a.guid, a);
+  }
+  return [...byGuid.values()].sort((a, b) =>
+    (b.pubDate ?? "").localeCompare(a.pubDate ?? ""),
+  );
 }
