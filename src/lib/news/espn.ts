@@ -106,7 +106,17 @@ type EspnArticle = {
 function fromJson(a: EspnArticle): Article {
   const link = a.links?.web?.href ?? "";
   const images = Array.isArray(a.images)
-    ? [...new Set(a.images.map((im) => im?.url).filter((u): u is string => !!u && /^https?:/.test(u)))]
+    ? [
+        ...new Set(
+          a.images
+            .map((im) => im?.url)
+            // Drop ESPN "stitcher" template graphics (e.g. the square Apple Watch
+            // away@home score images MLB recaps lead with) — they're not editorial
+            // photos and render badly cropped/zoomed in the card banner. Each such
+            // article carries a real photo later in the array, which now wins.
+            .filter((u): u is string => !!u && /^https?:/.test(u) && !u.includes("/stitcher/")),
+        ),
+      ]
     : [];
   return {
     title: (a.headline ?? "").trim(),
