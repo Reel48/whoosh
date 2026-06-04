@@ -125,7 +125,7 @@ export async function getChatOverview(userId: string, isAdmin: boolean, isPremiu
       db.from("chat_category").select("id, name, position").order("position", { ascending: true }),
       db.from("chat_channel").select(
         "id, category_id, slug, name, description, kind, post_policy, required_role_id, is_active, position",
-      ).eq("is_active", true).neq("kind", "dm").order("position", { ascending: true }),
+      ).eq("is_active", true).neq("kind", "dm").neq("kind", "group").order("position", { ascending: true }),
       db.from("chat_user_role").select("role_id").eq("user_id", userId),
       db.from("chat_role").select("id, key, name, color, priority").order("priority", { ascending: false }),
       db.from("chat_user_stat").select("xp, level").eq("user_id", userId).maybeSingle(),

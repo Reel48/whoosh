@@ -304,6 +304,9 @@ export type ChatDmsResponse = { conversations: ChatDmConversation[] };
 export type ChatDmOpenRequest = { userId: string };
 export type ChatDmOpenResponse = { channel: ChatChannel };
 
+/** POST /api/v1/fantasy/{leagues|pools}/[id]/chat — member-gated group chat. */
+export type FantasyChatResponse = { channel: ChatChannel };
+
 /** GET /api/v1/chat/admin/roles — all roles (admin). */
 export type ChatRolesResponse = { roles: ChatRole[] };
 /** POST /api/v1/chat/admin/roles — create a custom role (admin). */
