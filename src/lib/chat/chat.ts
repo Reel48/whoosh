@@ -403,6 +403,12 @@ export async function openChatDm(userId: string, otherId: string): Promise<ChatC
   };
 }
 
+/** Post the one-time "welcome @user" card into #welcome (idempotent; best-effort). */
+export async function postWelcomeMessage(userId: string): Promise<void> {
+  const { error } = await chatDb().rpc("post_welcome_message", { p_user: userId });
+  if (error) console.error(`postWelcomeMessage failed: ${error.message}`);
+}
+
 export async function getEnrichedUsers(ids: string[]): Promise<ChatAuthor[]> {
   const map = await enrichAuthors(ids);
   return [...map.values()];
