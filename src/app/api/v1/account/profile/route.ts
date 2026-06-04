@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isOnboarded, markOnboarded, setUsername } from "@/lib/profile";
+import { postWelcomeMessage } from "@/lib/chat/chat";
 import { jsonError, jsonOk, readJson, requireBearerSession } from "@/lib/api/json";
 import type { ProfileResponse, SetUsernameRequest } from "@/lib/api/contracts";
 
@@ -22,6 +23,8 @@ export async function POST(req: Request) {
   if (!result.ok) return jsonError(result.code, result.error);
 
   await markOnboarded(session.id);
+  // Announce the newcomer in #welcome (idempotent — fires once per user).
+  await postWelcomeMessage(session.id);
 
   return jsonOk<ProfileResponse>({
     id: session.id,
