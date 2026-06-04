@@ -1,48 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import localFont from "next/font/local";
 import "./globals.css";
 
-// Brand typefaces — Clarika Pro, self-hosted:
-//   Grotesque (--font-body)    — body / UI text everywhere.
-//   Geometric (--font-capital) — the DISPLAY face: headings + section display.
-// Numerals stay on Inter (--font-num, tabular-nums) so data columns line up —
-// the Clarika DEMO files have non-tabular digits + no `tnum`; once the licensed
-// Clarika files (with tabular figures) drop in, numerals can move to Grotesque.
-//
-// NOTE: these are Fontspring DEMO files (evaluation only, ~96 glyphs). They
-// cover A–Z/a–z/0–9 + basic punctuation; missing glyphs (curly quotes, em-dash,
-// accents) fall back to Inter. Replace src/app/fonts/* with the licensed
-// Clarika Pro files (same filenames) before release — this is the only spot the
-// web references the font files.
-const grotesque = localFont({
-  variable: "--font-body",
-  display: "swap",
-  src: [
-    { path: "./fonts/ClarikaProGrotesque-Regular.otf", weight: "400", style: "normal" },
-    { path: "./fonts/ClarikaProGrotesque-Medium.otf", weight: "500", style: "normal" },
-    { path: "./fonts/ClarikaProGrotesque-Demibold.otf", weight: "600", style: "normal" },
-    { path: "./fonts/ClarikaProGrotesque-Bold.otf", weight: "700", style: "normal" },
-  ],
-});
-
-const geometric = localFont({
-  variable: "--font-capital",
-  display: "swap",
-  src: [
-    { path: "./fonts/ClarikaProGeometric-Medium.otf", weight: "500", style: "normal" },
-    { path: "./fonts/ClarikaProGeometric-Bold.otf", weight: "700", style: "normal" },
-    { path: "./fonts/ClarikaProGeometric-Heavy.otf", weight: "800", style: "normal" },
-    { path: "./fonts/ClarikaProGeometric-Black.otf", weight: "900", style: "normal" },
-  ],
-});
-
-// Numerals only — tabular digits for tickers/balances (see note above).
-const interNum = Inter({
-  variable: "--font-num",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-});
+// The whole app uses the system font (SF Pro on Apple devices, the platform
+// system font elsewhere) via the system stack defined on `--font-system` in
+// globals.css — no bundled or Google-hosted typefaces. SF Pro renders natively
+// with built-in optical sizing + tabular figures, so headings, body, UI, and
+// numerals all share one font.
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://whoosh.business";
 
@@ -94,8 +57,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${grotesque.variable} ${geometric.variable} ${interNum.variable} antialiased`}
-      style={{ ["--font-heading" as string]: "var(--font-capital)" }}
+      className="antialiased"
     >
       {/* min-h-dvh (dynamic viewport height), not the old html.h-full + body
           min-h-full percentage chain: iOS Chrome computed those 100% heights

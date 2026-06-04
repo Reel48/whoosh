@@ -118,13 +118,18 @@
   --chart-gain: var(--color-forest-500); --chart-loss: var(--color-crimson-500);
   --focus-ring: 0 0 0 4px rgba(3, 129, 237, 0.25);
 
-  /* Type families. --font-display/--font-ui already declared below as the
-   * section-aware structural tokens; these add the Capital DS aliases so its
-   * component classes resolve outside an explicit override. */
+  /* Type families. The whole app uses ONE font: the system font (SF Pro on
+   * Apple devices; the platform system font elsewhere). It renders natively with
+   * optical sizing + tabular figures, so body, display, UI, and numerals all
+   * resolve to the same stack. No bundled/Google webfonts. */
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-body: var(--font-system);
+  --font-capital: var(--font-system);
+  --font-num: var(--font-system);
+  --font-heading: var(--font-system);
   --font-text: var(--font-body);
-  /* Numerals: Inter + tabular-nums so data columns align. Kept off the brand
-     body face because the Clarika DEMO digits aren't tabular; revisit once the
-     licensed Clarika (with `tnum`) replaces the demo files. */
+  /* Numerals use the system font + tabular-nums (applied by .num utilities). */
   --font-mono: var(--font-num);
 
   /* Font sizes / line-heights / tracking / weights */
@@ -175,7 +180,7 @@
    * so the marketing page and anything outside a [data-theme] scope is
    * unchanged. Each signed-in section overrides these to get its own feel.
    * ------------------------------------------------------------------- */
-  --font-display: var(--font-capital); /* heading / display typeface — Clarika Geometric everywhere */
+  --font-display: var(--font-capital); /* heading / display typeface (system font) */
   --font-ui: var(--font-body); /* body / UI typeface */
   --theme-border-width: 2px; /* current hard 2px borders */
   --theme-radius: 1.5rem; /* current rounded-3xl feel */
