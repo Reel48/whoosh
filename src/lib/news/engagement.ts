@@ -1,5 +1,13 @@
 import { supabase } from "@/lib/supabase";
-import type { Article, SportKey } from "@/lib/news/espn";
+import { NEWS_MAX_AGE_HOURS, type Article, type SportKey } from "@/lib/news/espn";
+
+/** Personal keeps live longer than the 72h news window — two weeks, then purged. */
+const MY_KEEPS_MAX_AGE_HOURS = 14 * 24;
+
+/** ISO timestamp `hours` in the past — the freshness cutoff for a query. */
+function cutoffIso(hours: number): string {
+  return new Date(Date.now() - hours * 3_600_000).toISOString();
+}
 
 /**
  * Server-only data access for the news swipe feature. Mirrors the watchlist lib
@@ -88,6 +96,7 @@ export async function getWhooshFeed(limit = 50): Promise<WhooshEntry[]> {
     .from("news_article")
     .select("espn_id, sport, title, description, link, author, image_url, pub_date, points")
     .gt("points", 0)
+    .gte("pub_date", cutoffIso(NEWS_MAX_AGE_HOURS))
     .order("points", { ascending: false })
     .order("updated_at", { ascending: false })
     .limit(limit);
@@ -114,6 +123,7 @@ export async function getMyKeptArticles(userId: string, limit = 50): Promise<Who
     )
     .eq("user_id", userId)
     .eq("direction", "right")
+    .gte("updated_at", cutoffIso(MY_KEEPS_MAX_AGE_HOURS))
     .order("updated_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(`getMyKeptArticles failed: ${error.message}`);
