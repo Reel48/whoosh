@@ -420,6 +420,33 @@ export async function uploadChatImage(
   return store.getPublicUrl(path).data.publicUrl;
 }
 
+/** Document MIME types accepted as chat file attachments (common office docs). */
+export const CHAT_FILE_MIME_TYPES = new Set([
+  "application/pdf",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/csv",
+  "text/plain",
+]);
+
+/** Upload a chat file attachment to the public `chat-files` bucket; returns its URL. */
+export async function uploadChatFile(
+  userId: string, bytes: Uint8Array, contentType: string, ext: string,
+): Promise<string> {
+  const safeExt = (ext || "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+  const path = `${userId}/${Date.now()}.${safeExt}`;
+  const store = chatDb().storage.from("chat-files");
+  const { error } = await store.upload(path, bytes, {
+    contentType: contentType || "application/octet-stream", upsert: false,
+  });
+  if (error) throw new ChatError("internal", `File upload failed: ${error.message}`);
+  return store.getPublicUrl(path).data.publicUrl;
+}
+
 // ── Admin role management ────────────────────────────────────────────────────
 export async function listChatRoles(): Promise<ChatRole[]> {
   const { data } = await chatDb().from("chat_role")
