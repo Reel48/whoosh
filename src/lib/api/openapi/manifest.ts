@@ -487,6 +487,18 @@ export const OPERATIONS: ApiOperation[] = [
     extraErrors: ["forbidden"],
   },
   {
+    method: "post",
+    path: "/api/v1/chat/messages/{messageId}/vote",
+    capability: "chat",
+    operationId: "voteChatPoll",
+    summary: "Toggle a poll vote; returns updated counts + the viewer's selections.",
+    auth: "bearer",
+    requestType: "ChatPollVoteRequest",
+    responseType: "ChatPollVoteResponse",
+    pathParams: ["messageId"],
+    extraErrors: ["forbidden", "not_found"],
+  },
+  {
     method: "patch",
     path: "/api/v1/chat/messages/{messageId}",
     capability: "chat",
