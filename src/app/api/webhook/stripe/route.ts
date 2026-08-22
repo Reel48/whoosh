@@ -9,6 +9,7 @@ import { creditCheckoutSession, creditInvoicePremiumMatch } from "@/lib/wb/strip
 import { pendingReferralFor, markReferralRewarded } from "@/lib/wb/referrals";
 import { pushNotification } from "@/lib/wb/notifications";
 import { assignEntitlement } from "@/lib/fantasy/entitlements";
+import { readPoolSession, recordPoolPurchase } from "@/lib/fantasy/poolEntry";
 
 // Both parties get this when a referred user converts to Premium.
 const REFERRAL_REWARD_WB_CENTS = 5000; // $50 WB
@@ -98,6 +99,30 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        // Anonymous pool buy-in from the /join landing page. Handled before the
+        // user_id guard below — these sessions have no Whoosh account behind
+        // them by design, just an email. Record-only: the invite links are
+        // handed over on the success page, and there's no wallet to credit.
+        if (session.metadata?.kind === "pool_entry") {
+          const purchase = readPoolSession(session);
+          if (!purchase) {
+            console.warn("pool_entry checkout missing group_keys/season", session.id);
+            break;
+          }
+          const paymentIntentId =
+            typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : session.payment_intent?.id ?? null;
+          await recordPoolPurchase({
+            purchase,
+            amountCents: session.amount_total ?? 0,
+            stripeSessionId: session.id,
+            stripePaymentIntentId: paymentIntentId,
+          });
+          break;
+        }
+
         const userId = session.metadata?.user_id ?? session.metadata?.discord_user_id;
         if (!userId) {
           console.warn("checkout.session.completed without user_id metadata", session.id);

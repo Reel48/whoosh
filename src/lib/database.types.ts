@@ -313,12 +313,15 @@ export type Database = {
         Row: {
           body: string
           body_tsv: unknown
+          boost_count: number
           channel_id: number
           created_at: string
+          data: Json | null
           deleted_at: string | null
           edited_at: string | null
           id: number
           image_url: string | null
+          kind: string
           reply_to_id: number | null
           star_count: number
           user_id: string
@@ -326,12 +329,15 @@ export type Database = {
         Insert: {
           body?: string
           body_tsv?: unknown
+          boost_count?: number
           channel_id: number
           created_at?: string
+          data?: Json | null
           deleted_at?: string | null
           edited_at?: string | null
           id?: never
           image_url?: string | null
+          kind?: string
           reply_to_id?: number | null
           star_count?: number
           user_id: string
@@ -339,12 +345,15 @@ export type Database = {
         Update: {
           body?: string
           body_tsv?: unknown
+          boost_count?: number
           channel_id?: number
           created_at?: string
+          data?: Json | null
           deleted_at?: string | null
           edited_at?: string | null
           id?: never
           image_url?: string | null
+          kind?: string
           reply_to_id?: number | null
           star_count?: number
           user_id?: string
@@ -360,6 +369,35 @@ export type Database = {
           {
             foreignKeyName: "chat_message_reply_to_id_fkey"
             columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "chat_message"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_poll_vote: {
+        Row: {
+          created_at: string
+          message_id: number
+          option_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          message_id: number
+          option_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          message_id?: number
+          option_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_poll_vote_message_id_fkey"
+            columns: ["message_id"]
             isOneToOne: false
             referencedRelation: "chat_message"
             referencedColumns: ["id"]
@@ -986,6 +1024,42 @@ export type Database = {
           },
         ]
       }
+      pool_entry_purchase: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          email: string | null
+          group_keys: string[]
+          id: string
+          offer: string
+          season: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          email?: string | null
+          group_keys: string[]
+          id?: string
+          offer: string
+          season: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          email?: string | null
+          group_keys?: string[]
+          id?: string
+          offer?: string
+          season?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string
+        }
+        Relationships: []
+      }
       profile: {
         Row: {
           avatar_url: string | null
@@ -1096,6 +1170,35 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "wallet"
             referencedColumns: ["discord_user_id"]
+          },
+        ]
+      }
+      starboard_boost: {
+        Row: {
+          created_at: string
+          direction: string
+          message_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          message_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          message_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "starboard_boost_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_message"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1365,6 +1468,21 @@ export type Database = {
           },
         ]
       }
+      welcome_post: {
+        Row: {
+          posted_at: string
+          user_id: string
+        }
+        Insert: {
+          posted_at?: string
+          user_id: string
+        }
+        Update: {
+          posted_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       wallet_balance: {
@@ -1450,6 +1568,10 @@ export type Database = {
       }
       delete_news_swipe: {
         Args: { p_espn_id: string; p_user: string }
+        Returns: number
+      }
+      delete_starboard_boost: {
+        Args: { p_message: number; p_user: string }
         Returns: number
       }
       edit_chat_message: {
@@ -1622,6 +1744,7 @@ export type Database = {
         }[]
       }
       fn_wb_total_supply: { Args: never; Returns: number }
+      get_giphy_key: { Args: never; Returns: string }
       get_or_create_dm: {
         Args: { p_other: string; p_user: string }
         Returns: number
@@ -1640,12 +1763,18 @@ export type Database = {
         }
         Returns: number
       }
+      post_welcome_message: { Args: { p_user: string }; Returns: number }
+      purge_stale_news: { Args: never; Returns: undefined }
       reconcile_chat_roles: {
         Args: { p_is_premium: boolean; p_user: string }
         Returns: undefined
       }
       record_news_swipe: {
         Args: { p_article: Json; p_direction: string; p_user: string }
+        Returns: number
+      }
+      record_starboard_boost: {
+        Args: { p_direction: string; p_message: number; p_user: string }
         Returns: number
       }
       remove_chat_role: {
@@ -1666,12 +1795,15 @@ export type Database = {
         Returns: {
           body: string
           body_tsv: unknown
+          boost_count: number
           channel_id: number
           created_at: string
+          data: Json | null
           deleted_at: string | null
           edited_at: string | null
           id: number
           image_url: string | null
+          kind: string
           reply_to_id: number | null
           star_count: number
           user_id: string
@@ -1687,7 +1819,9 @@ export type Database = {
         Args: {
           p_body: string
           p_channel: number
+          p_data?: Json
           p_image_url: string
+          p_kind?: string
           p_reply_to: number
           p_user: string
         }
@@ -1706,6 +1840,18 @@ export type Database = {
           p_user: string
         }
         Returns: number
+      }
+      vote_chat_poll: {
+        Args: {
+          p_message: number
+          p_on: boolean
+          p_option: string
+          p_user: string
+        }
+        Returns: {
+          counts: Json
+          mine: string[]
+        }[]
       }
     }
     Enums: {
