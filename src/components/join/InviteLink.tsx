@@ -7,7 +7,17 @@ import { useState } from "react";
  * because the invite is the only thing they walk away with, and plenty of
  * people will want to paste it into their phone rather than open it here.
  */
-export function InviteLink({ name, joinUrl }: { name: string; joinUrl: string }) {
+export function InviteLink({
+  name,
+  joinUrl,
+  step,
+}: {
+  name: string;
+  joinUrl: string;
+  /** "Invite 1 of 2" — shown when a purchase covers more than one pool, so
+   *  nobody walks off after the first card thinking that was the whole order. */
+  step?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -23,6 +33,11 @@ export function InviteLink({ name, joinUrl }: { name: string; joinUrl: string })
 
   return (
     <div className="rounded-3xl border-2 border-ink bg-white p-6 sm:p-7">
+      {step && (
+        <span className="mb-3 inline-block rounded-full border-2 border-ink bg-lime px-3 py-1 text-xs font-bold uppercase tracking-[0.15em]">
+          {step}
+        </span>
+      )}
       <h3 className="font-heading text-2xl font-black tracking-tight">{name}</h3>
       <p className="mt-3 break-all rounded-2xl border-2 border-ink bg-white-smoke px-4 py-3 font-mono text-sm">
         {joinUrl}

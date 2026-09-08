@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Bolt } from "@/components/Bolt";
 import { listPoolOffers, formatUsd, BUNDLE_OFFER, type PoolOffer } from "@/lib/fantasy/poolEntry";
 import { startPoolCheckoutAction } from "./actions";
@@ -162,6 +163,13 @@ export default async function JoinPage({
             <p className="mt-8 text-center text-sm font-medium text-ink/60">
               Entry fees are one-time and cover the full {season}{" "}
               season. You&rsquo;ll need a free Sleeper account to make your picks.
+            </p>
+            <p className="mt-3 text-center text-sm font-medium text-ink/60">
+              Already paid but lost your invite?{" "}
+              <Link href="/join/recover" className="font-bold underline">
+                Find your invites
+              </Link>
+              .
             </p>
           </div>
         </section>

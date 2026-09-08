@@ -2,7 +2,9 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
 import { Bolt } from "@/components/Bolt";
+import Link from "next/link";
 import { InviteLink } from "@/components/join/InviteLink";
+import { CopyAllLinks } from "@/components/join/CopyAllLinks";
 import {
   getPoolInvites,
   readPoolSession,
@@ -87,9 +89,11 @@ export default async function JoinCompletePage({
               {paid ? "You’re in." : "Hang tight."}
             </h1>
             <p className="mx-auto mt-5 max-w-md text-lg font-medium leading-relaxed text-ink/80">
-              {paid && invites.length > 0
-                ? "Tap your invite below to claim your spot on Sleeper. That’s where you make your picks all season."
-                : "We haven’t been able to confirm this payment yet. Refresh in a moment — nothing else is needed from you."}
+              {paid && invites.length > 1
+                ? `You’ve got ${invites.length} invites below — one per pool. Claim both on Sleeper; that’s where you make your picks all season.`
+                : paid && invites.length > 0
+                  ? "Tap your invite below to claim your spot on Sleeper. That’s where you make your picks all season."
+                  : "We haven’t been able to confirm this payment yet. Refresh in a moment — nothing else is needed from you."}
             </p>
             {email && (
               <p className="mt-4 text-sm font-medium text-ink/60">
@@ -104,15 +108,36 @@ export default async function JoinCompletePage({
             {invites.length > 0 ? (
               <>
                 <div className="grid gap-6">
-                  {invites.map((i) => (
-                    <InviteLink key={i.joinUrl} name={i.name} joinUrl={i.joinUrl} />
+                  {invites.map((i, idx) => (
+                    <InviteLink
+                      key={i.joinUrl}
+                      name={i.name}
+                      joinUrl={i.joinUrl}
+                      step={invites.length > 1 ? `Invite ${idx + 1} of ${invites.length}` : undefined}
+                    />
                   ))}
                 </div>
+                {invites.length > 1 && <CopyAllLinks invites={invites} />}
                 <div className="mt-8 rounded-3xl border-2 border-ink bg-white p-6">
-                  <h2 className="font-heading text-xl font-bold">Before you close this tab</h2>
+                  <h2 className="font-heading text-xl font-bold">Before you open Sleeper</h2>
                   <ul className="mt-3 space-y-2 text-base font-medium leading-relaxed text-ink/75">
+                    {invites.length > 1 && (
+                      <li>
+                        · Opening Sleeper can close this page in some apps — copy{" "}
+                        {invites.length === 2 ? "both" : "all"} links first, or come back for the
+                        rest.
+                      </li>
+                    )}
                     <li>
-                      · Bookmark this page — it stays live, so your invite link is always here.
+                      · Bookmark this page — it stays live, so your invite{" "}
+                      {invites.length > 1 ? "links are" : "link is"} always here.
+                    </li>
+                    <li>
+                      · Lost it anyway? Enter the email you paid with at{" "}
+                      <Link href="/join/recover" className="font-bold underline">
+                        whoosh.business/join/recover
+                      </Link>
+                      .
                     </li>
                     <li>· You&rsquo;ll need a free Sleeper account to accept the invite.</li>
                     <li>· Get your first picks in before kickoff of the opening week.</li>

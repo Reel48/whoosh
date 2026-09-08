@@ -4,11 +4,23 @@ import type { FantasyLeagueConfig } from "./leagues";
 
 const listActiveLeagues = vi.fn<() => Promise<FantasyLeagueConfig[]>>();
 vi.mock("./leagues", () => ({ listActiveLeagues: () => listActiveLeagues() }));
-vi.mock("@/lib/supabase", () => ({ supabase: () => { throw new Error("not used"); } }));
+// pool_entry_purchase rows returned by the (only) query the module makes
+// through supabase(): from("pool_entry_purchase").select(...).ilike(...).
+const purchaseRows = vi.fn<() => { data: unknown[]; error: null | { message: string } }>();
+vi.mock("@/lib/supabase", () => ({
+  supabase: () => ({
+    from: () => ({ select: () => ({ ilike: async () => purchaseRows() }) }),
+  }),
+}));
 
-const { listPoolOffers, getPoolInvites, readPoolSession, formatUsd, BUNDLE_OFFER } = await import(
-  "./poolEntry"
-);
+const {
+  listPoolOffers,
+  getPoolInvites,
+  getPoolInvitesForEmail,
+  readPoolSession,
+  formatUsd,
+  BUNDLE_OFFER,
+} = await import("./poolEntry");
 
 function league(over: Partial<FantasyLeagueConfig>): FantasyLeagueConfig {
   return {
@@ -38,7 +50,10 @@ const SURVIVOR = league({
   joinUrl: "https://sleeper.com/i/survivor",
 });
 
-beforeEach(() => listActiveLeagues.mockReset());
+beforeEach(() => {
+  listActiveLeagues.mockReset();
+  purchaseRows.mockReset();
+});
 
 describe("listPoolOffers", () => {
   it("offers each pool plus a bundle covering both", async () => {
@@ -76,6 +91,46 @@ describe("getPoolInvites", () => {
   it("never leaks an invite from another season", async () => {
     listActiveLeagues.mockResolvedValue([PICKEM, SURVIVOR]);
     expect(await getPoolInvites(["pickem"], "2025")).toEqual([]);
+  });
+});
+
+describe("getPoolInvitesForEmail", () => {
+  it("returns both invites for a bundle purchase", async () => {
+    listActiveLeagues.mockResolvedValue([PICKEM, SURVIVOR]);
+    purchaseRows.mockReturnValue({
+      data: [{ group_keys: ["pickem", "survivor"], season: "2026" }],
+      error: null,
+    });
+    const invites = await getPoolInvitesForEmail("Buyer@Example.com ");
+    expect(invites.map((i) => i.joinUrl)).toEqual([
+      "https://sleeper.com/i/pickem",
+      "https://sleeper.com/i/survivor",
+    ]);
+  });
+
+  it("unions separate purchases and dedupes overlapping ones", async () => {
+    listActiveLeagues.mockResolvedValue([PICKEM, SURVIVOR]);
+    purchaseRows.mockReturnValue({
+      data: [
+        { group_keys: ["survivor"], season: "2026" },
+        { group_keys: ["pickem", "survivor"], season: "2026" },
+      ],
+      error: null,
+    });
+    const invites = await getPoolInvitesForEmail("buyer@example.com");
+    expect(invites.map((i) => i.kind).sort()).toEqual(["pickem", "survivor"]);
+  });
+
+  it("returns nothing for a blank email or an email with no purchases", async () => {
+    listActiveLeagues.mockResolvedValue([PICKEM, SURVIVOR]);
+    purchaseRows.mockReturnValue({ data: [], error: null });
+    expect(await getPoolInvitesForEmail("   ")).toEqual([]);
+    expect(await getPoolInvitesForEmail("nobody@example.com")).toEqual([]);
+  });
+
+  it("surfaces a database error instead of swallowing it", async () => {
+    purchaseRows.mockReturnValue({ data: [], error: { message: "boom" } });
+    await expect(getPoolInvitesForEmail("buyer@example.com")).rejects.toThrow(/boom/);
   });
 });
 

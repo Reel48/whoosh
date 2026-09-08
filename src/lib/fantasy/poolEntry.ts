@@ -121,6 +121,38 @@ export async function getPoolInvites(
     }));
 }
 
+/**
+ * Every invite a buyer has paid for, looked up by the email Stripe collected.
+ * Backs `/join/recover` — the page a buyer lands on after losing the success
+ * tab (opening the first Sleeper invite in an in-app browser often closes it).
+ * Unions `group_keys` across all of that email's paid purchases so someone who
+ * bought Pick 'Em and Survivor separately gets both invites back too.
+ */
+export async function getPoolInvitesForEmail(email: string): Promise<PoolInvite[]> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return [];
+  const { data, error } = await supabase()
+    .from("pool_entry_purchase")
+    .select("group_keys, season")
+    .ilike("email", normalized);
+  if (error) throw new Error(`getPoolInvitesForEmail failed: ${error.message}`);
+
+  const keysBySeason = new Map<string, Set<string>>();
+  for (const row of data ?? []) {
+    const set = keysBySeason.get(row.season) ?? new Set<string>();
+    for (const k of row.group_keys ?? []) set.add(k);
+    keysBySeason.set(row.season, set);
+  }
+
+  const invites: PoolInvite[] = [];
+  for (const [season, keys] of keysBySeason) {
+    invites.push(...(await getPoolInvites([...keys], season)));
+  }
+  // One card per Sleeper league, even if several purchases cover it.
+  const seen = new Set<string>();
+  return invites.filter((i) => (seen.has(i.joinUrl) ? false : (seen.add(i.joinUrl), true)));
+}
+
 function siteOrigin(h: Headers): string {
   const host = h.get("host") ?? "localhost:3000";
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
@@ -169,7 +201,12 @@ export async function createPoolEntryCheckoutUrl(offerId: string): Promise<strin
     success_url: `${origin}/join/complete?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/join`,
     metadata,
-    payment_intent_data: { metadata },
+    payment_intent_data: {
+      metadata,
+      // Shows on the Stripe receipt — the one durable thing a buyer keeps if
+      // they lose the success tab before opening both invites.
+      description: `${offer.name} — ${offer.season} entry. Lost your Sleeper invite? ${origin}/join/recover`,
+    },
   });
 
   if (!session.url) throw new Error("Stripe did not return a Checkout URL.");
